@@ -129,5 +129,6 @@ def hub(Q_in, Q_out, Q_err):
 
 
 if __name__ == '__main__':
+    print('doctest:')
     import doctest
     doctest.testmod()

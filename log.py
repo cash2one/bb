@@ -4,13 +4,27 @@
 """
 >>> q0 = queue.Queue()
 >>> q2 = queue.Queue()
->>> q2.put(('log', 1, 'dead', 1, 2, 3))
->>> q2.put(('read', 1))
->>> q2.put(('write', 1, 't', 42))
+>>> pid = 2
+>>> q2.put(('log', pid, 'dead', 1, 2, 3))
+>>> q2.put(('read', pid))
+>>> q2.put(('write', pid, 't', 42))
 >>> q2.put(None)
 >>> log(q0, q2)
->>> i, v = q0.get()
->>> i == 1
+
+>>> k, i, v, a = q0.get()
+>>> k == '_log'
+True
+>>> i == pid
+True
+>>> v == 'dead'
+True
+>>> a == (1, 2, 3)
+True
+
+>>> k, i, v = q0.get()
+>>> k == '_res'
+True
+>>> i == pid
 True
 >>> isinstance(v, dict)
 True
@@ -53,7 +67,8 @@ def log(Q_in, Q_err):
     from json import dump, load
 
     def log(i, k, *args):
-        logging.debug("%d, %s, %r" % (i, k, args))
+        #logging.debug("%d, %s, %r" % (i, k, args))
+        Q_in.put(('_log', i, k, args))
 
     def read(i):
         home = str(i)
@@ -63,7 +78,7 @@ def log(Q_in, Q_err):
         for k in os.listdir(home):
             with open("%s/%s" % (home, k)) as f:
                 source[k] = load(f)
-        Q_in.put((i, source))
+        Q_in.put(('_res', i, source))
 
     def write(i, k, v):
         with open("%s/%s" % (i, k), 'w') as f:
@@ -93,6 +108,7 @@ def log(Q_in, Q_err):
 
 
 if __name__ == '__main__':
+    print('doctest:')
     import doctest
     doctest.testmod()
 
