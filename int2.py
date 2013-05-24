@@ -111,9 +111,6 @@ class Skeleton(collections.defaultdict):
     def _foobar(self):
         return collections.Counter()
 
-def log(*args):
-    #Q_err.put(args)
-    logging.debug(args)
 
 
 class I(Body):
@@ -165,11 +162,12 @@ class I(Body):
             self[k] = wrap(v) if wrap else v
 
     def save(self, k):
-        log('write', int(self), k, self[k])
+        return 'write', int(self), k, self[k]
 
+    # in Python 3.3 you can use "yield from"
     def save_all(self):
         for k in self:
-            self.save(k)
+            yield self.save(k)
 
     @staticmethod
     def _wrap_foobar(value):

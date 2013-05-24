@@ -5,22 +5,24 @@
 >>> q0 = queue.Queue()
 >>> q1 = queue.Queue()
 >>> q2 = queue.Queue()
->>> q0.put((1, 0, b'1'))
->>> q0.put((1, 'lv', (42, 'qu')))
->>> q0.put((1, {}))
+>>> pid = 3
+>>> q0.put(('ping', pid, 64))
+>>> q0.put(('_log', pid, 'lv', (42, 'qu')))
+>>> q0.put(('_res', pid, {}))
 >>> q0.put(None)
 >>> hub(q0, q1, q2)
 
->>> q1.get() == (1, 65535, b'1')
+>>> q1.get() == ('pong', pid, 64 + 1)
 True
->>> q1.get() == (0, 0, b'1')
+>>> q2.get() == ('log', pid, 'example_log', 1, 2, 3)
 True
->>> q1.get() == (0, 0, b'2')
+>>> q2.get() == ('read', pid)
 True
->>> q2.get() == ('log', 1, 'example', 1, 2, 3)
+>>> q2.get() == ('write', pid, 'some_key', ['this', 'is', 'a', 'list'])
 True
->>> q2.get() == None
+>>> q2.get() is None 
 True
+
 >>> q0.qsize(), q1.qsize(), q2.qsize()
 (0, 0, 0)
 
@@ -44,28 +46,25 @@ logging.basicConfig(level=logging.DEBUG,
                    )
 
 
-# config, sync with client
-_aliases = {
-    'foo': 0,
-    'bar': 65535,
-}
 
 _processes = {
-    #0: process_example,
+    #'foo': process_message_foo,
+    #'ping': process_message_ping,
     # ...
 }
 
-def handle_input(alias):
-    def reg(func):
-        _processes[_aliases[alias]] = func
-        return func
+def handle_input(signal):
+    def reg(generator_function):
+        _processes[signal] = generator_function
+        return generator_function
     return reg
 
-@handle_input('foo')
+@handle_input('ping')
 def process_example(i, obj):
-    yield 'send', i, 'bar', obj
-    yield 'log', i, 'example', 1, 2, 3
-
+    yield 'send', 'pong', i, obj + 1
+    yield 'log', i, 'example_log', 1, 2, 3
+    yield 'read', i
+    yield 'write', i, 'some_key', ['this', 'is', 'a', 'list']
 
 
 def hub(Q_in, Q_out, Q_err):
@@ -75,35 +74,26 @@ def hub(Q_in, Q_out, Q_err):
     signal.signal(signal.SIGTERM, not_be_terminated)
 
     # None: shutdown
-    # (int, int, bytes): process request from client
-    # (int, str, ...): process log event came from log system
-    # (int, dict): process result came from log system
+    # (signal, int, bytes): process request from Q_in
 
-    from json import dumps, loads
     my_filter = functools.partial(filter, None)
-    valid = tuple   # or list
 
     processes = _processes
-    aliases = _aliases
 
-    def proc_request(i, k, b):
-        return processes[k](i, loads(b.decode()))
+    def proc_log_echo(*args):
+        logging.debug("proc_log_echo: %r", args)
+        yield
 
-    def proc_event(i, e, *args):
-        yield 'send', 0, 'foo', 1
+    def proc_res_echo(*args):
+        logging.debug("proc_res_echo: %r", args)
+        yield
 
-    def proc_source(i, d):
-        yield 'send', 0, 'foo', 2
+    processes['_log'] = proc_log_echo
+    processes['_res'] = proc_res_echo
 
-    # must be generator
-    consumers = {
-        int: proc_request,
-        str: proc_event,
-        dict: proc_source,
-    }
 
-    def send(_, i, k, obj):
-        Q_out.put((i, aliases[k], dumps(obj).encode()))
+    def send(_, k, i, obj):
+        Q_out.put((k, i, obj))
 
     def log(*args):
         Q_err.put(args)
@@ -118,7 +108,6 @@ def hub(Q_in, Q_out, Q_err):
     while True:
         try:
             v = Q_in.get()
-            logging.debug(v)
         except Exception as e:
             logging.error(e)
             continue
@@ -128,17 +117,15 @@ def hub(Q_in, Q_out, Q_err):
             Q_err.put(None)
             break
 
-        if v.__class__ is valid:
-            try:
-                foods = my_filter(consumers[v[1].__class__](*v))
-                #foods = list(foods)   # optional
-                for f in foods:
-                    productors[f[0]](*f)
-            except Exception:
-                logging.exception('!!!')
+        try:
+            foods = my_filter(processes[v[0]](*v[1:]))
+            #foods = list(foods)   # optional
+            for f in foods:
+                #logging.debug(f)
+                productors[f[0]](*f)
+        except Exception:
+            logging.exception('!!!')
 
-        else:
-            logging.warning(v)
 
 
 if __name__ == '__main__':
