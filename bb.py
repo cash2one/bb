@@ -5,8 +5,7 @@ from __future__ import division, print_function, unicode_literals
 
 # This is bb server
 """
-          /<----------------\
-   /--->Q0--->\              \
+   /--->Q0--->\
 Web            Hub --->Q2---> Log
    \<---Q1<---/
 

@@ -41,7 +41,7 @@ class Body(int):
     >>> i = Body(1)
     >>> i
     1
-    >>> isinstance(i.my, dict)
+    >>> isinstance(i._, dict)
     True
     >>> i.m = 1
     >>> i.m == i['m'] == 1
@@ -59,28 +59,28 @@ class Body(int):
 
     def __init__(self, n=0):
         i = int(n)
-        my = self._factory()
-        object.__setattr__(self, 'my', my)
+        _ = self._factory()
+        object.__setattr__(self, '_', _)
         self.init()
 
     def init(self):
         pass
 
     def __setitem__(self, k, v):
-        self.my[k] = v
+        self._[k] = v
 
     def __getitem__(self, k):
-        return self.my[k]
+        return self._[k]
 
     def __setattr__(self, k, v):
-        self.my[k] = v
+        self._[k] = v
 
     def __getattr__(self, k):
-        return self.my[k]
+        return self._[k]
 
     # see: reference/datamodel.html#object.__contains__
     def __iter__(self):
-        return iter(self.my)
+        return iter(self._)
 
 
 class Skeleton(collections.defaultdict):
@@ -114,27 +114,22 @@ class Skeleton(collections.defaultdict):
 
 
 class I(Body):
-    """Implementation definite 
-
-    init() and save(): use json, depend on locale file system
+    """Implementation
 
     >>> i = I(1)
-    >>> isinstance(i.my, Skeleton)
+    >>> isinstance(i._, Skeleton)
     True
     >>> isinstance(i.foo, int) and i.foo == 5
     True
     >>> isinstance(i.foobar, collections.Counter)
     True
-    >>> if os.path.exists("1/foobar"):
-    ...     i.foobar[1]
-    ... else:
-    ...     42
-    42
     >>> i.foobar[1] = 42
-    >>> i.save_all()
-    >>> os.path.exists("1/foo")
+    >>> i.save('foo') == ('write', 1, 'foo', 5)
     True
-    >>> os.path.exists("1/foobar")
+    >>> list(i.save_all()) == [
+    ...     ('write', 1, 'foobar', {1: 42}),
+    ...     ('write', 1, 'foo', 5),
+    ... ]
     True
 
     """
@@ -143,17 +138,8 @@ class I(Body):
 
     # use some source, summon a life(or a monster? haha)
     def init(self):
-        log('read', int(self))
-
+        pass
         # debug
-        home = str(self)
-        if not os.path.exists(home):
-            os.mkdir(home)
-        source = {}
-        for k in os.listdir(home):
-            with open("%s/%s" % (home, k)) as f:
-                source[k] = json.load(f)
-        self.summon(source)
         # debug
 
     def summon(self, source):
@@ -164,7 +150,7 @@ class I(Body):
     def save(self, k):
         return 'write', int(self), k, self[k]
 
-    # in Python 3.3 you can use "yield from"
+    # in Python 3.3 or above, use "yield from"
     def save_all(self):
         for k in self:
             yield self.save(k)
@@ -176,5 +162,6 @@ class I(Body):
 
 
 if __name__ == '__main__':
+    print('doctest:')
     import doctest
     doctest.testmod()
