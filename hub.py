@@ -5,20 +5,12 @@
 >>> q0 = queue.Queue()
 >>> q1 = queue.Queue()
 >>> q2 = queue.Queue()
->>> pid = 3
->>> q0.put(('ping', pid, 64))
->>> q0.put(('_log', pid, 'lv', (42, 'qu')))
->>> q0.put(('_res', pid, {}))
+>>> i = 3
+>>> q0.put((i, "ping", b'64'))
 >>> q0.put(None)
 >>> hub(q0, q1, q2)
 
->>> q1.get() == ('pong', pid, 64 + 1)
-True
->>> q2.get() == ('log', pid, 'example_log', 1, 2, 3)
-True
->>> q2.get() == ('read', pid)
-True
->>> q2.get() == ('write', pid, 'some_key', ['this', 'is', 'a', 'list'])
+>>> q1.get() == (i, "pong", b'65')
 True
 >>> q2.get() is None 
 True
@@ -61,10 +53,8 @@ def handle_input(signal):
 
 @handle_input('ping')
 def process_example(i, obj):
-    yield 'send', 'pong', i, obj + 1
-    yield 'log', i, 'example_log', 1, 2, 3
-    yield 'read', i
-    yield 'write', i, 'some_key', ['this', 'is', 'a', 'list']
+    yield "out", i, "pong", obj + 1
+    #yield 'log', i, 'example_log', 1, 2, 3
 
 
 def hub(Q_in, Q_out, Q_err):
@@ -80,29 +70,17 @@ def hub(Q_in, Q_out, Q_err):
 
     processes = _processes
 
-    def proc_log_echo(*args):
-        logging.debug("proc_log_echo: %r", args)
-        yield
+    from json import dumps, loads
 
-    def proc_res_echo(*args):
-        logging.debug("proc_res_echo: %r", args)
-        yield
+    def out(_, i, k, obj):
+        Q_out.put((i, k, dumps(obj).encode()))
 
-    processes['_log'] = proc_log_echo
-    processes['_res'] = proc_res_echo
-
-
-    def send(_, k, i, obj):
-        Q_out.put((k, i, obj))
-
-    def log(*args):
+    def err(*args):
         Q_err.put(args)
 
     productors = {
-        'send': send,
-        'log': log,
-        'read': log,
-        'write': log,
+        "out": out,
+        "err": err,
     }
 
     while True:
@@ -118,17 +96,15 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            foods = my_filter(processes[v[0]](*v[1:]))
-            #foods = list(foods)   # optional
+            foods = my_filter(processes[v[1]](v[0], loads(v[2].decode()))) #;foods = list(foods)   # optional
             for f in foods:
-                #logging.debug(f)
                 productors[f[0]](*f)
         except Exception:
-            logging.exception('!!!')
+            logging.exception("!!!")
 
 
 
-if __name__ == '__main__':
-    print('doctest:')
+if __name__ == "__main__":
+    print("doctest:")
     import doctest
     doctest.testmod()

@@ -157,7 +157,9 @@ class I(Body):
 
     @staticmethod
     def _wrap_foobar(value):
-        return collections.Counter({int(k): v for k, v in value.items()})
+        return collections.Counter(
+            {int(k) if k.isdigit() else k: v for k, v in value.items()}
+            )
 
 
 

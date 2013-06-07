@@ -48,30 +48,32 @@ def main():
     io_loop = ioloop.IOLoop.instance()
 
     class Connection(object):
-        def __init__(self, stream, address, pid):
+        def __init__(self, stream, address, i):
             self.stream = stream
-            self.pid = pid
-            logging.info("%s in", self.pid)
-            self.stream.read_until(b'\n', self.msg)
+            self.i = i
+            logging.info("%s in", self.i)
             self.stream.set_close_callback(self.close)
+            self.stream.read_until(b'\n', self.msg)
 
-        def msg(self, data):
-            Q0.put((self.pid, 0, data))
+        def msg(self, chunk):
+            Q0.put((self.i, "ping", chunk if chunk.strip().isdigit() else b'0'))
             self.stream.read_until(b'\n', self.msg)
 
         def close(self):
             self.stream.close()
-            Q0.put((self.pid, 0, b'2'))
-            logging.info("%s out", self.pid)
+            logging.info("%s out", self.i)
 
     import sys
     import weakref
     staffs = weakref.WeakValueDictionary()
 
+    pid_index = 0
+
     class BBServer(TCPServer):
         def handle_stream(self, stream, address):
-            pid = 1 #time.time()
-            staffs[pid] = Connection(stream, address, pid)
+            nonlocal pid_index
+            pid_index += 1
+            staffs[pid_index] = Connection(stream, address, pid_index)
 
     # SIGTERM
     import signal
@@ -81,28 +83,26 @@ def main():
         io_loop.stop()
     signal.signal(signal.SIGTERM, term)
 
-    server = BBServer()
-    server.listen(8000)
-
-    def msg(fd, event):
-        pid, i, data = Q1.get()
-        stream = staffs[pid].stream
-        if not stream.closed():
-            stream.write(data)
-    io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
-
     def debug():
         ks = list(staffs.keys())
         print(len(ks), ks, list(map(sys.getrefcount, map(lambda k: staffs[k], ks))))
     #ioloop.PeriodicCallback(debug, 1000).start()
 
-    io_loop.start()
+    def msg(fd, event):
+        i, cmd, data = Q1.get()
+        stream = staffs[i].stream
+        if not stream.closed():
+            stream.write(bytes(data))
+    io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
-    # looping...
+    server = BBServer()
+    server.listen(8000)
+
+    io_loop.start() # looping...
 
     hub.join()
     log.join()
-    logging.debug("sub-processes are exited")
+    logging.debug("all sub-processes are exited")
     logging.debug("before clean Queues: %d, %d, %d",
                   Q0.qsize(), Q1.qsize(), Q2.qsize())
     while not Q0.empty():
@@ -118,5 +118,5 @@ def main():
 
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
