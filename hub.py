@@ -95,10 +95,11 @@ def hub(Q_in, Q_out, Q_err):
     instrs = _instructions
 
     from json import dumps, loads
-    separators = (",", ":")
+    dumps = functools.partial(dumps, separators = (",", ":"))
+                              #sort_keys=True, indent=4)
 
     def send(_, i, k, obj):
-        Q_out.put((i, instrs[k], dumps(obj, separators=separators).encode()))
+        Q_out.put((i, instrs[k], dumps(obj).encode()))
 
     def err(*args):
         Q_err.put(args)

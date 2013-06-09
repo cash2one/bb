@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s:%(levelname)s:%(message)s",
                    )
 
-def main():
+def main(port, backstage):
     import time
     import multiprocessing
     Q0 = multiprocessing.Queue()
@@ -101,7 +101,7 @@ def main():
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
     server = BBServer()
-    server.listen(8000)
+    server.listen(port)
 
     # web interface
     from objgraph import most_common_types
@@ -124,12 +124,13 @@ def main():
 
     web.Application([
         (r"/", MainHandler),
-    ]).listen(8100)
+    ]).listen(backstage)
 
     import gc
+    gc.collect()
     gc.disable()
 
-    io_loop.start() # looping...
+    io_loop.start()   # looping...
 
     hub.join()
     log.join()
@@ -150,4 +151,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    from tornado.options import define, options, parse_command_line
+    define("port", default=8000, type=int, help="main port(TCP)")
+    define("backstage", default=8100, type=int, help="backstage port(HTTP)")
+    define("leader", default="localhost:80", type=str, help="central controller")
+    parse_command_line()
+
+    main(options.port, options.backstage)

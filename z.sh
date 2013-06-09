@@ -15,3 +15,5 @@ do
     echo -n "${json_body}"
 done
 
+sleep ${1:-1}
+
