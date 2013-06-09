@@ -11,10 +11,7 @@ Web            Hub --->Q2---> Log
 
 """
 
-import gc
 import logging
-import multiprocessing
-import time
 
 try:
     import queue
@@ -23,13 +20,14 @@ except ImportError:
     import Queue as queue
 
 
-gc.disable()
 
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s:%(levelname)s:%(message)s",
                    )
 
 def main():
+    import time
+    import multiprocessing
     Q0 = multiprocessing.Queue()
     Q1 = multiprocessing.Queue()
     Q2 = multiprocessing.Queue()
@@ -43,6 +41,7 @@ def main():
 
 
     # main from here
+    from struct import pack, unpack
     from tornado import ioloop
     from tornado.tcpserver import TCPServer
     io_loop = ioloop.IOLoop.instance()
@@ -53,11 +52,17 @@ def main():
             self.i = i
             logging.info("%s in", self.i)
             self.stream.set_close_callback(self.close)
-            self.stream.read_until(b'\n', self.msg)
+            self.stream.read_bytes(4, self.msg_head)
 
-        def msg(self, chunk):
-            Q0.put((self.i, "ping", chunk if chunk.strip().isdigit() else b'0'))
-            self.stream.read_until(b'\n', self.msg)
+        def msg_head(self, chunk):
+            instruction, length_of_body = unpack("!HH", chunk)
+            logging.info("%d, %d", instruction, length_of_body)
+            self.instruction = instruction
+            self.stream.read_bytes(length_of_body, self.msg_body)
+
+        def msg_body(self, chunk):
+            Q0.put((self.i, self.instruction, chunk))
+            self.stream.read_bytes(4, self.msg_head)
 
         def close(self):
             self.stream.close()
@@ -92,11 +97,37 @@ def main():
         i, cmd, data = Q1.get()
         stream = staffs[i].stream
         if not stream.closed():
-            stream.write(bytes(data))
+            stream.write(data)
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
     server = BBServer()
     server.listen(8000)
+
+    # web interface
+    from objgraph import most_common_types
+    from tornado import web
+    from tornado.template import Template
+
+    template = Template("""
+        <table border="1">
+        {% for obj in types %}
+            <tr>
+            <td>{{ obj[0] }}</td> <td>{{ obj[1] }}</td>
+            </tr>
+        {% end %}
+        </table>""")
+
+    class MainHandler(web.RequestHandler):
+        def get(self):
+            self.write(template.generate(types=most_common_types(0)))
+            gc.collect()
+
+    web.Application([
+        (r"/", MainHandler),
+    ]).listen(8100)
+
+    import gc
+    gc.disable()
 
     io_loop.start() # looping...
 

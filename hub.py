@@ -6,11 +6,13 @@
 >>> q1 = queue.Queue()
 >>> q2 = queue.Queue()
 >>> i = 3
->>> q0.put((i, "ping", b'64'))
+>>> PING = 1
+>>> PONG = 2
+>>> q0.put((i, PING, b'64'))
 >>> q0.put(None)
 >>> hub(q0, q1, q2)
 
->>> q1.get() == (i, "pong", b'65')
+>>> q1.get() == (i, PONG, b'65')
 True
 >>> q2.get() is None 
 True
@@ -45,22 +47,33 @@ _processes = {
     # ...
 }
 
+instructions = {
+    "ping": 1,
+    "pong": 2,
+    1: "ping",
+    2: "pong",
+}
+
 def handle_input(signal):
     def reg(generator_function):
         _processes[signal] = generator_function
         return generator_function
     return reg
 
-@handle_input('ping')
+@handle_input("ping")
 def process_example(i, obj):
-    yield "out", i, "pong", obj + 1
+    yield "send", i, "pong", obj + 1
     #yield 'log', i, 'example_log', 1, 2, 3
+
+@handle_input("pong")
+def process_example(i, obj):
+    yield "send", i, "pong", obj - 1
 
 
 def hub(Q_in, Q_out, Q_err):
     import signal
     def not_be_terminated(signal_number, stack_frame):
-        logging.warning('received SIGTERM')
+        logging.warning("received SIGTERM")
     signal.signal(signal.SIGTERM, not_be_terminated)
 
     # None: shutdown
@@ -71,15 +84,18 @@ def hub(Q_in, Q_out, Q_err):
     processes = _processes
 
     from json import dumps, loads
+    separators = (",", ":")
 
-    def out(_, i, k, obj):
-        Q_out.put((i, k, dumps(obj).encode()))
+    def send(_, i, k, obj):
+        Q_out.put((i,
+                   instructions[k],
+                   dumps(obj, separators=separators).encode()))
 
     def err(*args):
         Q_err.put(args)
 
-    productors = {
-        "out": out,
+    consumers = {
+        "send": send,
         "err": err,
     }
 
@@ -96,9 +112,10 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            foods = my_filter(processes[v[1]](v[0], loads(v[2].decode()))) #;foods = list(foods)   # optional
+            producer = processes[instructions[v[1]]]
+            foods = my_filter(producer(v[0], loads(v[2].decode())))
             for f in foods:
-                productors[f[0]](*f)
+                consumers[f[0]](*f)
         except Exception:
             logging.exception("!!!")
 
