@@ -47,12 +47,18 @@ _processes = {
     # ...
 }
 
-instructions = {
-    "ping": 1,
-    "pong": 2,
-    1: "ping",
-    2: "pong",
-}
+instructions = [
+    "ping",
+    "pong",
+    "type",
+]
+
+_instructions = {}
+
+for i, v in enumerate(instructions, 1):
+    _instructions[i] = v
+    _instructions[v] = i
+
 
 def handle_input(signal):
     def reg(generator_function):
@@ -69,6 +75,10 @@ def process_example(i, obj):
 def process_example(i, obj):
     yield "send", i, "pong", obj - 1
 
+@handle_input("type")
+def process_example(i, obj):
+    yield "send", i, "type", {"t": str(type(obj)), "v": obj}
+
 
 def hub(Q_in, Q_out, Q_err):
     import signal
@@ -81,15 +91,14 @@ def hub(Q_in, Q_out, Q_err):
 
     my_filter = functools.partial(filter, None)
 
-    processes = _processes
+    procs = _processes
+    instrs = _instructions
 
     from json import dumps, loads
     separators = (",", ":")
 
     def send(_, i, k, obj):
-        Q_out.put((i,
-                   instructions[k],
-                   dumps(obj, separators=separators).encode()))
+        Q_out.put((i, instrs[k], dumps(obj, separators=separators).encode()))
 
     def err(*args):
         Q_err.put(args)
@@ -112,7 +121,7 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            producer = processes[instructions[v[1]]]
+            producer = procs[instrs[v[1]]]
             foods = my_filter(producer(v[0], loads(v[2].decode())))
             for f in foods:
                 consumers[f[0]](*f)
