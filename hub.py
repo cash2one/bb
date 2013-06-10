@@ -8,12 +8,18 @@
 >>> i = 3
 >>> PING = 1
 >>> PONG = 2
->>> q0.put((i, PING, b'64'))
+>>> q0.put([i, PING, b'64'])
 >>> q0.put(None)
 >>> hub(q0, q1, q2)
 
->>> q1.get() == (i, PONG, b'65')
+>>> q1.get() == [i, PONG, b'65']
 True
+>>> len(q2.get())
+6
+>>> len(q2.get())
+4
+>>> len(q2.get())
+3
 >>> q2.get() is None 
 True
 
@@ -69,7 +75,9 @@ def handle_input(signal):
 @handle_input("ping")
 def process_example(i, obj):
     yield "send", i, "pong", obj + 1
-    #yield 'log', i, 'example_log', 1, 2, 3
+    yield "log", i, "record_some_thing", {"xixi": 2}, 3
+    yield "save", i, "gold", 100
+    yield "pay", i, 10
 
 @handle_input("pong")
 def process_example(i, obj):
@@ -81,6 +89,7 @@ def process_example(i, obj):
 
 
 def hub(Q_in, Q_out, Q_err):
+    from time import time
     import signal
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
@@ -95,18 +104,27 @@ def hub(Q_in, Q_out, Q_err):
     instrs = _instructions
 
     from json import dumps, loads
-    dumps = functools.partial(dumps, separators = (",", ":"))
-                              #sort_keys=True, indent=4)
+    dump1 = functools.partial(dumps, separators = (",", ":"))
+    dump2 = functools.partial(dumps, separators = (",", ": "),
+                              sort_keys=True, indent=4)
 
     def send(_, i, k, obj):
-        Q_out.put((i, instrs[k], dumps(obj).encode()))
+        Q_out.put([int(i), instrs[k], dump1(obj).encode()])
 
-    def err(*args):
-        Q_err.put(args)
+    def save(cmd, i, k, obj):
+        Q_err.put([cmd, int(i), k, dump2(obj).encode()])
+
+    def log(cmd, i, k, infos, n=1):
+        Q_err.put([cmd, int(i), time(), k, infos, n])
+
+    def pay(cmd, i, n):
+        Q_err.put([cmd, int(i), n])
 
     consumers = {
         "send": send,
-        "err": err,
+        "save": save,
+        "log": log,
+        "pay": pay,
     }
 
     while True:

@@ -61,7 +61,7 @@ def main(port, backstage):
             self.stream.read_bytes(length_of_body, self.msg_body)
 
         def msg_body(self, chunk):
-            Q0.put((self.i, self.instruction, chunk))
+            Q0.put([self.i, self.instruction, chunk])
             self.stream.read_bytes(4, self.msg_head)
 
         def close(self):
