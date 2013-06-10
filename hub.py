@@ -76,7 +76,7 @@ def handle_input(signal):
 def process_example(i, obj):
     yield "send", i, "pong", obj + 1
     yield "log", i, "record_some_thing", {"xixi": 2}, 3
-    yield "save", i, "gold", 100
+    yield "save", i, "gold", list(range(100))
     yield "pay", i, 10
 
 @handle_input("pong")
