@@ -33,38 +33,29 @@ if sys.version_info[0] >= 3:
     open = functools.partial(open, encoding='utf-8')
 
 
-class Body(int):
+class Body(object):
     """hash(I(N)) is useful
 
-    >>> Body()
-    0
     >>> i = Body(1)
-    >>> i
-    1
     >>> isinstance(i._, dict)
     True
     >>> i.m = 1
-    >>> i.m == i['m'] == 1
+    >>> i.m == i["m"] == 1
     True
-    >>> i['n'] = 2
-    >>> i.n == i['n'] == 2
+    >>> "m" in i
     True
-    >>> 'n' in i
-    True
-    >>> 'x' in i
+    >>> "x" in i
     False
     """
 
+    __slots__ = ["i", "_"]
     _factory = dict
 
     def __init__(self, n=0):
         i = int(n)
         _ = self._factory()
-        object.__setattr__(self, '_', _)
-        self.init()
-
-    def init(self):
-        pass
+        object.__setattr__(self, "i", i)
+        object.__setattr__(self, "_", _)
 
     def __setitem__(self, k, v):
         self._[k] = v
@@ -82,24 +73,19 @@ class Body(int):
     def __iter__(self):
         return iter(self._)
 
+    def __repr__(self):
+        return str(self.i)
+
 
 class Skeleton(collections.defaultdict):
     """Data only, ID unrelatable, offer default initial data
 
     >>> i = Skeleton()
-    >>> i['foo']
+    >>> i["foo"]
     5
-    >>> i['bar']
-    []
-    >>> i['foobar']
-    Counter()
-    >>> i['void']
-    Traceback (most recent call last):
-        ...
-    AttributeError: 'Skeleton' object has no attribute '_void'
     """
     def __missing__(self, k):
-        self[k] = getattr(self, '_' + k)()
+        self[k] = getattr(self, "_" + k)()
         return self[k]
 
     def _foo(self):
@@ -124,11 +110,11 @@ class I(Body):
     >>> isinstance(i.foobar, collections.Counter)
     True
     >>> i.foobar[1] = 42
-    >>> i.save('foo') == ('write', 1, 'foo', 5)
+    >>> i.save("foo") == ("save", 1, "foo", 5)
     True
     >>> list(i.save_all()) == [
-    ...     ('write', 1, 'foobar', {1: 42}),
-    ...     ('write', 1, 'foo', 5),
+    ...     ("save", 1, "foobar", {1: 42}),
+    ...     ("save", 1, "foo", 5),
     ... ]
     True
 
@@ -136,19 +122,13 @@ class I(Body):
 
     _factory = Skeleton
 
-    # use some source, summon a life(or a monster? haha)
-    def init(self):
-        pass
-        # debug
-        # debug
-
     def summon(self, source):
         for k, v in source.items():
-            wrap = getattr(self, '_wrap_%s' % k, None)
+            wrap = getattr(self, "_wrap_%s" % k, None)
             self[k] = wrap(v) if wrap else v
 
     def save(self, k):
-        return 'write', int(self), k, self[k]
+        return "save", self.i, k, self[k]
 
     # in Python 3.3 or above, use "yield from"
     def save_all(self):
@@ -163,7 +143,7 @@ class I(Body):
 
 
 
-if __name__ == '__main__':
-    print('doctest:')
+if __name__ == "__main__":
+    print("doctest:")
     import doctest
     doctest.testmod()
