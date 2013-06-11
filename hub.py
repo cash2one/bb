@@ -112,7 +112,7 @@ def hub(Q_in, Q_out, Q_err):
         Q_out.put([int(i), instrs[k], dump1(obj).encode()])
 
     def save(cmd, i, k, obj):
-        Q_err.put([cmd, int(i), k, dump2(obj).encode()])
+        Q_err.put([cmd, int(i), k, obj])
 
     def log(cmd, i, k, infos, n=1):
         Q_err.put([cmd, int(i), time(), k, infos, n])

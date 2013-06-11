@@ -2,16 +2,15 @@
 # -*- coding: utf-8 -*-
 
 """
->>> q0 = queue.Queue()
 >>> q2 = queue.Queue()
 >>> i = 2
 >>> q2.put(["log", i, 1370883768.117528, "dead", {"killed by": 3}, 1])
 >>> q2.put(["save", i, "gold", b'1'])
 >>> q2.put(None)
->>> log(q0, q2)
+>>> log(q2)
 
->>> q0.qsize(), q2.qsize()
-(0, 0)
+>>> q2.qsize()
+0
 
 """
 
@@ -36,7 +35,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 
 
-def log(Q_in, Q_err):
+def log(Q_err):
     import signal
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")

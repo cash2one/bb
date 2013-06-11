@@ -36,7 +36,7 @@ def main(port, backstage):
     from log import log
     hub = multiprocessing.Process(target=hub, args=(Q0, Q1, Q2))
     hub.start()
-    log = multiprocessing.Process(target=log, args=(Q0, Q2))
+    log = multiprocessing.Process(target=log, args=(Q2,))
     log.start()
 
 
@@ -52,17 +52,30 @@ def main(port, backstage):
             self.i = i
             logging.info("%s in", self.i)
             self.stream.set_close_callback(self.close)
+            #self.stream.read_bytes(1, self.msg_byte)
+            #self.stream.read_until(b'\n', self.msg_print)
             self.stream.read_bytes(4, self.msg_head)
+
+        def msg_byte(self, byte):
+            print(byte)
+            self.stream.write(byte)
+            self.stream.read_bytes(1, self.msg_byte)
+
+        def msg_print(self, chunk):
+            logging.info(chunk)
+            self.stream.read_until(b'\n', self.msg_print)
 
         def msg_head(self, chunk):
             instruction, length_of_body = unpack("!HH", chunk)
-            logging.info("%d, %d", instruction, length_of_body)
+            #logging.info("%d, %d", instruction, length_of_body)
             self.instruction = instruction
-            self.stream.read_bytes(length_of_body, self.msg_body)
+            if not self.stream.closed():
+                self.stream.read_bytes(length_of_body, self.msg_body)
 
         def msg_body(self, chunk):
             Q0.put([self.i, self.instruction, chunk])
-            self.stream.read_bytes(4, self.msg_head)
+            if not self.stream.closed():
+                self.stream.read_bytes(4, self.msg_head)
 
         def close(self):
             self.stream.close()
@@ -83,7 +96,7 @@ def main(port, backstage):
     # SIGTERM
     import signal
     def term(signal_number, stack_frame):
-        logging.info("going to exit")
+        logging.info("will exit")
         Q0.put(None)
         io_loop.stop()
     signal.signal(signal.SIGTERM, term)

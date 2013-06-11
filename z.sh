@@ -1,4 +1,11 @@
 #!/bin/sh
+#
+# at prompt:
+# ./z.sh | nc box 8000
+# ....
+# ....
+#
+
 while read s
 do
     instruction=${s%% *}
@@ -7,13 +14,13 @@ do
 
     hi=$((instruction / 256))
     lo=$((instruction % 256))
-    echo -ne "\x$(printf %x ${hi})\x$(printf %x ${lo})"
+    echo -ne "$(printf '\\x%x\\x%x' ${hi} ${lo})"
 
     hi=$((json_length / 256))
     lo=$((json_length % 256))
-    echo -ne "\x$(printf %x ${hi})\x$(printf %x ${lo})"
+    echo -ne "$(printf '\\x%x\\x%x' ${hi} ${lo})"
     echo -n "${json_body}"
 done
 
-sleep ${1:-1}
+#sleep ${1:-1}
 
