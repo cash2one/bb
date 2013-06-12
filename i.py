@@ -2,36 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """Skeleton + Body + ??? -> I
-
->>> gc.isenabled()
-False
-
 """
 
 
 from __future__ import division, print_function, unicode_literals
 
 import collections
-import functools
-import gc
-import glob
-import json
-import logging
-import os
-import pickle
-import sys
-
-gc.disable()
-
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s:%(levelname)s:%(message)s",
-                   )
-
-
-
-if sys.version_info[0] >= 3:
-    open = functools.partial(open, encoding='utf-8')
-
 
 class Body(object):
     """hash(I(N)) is useful
@@ -76,6 +52,11 @@ class Body(object):
     def __repr__(self):
         return str(self.i)
 
+    def __eq__(self, other):
+        return self.i == other.i
+
+    def __hash__(self):
+        return self.i
 
 class Skeleton(collections.defaultdict):
     """Data only, ID unrelatable, offer default initial data
@@ -110,7 +91,13 @@ class I(Body):
     >>> isinstance(i.foobar, collections.Counter)
     True
     >>> i.foobar[1] = 42
+    >>> i.send("move", "up") == ("send", 1, "move", "up")
+    True
     >>> i.save("foo") == ("save", 1, "foo", 5)
+    True
+    >>> i.log("lv-up") == ("log", 1, "lv-up", None, 1)
+    True
+    >>> i.pay(20) == ("pay", 1, 20)
     True
     >>> list(i.save_all()) == [
     ...     ("save", 1, "foobar", {1: 42}),
@@ -127,8 +114,17 @@ class I(Body):
             wrap = getattr(self, "_wrap_%s" % k, None)
             self[k] = wrap(v) if wrap else v
 
+    def send(self, k, v):
+        return "send", self.i, k, v
+
     def save(self, k):
         return "save", self.i, k, self[k]
+
+    def log(self, k, infos=None, n=1):
+        return "log", self.i, k, infos, n
+
+    def pay(self, n):
+        return "pay", self.i, n
 
     # in Python 3.3 or above, use "yield from"
     def save_all(self):
@@ -144,6 +140,10 @@ class I(Body):
 
 
 if __name__ == "__main__":
+    import logging
+    logging.basicConfig(level=logging.DEBUG,
+                        format="%(asctime)s:%(levelname)s:%(message)s",
+                       )
     print("doctest:")
     import doctest
     doctest.testmod()

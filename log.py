@@ -18,7 +18,6 @@ from __future__ import division, print_function, unicode_literals
 
 import functools
 import logging
-import os
 import sys
 
 if sys.version_info[0] >= 3:
