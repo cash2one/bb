@@ -9,10 +9,12 @@ from __future__ import division, print_function, unicode_literals
 
 import collections
 
-class I(collections.defaultdict):
+class I(dict):
     """
-    >>> i = I(1, {"a": 1})
+    >>> i = I(1, {"a": 1, "b": 1})
     >>> i.a == "1"
+    True
+    >>> i.b == 1
     True
     >>> i["foo"]
     5
