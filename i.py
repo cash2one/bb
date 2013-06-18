@@ -11,18 +11,23 @@ import collections
 
 class I(collections.defaultdict):
     """
-    >>> i = I(1)
+    >>> i = I(1, {"a": 1})
+    >>> i.a == "1"
+    True
     >>> i["foo"]
     5
     >>> i.bar
     []
-    >>> i.xixi = set()
 
     """
 
     __slots__ = ["i"]
 
-    def __init__(self, n):
+    def __init__(self, n, source):
+        assert isinstance(source, dict)
+        for k, v in source.items():
+            wrap = getattr(self, "_wrap_%s" % k, None)
+            self[k] = wrap(v) if wrap else v
         i = int(n)
         object.__setattr__(self, "i", i)
 
@@ -44,6 +49,16 @@ class I(collections.defaultdict):
 
     def _foobar(self):
         return collections.Counter()
+
+    @staticmethod
+    def _wrap_foobar(raw):
+        return collections.Counter(
+            {int(k) if k.isdigit() else k: v for k, v in raw.items()}
+            )
+
+    @staticmethod
+    def _wrap_a(raw):
+        return str(raw)
 
 
 if __name__ == "__main__":
