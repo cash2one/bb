@@ -98,7 +98,7 @@ def hub(Q_in, Q_out, Q_err):
     # None: shutdown
     # (signal, int, bytes): process request from Q_in
 
-    my_filter = functools.partial(filter, None)
+    _filter = functools.partial(filter, None)
 
     procs = _processes
     instrs = _instructions
@@ -141,7 +141,7 @@ def hub(Q_in, Q_out, Q_err):
 
         try:
             producer = procs[instrs[v[1]]]
-            foods = my_filter(producer(v[0], loads(v[2].decode())))
+            foods = _filter(producer(v[0], loads(v[2].decode())))
             for f in foods:
                 consumers[f[0]](*f)
         except Exception:
