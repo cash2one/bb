@@ -77,11 +77,14 @@ def process_example(i, obj):
     yield "send", i, "pong", obj + 1
     yield "log", i, "record_some_thing", {"xixi": 2}, 3
     yield "save", i, "gold", list(range(100))
+    yield
     yield "pay", i, 10
 
 @handle_input("pong")
 def process_example(i, obj):
-    yield "send", i, "pong", obj - 1
+    #yield "send", i, "pong", obj - 1
+    #yield "send", i, "pong", obj - 2
+    return [("send", i, "pong", obj - 1), ("send", i, "pong", obj - 2)]
 
 @handle_input("type")
 def process_example(i, obj):
@@ -141,8 +144,10 @@ def hub(Q_in, Q_out, Q_err):
 
         try:
             producer = procs[instrs[v[1]]]
-            foods = _filter(producer(v[0], loads(v[2].decode())))
-            for f in foods:
+            outs = producer(v[0], loads(v[2].decode()))
+            #if not isinstance(outs, list):
+                #outs = list(outs)
+            for f in _filter(outs):
                 consumers[f[0]](*f)
         except Exception:
             logging.exception("!!!")
