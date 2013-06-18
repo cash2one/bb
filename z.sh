@@ -2,14 +2,15 @@
 #
 # at prompt:
 # ./z.sh | nc box 8000
+# 1:99
 # ....
 # ....
 #
 
 while read s
 do
-    instruction=${s%% *}
-    json_body=${s#* }
+    instruction=${s%%:*}
+    json_body=${s#*:}
     json_length=${#json_body}
 
     hi=$((instruction / 256))

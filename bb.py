@@ -67,13 +67,15 @@ def main(port, backstage):
             self.stream.read_until(b'\n', self.msg_print)
 
         def msg_head(self, chunk):
-            instruction, length_of_body = unpack(b"!HH", chunk)
+            instruction, length_of_body = unpack(b'!HH', chunk)
             #logging.info("%d, %d", instruction, length_of_body)
             self.instruction = instruction
             if not self.stream.closed():
                 self.stream.read_bytes(length_of_body, self.msg_body)
 
         def msg_body(self, chunk):
+            if not chunk:
+                chunk = b'0'
             Q0.put([self.i, self.instruction, chunk])
             if not self.stream.closed():
                 self.stream.read_bytes(4, self.msg_head)
