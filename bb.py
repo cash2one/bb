@@ -25,6 +25,7 @@ logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s:%(levelname)s:%(message)s",
                    )
 
+pid_index = 0
 def main(port, backstage):
     import time
     import multiprocessing
@@ -66,7 +67,7 @@ def main(port, backstage):
             self.stream.read_until(b'\n', self.msg_print)
 
         def msg_head(self, chunk):
-            instruction, length_of_body = unpack("!HH", chunk)
+            instruction, length_of_body = unpack(b"!HH", chunk)
             #logging.info("%d, %d", instruction, length_of_body)
             self.instruction = instruction
             if not self.stream.closed():
@@ -85,11 +86,10 @@ def main(port, backstage):
     import weakref
     staffs = weakref.WeakValueDictionary()
 
-    pid_index = 0
 
     class BBServer(TCPServer):
         def handle_stream(self, stream, address):
-            nonlocal pid_index
+            global pid_index
             pid_index += 1
             staffs[pid_index] = Connection(stream, address, pid_index)
 

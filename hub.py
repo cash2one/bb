@@ -107,8 +107,10 @@ def hub(Q_in, Q_out, Q_err):
     instrs = _instructions
 
     from json import dumps, loads
-    dump1 = functools.partial(dumps, separators = (",", ":"))
-    dump2 = functools.partial(dumps, separators = (",", ": "),
+    dump1 = functools.partial(dumps, ensure_ascii=False,
+                              separators = (",", ":"))
+    dump2 = functools.partial(dumps, ensure_ascii=False,
+                              separators = (",", ": "),
                               sort_keys=True, indent=4)
 
     def send(_, i, k, obj):
