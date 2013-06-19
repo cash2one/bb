@@ -23,7 +23,7 @@ class I(dict):
 
     """
 
-    __slots__ = ["i"]
+    __slots__ = ["i", "logs"]
 
     def __init__(self, n, source):
         assert isinstance(source, dict)
@@ -32,6 +32,7 @@ class I(dict):
             self[k] = wrap(v) if wrap else v
         i = int(n)
         object.__setattr__(self, "i", i)
+        object.__setattr__(self, "logs", collections.deque(maxlen=100))
 
     def __setattr__(self, k, v):
         self[k] = v
