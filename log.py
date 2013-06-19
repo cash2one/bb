@@ -4,7 +4,7 @@
 """
 >>> q2 = queue.Queue()
 >>> i = 2
->>> q2.put(["log", i, 1370883768.117528, "dead", {"killed by": 3}, 1])
+>>> q2.put(["log", i, 1370883768.117528, "dead", 1, {"killed by": 3}])
 >>> q2.put(["save", i, "gold", b'1'])
 >>> q2.put(None)
 >>> log(q2)

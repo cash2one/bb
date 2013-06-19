@@ -79,12 +79,11 @@ def process_example(i, obj):
     yield "log", i, "record_some_thing", 3, {"xixi": 2}
     yield "save", i, "gold", list(range(100))
     yield
+    yield
     yield "pay", i, 10
 
 @handle_input("pong")
 def process_example(i, obj):
-    #yield "send", i, "pong", obj - 1
-    #yield "send", i, "pong", obj - 2
     return [("send", i, "pong", obj - 1), ("send", i, "pong", obj - 2)]
 
 @handle_input("type")
@@ -120,7 +119,7 @@ def hub(Q_in, Q_out, Q_err):
     def save(cmd, i, k, obj):
         Q_err.put([cmd, int(i), k, obj])
 
-    def log(cmd, i, k, n=1, infos=None):
+    def log(cmd, i, k, n, infos):
         Q_err.put([cmd, int(i), time(), k, n, infos])
 
     def pay(cmd, i, n):
