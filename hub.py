@@ -67,9 +67,10 @@ for i, v in enumerate(instructions, 1):
 
 
 def handle_input(signal):
-    def reg(generator_function):
-        _processes[signal] = generator_function
-        return generator_function
+    def reg(func):
+        assert signal not in _processes
+        _processes[signal] = func
+        return func
     return reg
 
 @handle_input("ping")
