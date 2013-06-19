@@ -20,11 +20,22 @@ class I(dict):
     5
     >>> i.bar
     []
-    >>> i.listener["jump"].add("x")
+    >>> #i.logs.append("over")
+    >>> #i.listeners["foo"].add("bar")
+    >>> bind(i, "go", callback_example)
+    >>> i.listeners["go"] == set(["callback_example"])
+    True
+    >>> unbind(i, "go", "callback_example")
+    >>> i.listeners["go"] == set()
+    True
+    >>> bind(i, "go", callback_example)
+    >>> bind(i, "go", callback_example2)
+    >>> len(list(log(i, "go"))) == 5
+    True
 
     """
 
-    __slots__ = ["i", "logs", "listener"]
+    __slots__ = ["i", "logs", "listeners"]
 
     def __init__(self, n, source):
         assert isinstance(source, dict)
@@ -34,7 +45,7 @@ class I(dict):
         i = int(n)
         object.__setattr__(self, "i", i)
         object.__setattr__(self, "logs", collections.deque(maxlen=100))
-        object.__setattr__(self, "listener", collections.defaultdict(set))
+        object.__setattr__(self, "listeners", collections.defaultdict(set))
 
     def __setattr__(self, k, v):
         self[k] = v
@@ -70,34 +81,48 @@ class I(dict):
 
 _cbs = {}
 
-def handle_log_callback(cb):
-    _cbs[cb.__name__] = cb
-    return cb
+def register_log_callback(callback):
+    name = callback.__name__
+    assert name not in _cbs
+    _cbs[name] = callback
+    return callback
+
 
 def bind(i, log_name, callback_name):
     if callable(callback_name):
         callback_name = callback_name.__name__
-    i.listener[log_name].add(callback_name)
+    i.listeners[log_name].add(callback_name)
 
 def unbind(i, log_name, callback_name):
     if callable(callback_name):
         callback_name = callback_name.__name__
-    i.listener[log_name].remove(callback_name)
+    log_callbacks_set = i.listeners[log_name]
+    if callback_name in log_callbacks_set:
+        log_callbacks_set.remove(callback_name)
 
-def log(i, k, n, infos):
+def save(i, k):
+    return "save", i.i, k, i[k]
+
+def log(i, k, n=1, infos=None):
     yield "log", i.i, k, n, infos
-    cb_set = i.listener[k]
-    if cb_set:
-        for callback_name in cb_set:
-            # 3.3+: yield from
-            for x in _cbs[callback_name](i, k, n, infos, callback_name):
-                yield x
+    i.logs.append([k, n, infos])
+    callbacks_set = i.listeners[k]
+    for callback_name in list(callbacks_set):
+        # 3.3+: yield from
+        for x in _cbs[callback_name](i, k, n, infos, k, callback_name):
+            yield x
 
-@handle_log_callback
-def callback_example(i, k, n, infos, callback_name):
-    print(i, k, n, infos, callback_name)
+@register_log_callback
+def callback_example(i, k, n, infos, log_name, callback_name):
+    unbind(i, log_name, callback_name)  # optional
+    yield save(i, "foo")
+    yield save(i, "bar")
 
-print(_cbs)
+@register_log_callback
+def callback_example2(i, k, n, infos, log_name, callback_name):
+    unbind(i, log_name, callback_name)  # optional
+    return [save(i, "foobar"), save(i, "a")]
+
 
 if __name__ == "__main__":
     print("doctest:")
