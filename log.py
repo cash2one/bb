@@ -44,8 +44,8 @@ def log(Q_err):
     # (command_word, int, str, ...): logs
     # (command_word, ...): some other commands
 
-    def log(_, i, t, k, infos, n):
-        logging.info("%d, %f, %s, %r, %d", i, t, k, infos, n)
+    def log(_, i, t, k, n, infos):
+        logging.info("%d, %f, %s, %d, %r", i, t, k, n, infos)
 
     def save(_, i, k, v):
         logging.info("%s/%s: %r", i, k, v)
