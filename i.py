@@ -84,12 +84,14 @@ _cbs = {}
 def register_log_callback(callback):
     name = callback.__name__
     assert name not in _cbs
+    assert name.partition("__")[2]
     _cbs[name] = callback
     return callback
 
-
 def bind(i, name):
-    """
+    """standard name:
+    LOG_KEYWORD__CALLBACK_NAME
+    XXX__YYY
     """
     if callable(name):
         name = name.__name__
@@ -100,6 +102,7 @@ def bind(i, name):
 def unbind(i, name):
     if callable(name):
         name = name.__name__
+    assert name.partition("__")[2]
     surname = name.partition("__")[0]
     log_callbacks_set = i.listeners[surname]
     if name in log_callbacks_set:
@@ -107,6 +110,9 @@ def unbind(i, name):
 
 def save(i, k):
     return "save", i.i, k, i[k]
+
+def send(i, k, v):
+    return "send", i.i, k, v
 
 def log(i, k, n=1, infos=None):
     yield "log", i.i, k, n, infos
@@ -117,15 +123,17 @@ def log(i, k, n=1, infos=None):
         for x in _cbs[callback_name](i, k, n, infos, callback_name):
             yield x
 
+# examples here:
 @register_log_callback
 def go__callback_example(i, k, n, infos, callback_name):
     unbind(i, callback_name)  # optional
     yield save(i, "foo")
-    yield save(i, "bar")
+    yield send(i, "msg", "haha")
 
 @register_log_callback
 def go__callback_example2(i, k, n, infos, callback_name):
     return [save(i, "foobar"), save(i, "a")]
+
 
 
 if __name__ == "__main__":
