@@ -4,7 +4,7 @@
 """
 >>> q2 = queue.Queue()
 >>> i = 2
->>> q2.put(["log", i, 1370883768.117528, "dead", 1, {"killed by": 3}])
+>>> q2.put(["log", i, 1370883768.117528, "dead", {"killed by": 3}, 1])
 >>> q2.put(["save", i, "gold", b'1'])
 >>> q2.put(None)
 >>> log(q2)
@@ -44,14 +44,11 @@ def log(Q_err):
     # (command_word, int, str, ...): logs
     # (command_word, ...): some other commands
 
-    def log(_, i, t, k, n, infos):
-        logging.info("%d, %f, %s, %d, %r", i, t, k, n, infos)
+    def log(_, i, t, k, infos, n):
+        logging.info("%d, %f, %s, %r, %d", i, t, k, infos, n)
 
     def save(_, i, k, v):
         logging.info("%s/%s: %r", i, k, v)
-        return
-        with open("%s/%s" % (i, k), 'wb') as f:
-            f.write(v)
 
     def pay(_, i, n):
         logging.info("%d, %d", i, n)

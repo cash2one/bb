@@ -76,7 +76,7 @@ def handle_input(signal):
 @handle_input("ping")
 def process_example(i, obj):
     yield "send", i, "pong", obj + 1
-    yield "log", i, "record_some_thing", 3, {"xixi": 2}
+    yield "log", i, "record_some_thing", {"xixi": 2}, 3
     yield "save", i, "gold", list(range(100))
     yield
     yield
@@ -119,8 +119,8 @@ def hub(Q_in, Q_out, Q_err):
     def save(cmd, i, k, obj):
         Q_err.put([cmd, int(i), k, obj])
 
-    def log(cmd, i, k, n, infos):
-        Q_err.put([cmd, int(i), time(), k, n, infos])
+    def log(cmd, i, k, infos, n):
+        Q_err.put([cmd, int(i), time(), k, infos, n])
 
     def pay(cmd, i, n):
         Q_err.put([cmd, int(i), n])

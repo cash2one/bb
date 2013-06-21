@@ -22,15 +22,19 @@ class I(dict):
     []
     >>> #i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
-    >>> bind(i, go__callback_example)
-    >>> i.listeners["go"] == set(["go__callback_example"])
+    >>> bind(i, "go", callback_example)
+    >>> i.listeners["go"] == set(["callback_example"])
     True
-    >>> unbind(i, "go__callback_example")
+    >>> unbind(i, "go", "callback_example")
     >>> i.listeners["go"] == set()
     True
-    >>> bind(i, go__callback_example)
-    >>> bind(i, go__callback_example2)
+    >>> bind(i, "go", callback_example)
+    >>> bind(i, "go", callback_example2)
+    >>> i.listeners["go"] == set(["callback_example", "callback_example2"])
+    True
     >>> len(list(log(i, "go"))) == 5
+    True
+    >>> i.listeners["go"] == set(["callback_example2"])
     True
 
     """
@@ -61,7 +65,7 @@ class I(dict):
         return 5
 
     def _bar(self):
-        return []
+        return list()
 
     def _foobar(self):
         return collections.Counter()
@@ -84,29 +88,21 @@ _cbs = {}
 def register_log_callback(callback):
     name = callback.__name__
     assert name not in _cbs
-    assert name.partition("__")[2]
     _cbs[name] = callback
     return callback
 
-def bind(i, name):
-    """standard name:
-    LOG_KEYWORD__CALLBACK_NAME
-    XXX__YYY
-    """
-    if callable(name):
-        name = name.__name__
-    assert name.partition("__")[2]
-    surname = name.partition("__")[0]
-    i.listeners[surname].add(name)
+def bind(i, log, callback_name):
+    if callable(callback_name):
+        callback_name = callback_name.__name__
+    assert callback_name in _cbs
+    i.listeners[log].add(callback_name)
 
-def unbind(i, name):
-    if callable(name):
-        name = name.__name__
-    assert name.partition("__")[2]
-    surname = name.partition("__")[0]
-    log_callbacks_set = i.listeners[surname]
-    if name in log_callbacks_set:
-        log_callbacks_set.remove(name)
+def unbind(i, log, callback_name):
+    if callable(callback_name):
+        callback_name = callback_name.__name__
+    log_callbacks_set = i.listeners[log]
+    if callback_name in log_callbacks_set:
+        log_callbacks_set.remove(callback_name)
 
 def save(i, k):
     return "save", i.i, k, i[k]
@@ -114,24 +110,27 @@ def save(i, k):
 def send(i, k, v):
     return "send", i.i, k, v
 
-def log(i, k, n=1, infos=None):
-    yield "log", i.i, k, n, infos
-    i.logs.append([k, n, infos])
+def log(i, k, infos=None, n=1):
+    yield "log", i.i, k, infos, n
+    i.logs.append([k, infos, n])
     callbacks_set = i.listeners[k]
     for callback_name in list(callbacks_set):
         # 3.3+: yield from
-        for x in _cbs[callback_name](i, k, n, infos, callback_name):
+        for x in _cbs[callback_name](i, k, infos, n):
             yield x
 
 # examples here:
 @register_log_callback
-def go__callback_example(i, k, n, infos, callback_name):
-    unbind(i, callback_name)  # optional
+def callback_example(i, k, infos, n):
+    unbind(i, k, callback_example)
+    # or:
+    #   unbind(i, k, "callback_example")
+    #   unbind(i, k, callback_example.__name__)
     yield save(i, "foo")
     yield send(i, "msg", "haha")
 
 @register_log_callback
-def go__callback_example2(i, k, n, infos, callback_name):
+def callback_example2(i, k, infos, n):
     return [save(i, "foobar"), save(i, "a")]
 
 
