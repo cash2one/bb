@@ -23,15 +23,15 @@ class I(dict):
     []
     >>> #i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
-    >>> bind(i, "go", callback_example)
-    >>> i.listeners["go"] == set([("callback_example",)])
+    >>> bind(i, "go", callback_example, 1)
+    >>> i.listeners["go"] == set([("callback_example", 1)])
     True
-    >>> unbind(i, "go", "callback_example")
+    >>> unbind(i, "go", "callback_example", 1)
     >>> i.listeners["go"] == set()
     True
-    >>> bind(i, "go", callback_example)
+    >>> bind(i, "go", callback_example, 1, 2, 3)
     >>> bind(i, "go", callback_example2)
-    >>> i.listeners["go"] == set([("callback_example",), ("callback_example2",)])
+    >>> i.listeners["go"] == set([("callback_example", 1, 2, 3), ("callback_example2",)])
     True
     >>> len(list(log(i, "go")))
     5
@@ -146,7 +146,7 @@ def log(i, k, infos=None, n=1):
 # examples here:
 @register_log_callback
 def callback_example(i, k, infos, n, *args):
-    unbind(i, k, callback_example)
+    unbind(i, k, callback_example, *args)
     # or:
     #   unbind(i, k, "callback_example")
     #   unbind(i, k, callback_example.__name__)
@@ -169,13 +169,13 @@ def register_check_callback(callback):
 def check_tower(i, evaluation, callback):
     #print(evaluation, callback, file=sys.stderr)
     if eval(evaluation, {"a": int(i.a), "b": 2}):
-        callback()
+        callback(check_tower)
         unbind(i, "gogo", check_tower_daemon, evaluation, callback)
     else:
         bind(i, "gogo", check_tower_daemon, evaluation, callback)
 
-def f():
-    print("check `i.a > 1` --> ok", file=sys.stderr)
+def f(func):
+    print(func.__name__, "`i.a > 1` --> ok", file=sys.stderr)
 
 @register_log_callback
 def check_tower_daemon(i, k, infos, n, evaluation, callback):
