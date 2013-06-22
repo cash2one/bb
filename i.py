@@ -108,21 +108,21 @@ _cbs = {}
 
 def register_log_callback(callback):
     name = callback.__name__
-    assert name not in _cbs
+    assert name not in _cbs, name
     _cbs[name] = callback
     return callback
 
 def bind(i, log, callback_name, *args):
     if callable(callback_name):
         callback_name = callback_name.__name__
-    assert callback_name in _cbs
+    assert callback_name in _cbs, callback_name
     callback_name_args = (callback_name,) + args
     i.listeners[log].add(callback_name_args)
 
 def unbind(i, log, callback_name, *args):
     if callable(callback_name):
         callback_name = callback_name.__name__
-    assert callback_name in _cbs
+    assert callback_name in _cbs, callback_name
     log_callbacks_set = i.listeners[log]
     callback_name_args = (callback_name,) + args
     if callback_name_args in log_callbacks_set:
@@ -161,7 +161,7 @@ _cks = {}
 
 def register_check_callback(callback):
     name = callback.__name__
-    assert name not in _cks
+    assert name not in _cks, name
     _cks["CK_" + name] = callback
     return callback
 
