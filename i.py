@@ -8,6 +8,7 @@
 from __future__ import division, print_function, unicode_literals
 
 import collections
+import sys
 
 class I(dict):
     """
@@ -23,23 +24,39 @@ class I(dict):
     >>> #i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
     >>> bind(i, "go", callback_example)
-    >>> i.listeners["go"] == set(["callback_example"])
+    >>> i.listeners["go"] == set([("callback_example",)])
     True
     >>> unbind(i, "go", "callback_example")
     >>> i.listeners["go"] == set()
     True
     >>> bind(i, "go", callback_example)
     >>> bind(i, "go", callback_example2)
-    >>> i.listeners["go"] == set(["callback_example", "callback_example2"])
+    >>> i.listeners["go"] == set([("callback_example",), ("callback_example2",)])
     True
-    >>> len(list(log(i, "go"))) == 5
+    >>> len(list(log(i, "go")))
+    5
+    >>> i.listeners["go"] == set([("callback_example2",)])
     True
-    >>> i.listeners["go"] == set(["callback_example2"])
-    True
+    >>> a = i._foobar
+    >>> b = i._foobar
+    >>> id(a) == id(b)
+    False
+
+    >>> bind(i, "gogogo", callback_example)
+    >>> bind(i, "gogogogo", callback_example)
+    >>> len(i.listeners)
+    3
+    >>> check_tower(i, "a > 1", f)
+    >>> len(i.listeners["gogo"])  # daemon launched
+    1
+    >>> i.a = 2
+    >>> _ = list(log(i, "gogo"))
+    >>> len(i.listeners["gogo"])  # daemon quited
+    0
 
     """
 
-    __slots__ = ["i", "logs", "listeners"]
+    __slots__ = ["i", "logs", "listeners", "checkers"]
 
     def __init__(self, n, source):
         assert isinstance(source, dict)
@@ -50,6 +67,7 @@ class I(dict):
         object.__setattr__(self, "i", i)
         object.__setattr__(self, "logs", collections.deque(maxlen=100))
         object.__setattr__(self, "listeners", collections.defaultdict(set))
+        object.__setattr__(self, "checkers", collections.defaultdict(set))
 
     def __setattr__(self, k, v):
         self[k] = v
@@ -58,15 +76,18 @@ class I(dict):
         return self[k]
 
     def __missing__(self, k):
-        self[k] = object.__getattribute__(self, "_" + k)()
+        self[k] = object.__getattribute__(self, "_" + k)
         return self[k]
 
+    @property
     def _foo(self):
         return 5
 
+    @property
     def _bar(self):
         return list()
 
+    @property
     def _foobar(self):
         return collections.Counter()
 
@@ -91,18 +112,21 @@ def register_log_callback(callback):
     _cbs[name] = callback
     return callback
 
-def bind(i, log, callback_name):
+def bind(i, log, callback_name, *args):
     if callable(callback_name):
         callback_name = callback_name.__name__
     assert callback_name in _cbs
-    i.listeners[log].add(callback_name)
+    callback_name_args = (callback_name,) + args
+    i.listeners[log].add(callback_name_args)
 
-def unbind(i, log, callback_name):
+def unbind(i, log, callback_name, *args):
     if callable(callback_name):
         callback_name = callback_name.__name__
+    assert callback_name in _cbs
     log_callbacks_set = i.listeners[log]
-    if callback_name in log_callbacks_set:
-        log_callbacks_set.remove(callback_name)
+    callback_name_args = (callback_name,) + args
+    if callback_name_args in log_callbacks_set:
+        log_callbacks_set.remove(callback_name_args)
 
 def save(i, k):
     return "save", i.i, k, i[k]
@@ -114,14 +138,14 @@ def log(i, k, infos=None, n=1):
     yield "log", i.i, k, infos, n
     i.logs.append([k, infos, n])
     callbacks_set = i.listeners[k]
-    for callback_name in list(callbacks_set):
+    for callback in list(callbacks_set):
         # 3.3+: yield from
-        for x in _cbs[callback_name](i, k, infos, n):
+        for x in _cbs[callback[0]](i, k, infos, n, *callback[1:]):
             yield x
 
 # examples here:
 @register_log_callback
-def callback_example(i, k, infos, n):
+def callback_example(i, k, infos, n, *args):
     unbind(i, k, callback_example)
     # or:
     #   unbind(i, k, "callback_example")
@@ -130,9 +154,34 @@ def callback_example(i, k, infos, n):
     yield send(i, "msg", "haha")
 
 @register_log_callback
-def callback_example2(i, k, infos, n):
+def callback_example2(i, k, infos, n, *args):
     return [save(i, "foobar"), save(i, "a")]
 
+_cks = {}
+
+def register_check_callback(callback):
+    name = callback.__name__
+    assert name not in _cks
+    _cks["CK_" + name] = callback
+    return callback
+
+@register_check_callback
+def check_tower(i, evaluation, callback):
+    #print(evaluation, callback, file=sys.stderr)
+    if eval(evaluation, {"a": int(i.a), "b": 2}):
+        callback()
+        unbind(i, "gogo", check_tower_daemon, evaluation, callback)
+    else:
+        bind(i, "gogo", check_tower_daemon, evaluation, callback)
+
+def f():
+    print("check `i.a > 1` --> ok", file=sys.stderr)
+
+@register_log_callback
+def check_tower_daemon(i, k, infos, n, evaluation, callback):
+    #print(evaluation, callback, file=sys.stderr)
+    check_tower(i, evaluation, callback)
+    yield
 
 
 if __name__ == "__main__":
