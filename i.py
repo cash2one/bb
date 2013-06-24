@@ -7,6 +7,9 @@ from __future__ import division, print_function, unicode_literals
 import collections
 import sys
 
+
+_cbs = {}
+
 class I(dict):
     """
     >>> i = I(42, {"a": 1, "b": 3})
@@ -34,7 +37,8 @@ class I(dict):
     >>> i.bind("go", callback_example2)
     >>> i.listeners["go"] == set([("callback_example", 1, 2, 3), ("callback_example2",)])
     True
-    >>> len(list(log(i, "go")))
+    >>> i.log("go")
+    >>> len(i.cache)
     5
     >>> i.listeners["go"] == set([("callback_example2",)])
     True
@@ -47,11 +51,11 @@ class I(dict):
     >>> len(i.listeners["gogo"])  # daemon launched
     1
     >>> i["a"] = 1
-    >>> _ = list(log(i, "gogo"))  # "i.a > 1" is False, daemon is watching
+    >>> i.log("gogo")  # "i["a"] > 1" is False, daemon is watching
     >>> len(i.listeners["gogo"])
     1
     >>> i["a"] = 2
-    >>> _ = list(log(i, "gogo"))
+    >>> i.log("gogo")
     >>> len(i.listeners["gogo"])  # daemon quited
     0
 
@@ -129,7 +133,6 @@ class I(dict):
 
 
 
-_cbs = {}
 
 def register_log_callback(callback):
     name = callback.__name__
@@ -137,59 +140,29 @@ def register_log_callback(callback):
     _cbs[name] = callback
     return callback
 
-def bind(i, log, callback_name, *args):
-    if callable(callback_name):
-        callback_name = callback_name.__name__
-    assert callback_name in _cbs, callback_name
-    callback_name_args = (callback_name,) + args
-    i.listeners[log].add(callback_name_args)
-
-def unbind(i, log, callback_name, *args):
-    if callable(callback_name):
-        callback_name = callback_name.__name__
-    assert callback_name in _cbs, callback_name
-    log_callbacks_set = i.listeners[log]
-    callback_name_args = (callback_name,) + args
-    if callback_name_args in log_callbacks_set:
-        log_callbacks_set.remove(callback_name_args)
-
-def save(i, k):
-    return "save", i.i, k, i[k]
-
-def send(i, k, v):
-    return "send", i.i, k, v
-
-def log(i, k, infos=None, n=1):
-    yield "log", i.i, k, infos, n
-    i.logs.append([k, infos, n])
-    callbacks_set = i.listeners[k]
-    for callback in list(callbacks_set):
-        # 3.3+: yield from
-        for x in _cbs[callback[0]](i, k, infos, n, *callback[1:]):
-            yield x
-
 # examples here:
 @register_log_callback
 def callback_example(i, k, infos, n, *args):
-    unbind(i, k, callback_example, *args)
+    i.unbind(k, callback_example, *args)
     # or:
-    #   unbind(i, k, "callback_example")
-    #   unbind(i, k, callback_example.__name__)
-    yield save(i, "foo")
-    yield send(i, "msg", "haha")
+    #   i.unbind(k, "callback_example")
+    #   i.unbind(k, callback_example.__name__)
+    i.save("foo")
+    i.send("msg", "haha")
 
 @register_log_callback
 def callback_example2(i, k, infos, n, *args):
-    return [save(i, "foobar"), save(i, "a")]
+    i.save("foobar")
+    i.save("a")
 
 
 def check(i, key, evaluation, env, callback, k):
     daemon = "%s_daemon" % key
     if eval(evaluation, None, env):
         callback(key)
-        unbind(i, k, daemon, evaluation, callback)
+        i.unbind(k, daemon, evaluation, callback)
     else:
-        bind(i, k, daemon, evaluation, callback)
+        i.bind(k, daemon, evaluation, callback)
 
 
 def f(func_name):
@@ -199,7 +172,6 @@ def f(func_name):
 def tower_daemon(i, k, infos, n, evaluation, callback):
     #print(evaluation, callback, file=sys.stderr)
     check(i, "tower", evaluation, {"a": int(i["a"])}, callback, k)
-    yield
 
 
 if __name__ == "__main__":
