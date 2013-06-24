@@ -156,10 +156,11 @@ def hub(Q_in, Q_out, Q_err):
         try:
             producer = procs[instrs[v[1]]]
             outs = producer(v[0], loads(v[2].decode()))
-            #if not isinstance(outs, list):
-                #outs = list(outs)
+            if not isinstance(outs, list):
+                outs = list(outs)
             for f in _filter(outs):
                 consumers[f[0]](*f)
+            del outs[:]
         except Exception:
             logging.exception("!!!")
 

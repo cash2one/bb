@@ -9,25 +9,29 @@ import sys
 
 class I(dict):
     """
-    >>> i = I(1, {"a": 1, "b": 3})
+    >>> i = I(42, {"a": 1, "b": 3})
     >>> i.i
-    1
+    42
     >>> i["a"] == "1"
     True
     >>> i["b"]
     3
     >>> i["foo"]
     5
-    >>> #i.logs.append("over")
+    >>> a = i["foobar"]
+    >>> b = i["foobar"]
+    >>> id(a) == id(b)
+    True
+    >>> i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
-    >>> bind(i, "go", callback_example, 1)
+    >>> i.bind("go", callback_example, 1)
     >>> i.listeners["go"] == set([("callback_example", 1)])
     True
-    >>> unbind(i, "go", "callback_example", 1)
+    >>> i.unbind("go", "callback_example", 1)
     >>> i.listeners["go"] == set()
     True
-    >>> bind(i, "go", callback_example, 1, 2, 3)
-    >>> bind(i, "go", callback_example2)
+    >>> i.bind("go", callback_example, 1, 2, 3)
+    >>> i.bind("go", callback_example2)
     >>> i.listeners["go"] == set([("callback_example", 1, 2, 3), ("callback_example2",)])
     True
     >>> len(list(log(i, "go")))
@@ -35,8 +39,8 @@ class I(dict):
     >>> i.listeners["go"] == set([("callback_example2",)])
     True
 
-    >>> bind(i, "gogogo", callback_example)
-    >>> bind(i, "gogogogo", callback_example)
+    >>> i.bind("gogogo", callback_example)
+    >>> i.bind("gogogogo", callback_example)
     >>> len(i.listeners)
     3
     >>> check(i, "tower", compile("a > 1", "<string>", "eval"), {"a": int(i["a"])}, f, "gogo")
@@ -68,6 +72,37 @@ class I(dict):
     def __missing__(self, k):
         self[k] = getattr(self, "_default_" + k)
         return self[k]
+
+    def bind(self, log, cb, *args):
+        if callable(cb):
+            cb = cb.__name__
+        assert cb in _cbs, cb
+        assert isinstance(log, str), log
+        cb_args = (cb,) + args
+        self.listeners[log].add(cb_args)
+
+    def unbind(self, log, cb, *args):
+        if callable(cb):
+            cb = cb.__name__
+        assert cb in _cbs, cb
+        assert isinstance(log, str), log
+        all_cb_args = self.listeners[log]
+        cb_args = (cb,) + args
+        if cb_args in all_cb_args:
+            all_cb_args.remove(cb_args)
+
+    def send(self, k, v):
+        self.cache.append(["save", self.i, k, v])
+
+    def log(self, k, infos=None, n=1):
+        self.cache.append(["log", self.i, k, infos, n])
+        self.logs.append([k, infos, n])
+        all_cb_args = self.listeners[k]
+        for cb_args in list(all_cb_args):
+            _cbs[cb_args[0]](self, k, infos, n, *cb_args[1:])
+
+    def save(self, k):
+        self.cache.append(["save", self.i, k, self[k]])
 
     @property
     def _default_foo(self):
