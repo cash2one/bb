@@ -1,26 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Skeleton + Body + ??? -> I
-"""
-
-
 from __future__ import division, print_function, unicode_literals
+
 
 import collections
 import sys
 
 class I(dict):
     """
-    >>> i = I(1, {"a": 1, "b": 1})
-    >>> i.a == "1"
+    >>> i = I(1, {"a": 1, "b": 3})
+    >>> i.i
+    1
+    >>> i["a"] == "1"
     True
-    >>> i.b == 1
-    True
+    >>> i["b"]
+    3
     >>> i["foo"]
     5
-    >>> i.bar
-    []
     >>> #i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
     >>> bind(i, "go", callback_example, 1)
@@ -37,58 +34,51 @@ class I(dict):
     5
     >>> i.listeners["go"] == set([("callback_example2",)])
     True
-    >>> a = i._foobar
-    >>> b = i._foobar
-    >>> id(a) == id(b)
-    False
 
     >>> bind(i, "gogogo", callback_example)
     >>> bind(i, "gogogogo", callback_example)
     >>> len(i.listeners)
     3
-    >>> check_tower(i, "a > 1", f)
+    >>> check(i, "tower", compile("a > 1", "<string>", "eval"), {"a": int(i["a"])}, f, "gogo")
     >>> len(i.listeners["gogo"])  # daemon launched
     1
-    >>> i.a = 2
+    >>> i["a"] = 1
+    >>> _ = list(log(i, "gogo"))  # "i.a > 1" is False, daemon is watching
+    >>> len(i.listeners["gogo"])
+    1
+    >>> i["a"] = 2
     >>> _ = list(log(i, "gogo"))
     >>> len(i.listeners["gogo"])  # daemon quited
     0
 
     """
 
-    __slots__ = ["i", "logs", "listeners", "checkers"]
+    __slots__ = ["i", "cache", "logs", "listeners"]
 
     def __init__(self, n, source):
         assert isinstance(source, dict)
         for k, v in source.items():
             wrap = getattr(self, "_wrap_%s" % k, None)
             self[k] = wrap(v) if wrap else v
-        i = int(n)
-        object.__setattr__(self, "i", i)
-        object.__setattr__(self, "logs", collections.deque(maxlen=100))
-        object.__setattr__(self, "listeners", collections.defaultdict(set))
-        object.__setattr__(self, "checkers", collections.defaultdict(set))
-
-    def __setattr__(self, k, v):
-        self[k] = v
-
-    def __getattr__(self, k):
-        return self[k]
+        self.i = int(n)
+        self.cache = list()
+        self.logs = collections.deque(maxlen=100)
+        self.listeners = collections.defaultdict(set)
 
     def __missing__(self, k):
-        self[k] = object.__getattribute__(self, "_" + k)
+        self[k] = getattr(self, "_default_" + k)
         return self[k]
 
     @property
-    def _foo(self):
+    def _default_foo(self):
         return 5
 
     @property
-    def _bar(self):
+    def _default_bar(self):
         return list()
 
     @property
-    def _foobar(self):
+    def _default_foobar(self):
         return collections.Counter()
 
     @staticmethod
@@ -157,30 +147,23 @@ def callback_example(i, k, infos, n, *args):
 def callback_example2(i, k, infos, n, *args):
     return [save(i, "foobar"), save(i, "a")]
 
-_cks = {}
 
-def register_check_callback(callback):
-    name = callback.__name__
-    assert name not in _cks, name
-    _cks["CK_" + name] = callback
-    return callback
-
-@register_check_callback
-def check_tower(i, evaluation, callback):
-    #print(evaluation, callback, file=sys.stderr)
-    if eval(evaluation, {"a": int(i.a), "b": 2}):
-        callback(check_tower)
-        unbind(i, "gogo", check_tower_daemon, evaluation, callback)
+def check(i, key, evaluation, env, callback, k):
+    daemon = "%s_daemon" % key
+    if eval(evaluation, None, env):
+        callback(key)
+        unbind(i, k, daemon, evaluation, callback)
     else:
-        bind(i, "gogo", check_tower_daemon, evaluation, callback)
+        bind(i, k, daemon, evaluation, callback)
 
-def f(func):
-    print(func.__name__, "`i.a > 1` --> ok", file=sys.stderr)
+
+def f(func_name):
+    print(func_name, "--> ok", file=sys.stderr)
 
 @register_log_callback
-def check_tower_daemon(i, k, infos, n, evaluation, callback):
+def tower_daemon(i, k, infos, n, evaluation, callback):
     #print(evaluation, callback, file=sys.stderr)
-    check_tower(i, evaluation, callback)
+    check(i, "tower", evaluation, {"a": int(i["a"])}, callback, k)
     yield
 
 
