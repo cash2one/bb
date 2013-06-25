@@ -61,17 +61,34 @@ class I(dict):
 
     """
 
-    __slots__ = ["i", "cache", "logs", "listeners"]
+    __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
     def __init__(self, n, source):
         assert isinstance(source, dict)
         for k, v in source.items():
             wrap = getattr(self, "_wrap_%s" % k, None)
             self[k] = wrap(v) if wrap else v
-        self.i = int(n)
-        self.cache = list()
-        self.logs = collections.deque(maxlen=100)
-        self.listeners = collections.defaultdict(set)
+        self._i = int(n)
+        self._cache = []
+        self._logs = collections.deque(maxlen=100)
+        self._listeners = collections.defaultdict(set)
+
+    # i, cache, logs, listeners are protected and readonly
+    @property
+    def i(self):
+        return self._i
+
+    @property
+    def cache(self):
+        return self._cache
+
+    @property
+    def logs(self):
+        return self._logs
+
+    @property
+    def listeners(self):
+        return self._listeners
 
     def __missing__(self, k):
         self[k] = getattr(self, "_default_" + k)
