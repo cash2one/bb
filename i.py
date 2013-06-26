@@ -73,6 +73,13 @@ class I(dict):
         self._logs = collections.deque(maxlen=100)
         self._listeners = collections.defaultdict(set)
 
+    def __missing__(self, k):
+        self[k] = self.__getattribute__("_default_" + k)
+        return self[k]
+
+    def __getattr__(self, k):   # use prudently
+        return self[k]
+
     # i, cache, logs, listeners are protected and readonly
     @property
     def i(self):
@@ -89,10 +96,6 @@ class I(dict):
     @property
     def listeners(self):
         return self._listeners
-
-    def __missing__(self, k):
-        self[k] = getattr(self, "_default_" + k)
-        return self[k]
 
     def bind(self, log, cb, *args):
         if callable(cb):
