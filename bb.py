@@ -11,22 +11,16 @@ Web            Hub --->Q2---> Log
 
 """
 
+
 import logging
-
-try:
-    import queue
-except ImportError:
-    range = xrange
-    import Queue as queue
-
-
-
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s:%(levelname)s:%(message)s",
                    )
 
 pid_index = 0
 def main(port, backstage):
+    import gc
+    gc.disable()
     import time
     import multiprocessing
     Q0 = multiprocessing.Queue()
@@ -103,11 +97,6 @@ def main(port, backstage):
         io_loop.stop()
     signal.signal(signal.SIGTERM, term)
 
-    def debug():
-        ks = list(staffs.keys())
-        print(len(ks), ks, list(map(sys.getrefcount, map(lambda k: staffs[k], ks))))
-    #ioloop.PeriodicCallback(debug, 1000).start()
-
     def msg(fd, event):
         i, cmd, data = Q1.get()
         stream = staffs[i].stream
@@ -119,32 +108,31 @@ def main(port, backstage):
     server.listen(port)
 
     # web interface
-    from objgraph import most_common_types
+    from oc import record, recorder
     from tornado import web
     from tornado.template import Template
 
+    ioloop.PeriodicCallback(record, 3000).start()
+
     template = Template("""
         <table border="1">
-        {% for obj in types %}
+        {% for obj, history in types.items() %}
             <tr>
-            <td>{{ obj[0] }}</td> <td>{{ obj[1] }}</td>
+            <td>{{ obj }}</td> <td>{{ list(history) }}</td>
             </tr>
         {% end %}
         </table>""")
 
     class MainHandler(web.RequestHandler):
         def get(self):
-            self.write(template.generate(types=most_common_types(0)))
-            gc.collect()
+            self.write(template.generate(types=recorder))
+            #gc.collect()
 
     web.Application([
         (r"/", MainHandler),
     ]).listen(backstage)
 
-    import gc
     gc.collect()
-    gc.disable()
-
     io_loop.start()   # looping...
 
     hub.join()

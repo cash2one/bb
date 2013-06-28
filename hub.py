@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
+>>> try:
+...     import queue
+... except ImportError:
+...     import Queue as queue
 >>> q0 = queue.Queue()
 >>> q1 = queue.Queue()
 >>> q2 = queue.Queue()
@@ -30,22 +34,11 @@ True
 
 from __future__ import division, print_function, unicode_literals
 
-import functools
+
 import logging
-import sys
-
-if sys.version_info[0] >= 3:
-    import queue
-else:
-    str = unicode
-    range = xrange
-    import Queue as queue
-
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s:%(levelname)s:%(message)s",
                    )
-
-
 
 _processes = {
     #'foo': process_message_foo,
@@ -92,8 +85,9 @@ def process_example(i, obj):
 
 
 def hub(Q_in, Q_out, Q_err):
-    from time import time
+    import functools
     import signal
+    from time import time
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
     signal.signal(signal.SIGTERM, not_be_terminated)

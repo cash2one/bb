@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
+>>> try:
+...     import queue
+... except ImportError:
+...     import Queue as queue
 >>> q2 = queue.Queue()
 >>> i = 2
 >>> q2.put(["log", i, 1370883768.117528, "dead", {"killed by": 3}, 1])
@@ -16,22 +20,11 @@
 
 from __future__ import division, print_function, unicode_literals
 
-import functools
+
 import logging
-import sys
-
-if sys.version_info[0] >= 3:
-    import queue
-    #open = functools.partial(open, encoding="utf-8")
-else:
-    str = unicode
-    range = xrange
-    import Queue as queue
-
 logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s:%(levelname)s:%(message)s",
                    )
-
 
 
 def log(Q_err):
