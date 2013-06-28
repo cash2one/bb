@@ -7,18 +7,17 @@ from __future__ import division, print_function, unicode_literals
 
 import collections
 import functools
+import gc
 
 
 recorder = collections.defaultdict(
     functools.partial(collections.deque, maxlen=30))
-
 
 def count():
     counter = collections.Counter()
     for obj in gc.get_objects():
         counter[type(obj)] += 1
     return counter
-
 
 def record():
     for t, n in count().items():
