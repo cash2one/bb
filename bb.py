@@ -115,13 +115,13 @@ def main(port, backstage):
     ioloop.PeriodicCallback(record, 3000).start()
 
     template = Template("""
-        <table border="1">
-        {% for obj, history in types.items() %}
-            <tr>
-            <td>{{ obj }}</td> <td>{{ list(history) }}</td>
-            </tr>
-        {% end %}
-        </table>""")
+    <table border="1">
+    {% for obj, history in sorted(types.items(), key=lambda x: x[1][-1], reverse=True) %}
+        <tr>
+        <td>{{ obj }}</td> <td>{{ list(history) }}</td>
+        </tr>
+    {% end %}
+    </table>""")
 
     class MainHandler(web.RequestHandler):
         def get(self):
