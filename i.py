@@ -15,8 +15,8 @@ class I(dict):
     >>> i = I(42, {"a": 1, "b": 3})
     >>> i.i
     42
-    >>> i["a"] == "1"
-    True
+    >>> i["a"]
+    1
     >>> i["b"]
     3
     >>> i["foo"]
@@ -47,7 +47,7 @@ class I(dict):
     >>> i.bind("gogogogo", callback_example)
     >>> len(i.listeners)
     3
-    >>> check(i, "tower", compile("a > 1", "<string>", "eval"), {"a": int(i["a"])}, f, "gogo")
+    >>> check(i, "tower", compile("i.a > 1", "<string>", "eval"), {"i": i}, f, "gogo")
     >>> len(i.listeners["gogo"])  # daemon launched
     1
     >>> i["a"] = 1
@@ -63,15 +63,16 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
-    def __init__(self, n, source):
-        assert isinstance(source, dict)
-        for k, v in source.items():
-            wrap = getattr(self, "_wrap_%s" % k, None)
-            self[k] = wrap(v) if wrap else v
+    def __init__(self, n, source=None):
         self._i = int(n)
         self._cache = []
         self._logs = collections.deque(maxlen=100)
         self._listeners = collections.defaultdict(set)
+        if source is not None:
+            assert isinstance(source, dict)
+            for k, v in source.items():
+                wrap = getattr(self, "_wrap_%s" % k, None)
+                self[k] = wrap(v) if wrap else v
 
     def __missing__(self, k):
         self[k] = self.__getattribute__("_default_" + k)
@@ -146,13 +147,6 @@ class I(dict):
             {int(k) if k.isdigit() else k: v for k, v in raw.items()}
             )
 
-    @staticmethod
-    def _wrap_a(raw):
-        return str(raw)
-
-
-
-
 
 def register_log_callback(callback):
     name = callback.__name__
@@ -191,7 +185,7 @@ def f(func_name):
 @register_log_callback
 def tower_daemon(i, k, infos, n, evaluation, callback):
     #print(evaluation, callback, file=sys.stderr)
-    check(i, "tower", evaluation, {"a": int(i["a"])}, callback, k)
+    check(i, "tower", evaluation, None, callback, k)
 
 
 if __name__ == "__main__":
