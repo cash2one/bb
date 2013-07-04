@@ -28,19 +28,19 @@ class I(dict):
     >>> i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
     >>> i.bind("go", callback_example, 1)
-    >>> i.listeners["go"] == set([("callback_example", 1)])
+    >>> i.listeners["go"] == set([("callback_example", (1,))])
     True
     >>> i.unbind("go", "callback_example", 1)
     >>> i.listeners["go"] == set()
     True
     >>> i.bind("go", callback_example, 1, 2, 3)
     >>> i.bind("go", callback_example2)
-    >>> i.listeners["go"] == set([("callback_example", 1, 2, 3), ("callback_example2",)])
+    >>> i.listeners["go"] == set([("callback_example", (1, 2, 3)), ("callback_example2", ())])
     True
     >>> i.log("go")
     >>> len(i.cache)
     5
-    >>> i.listeners["go"] == set([("callback_example2",)])
+    >>> i.listeners["go"] == set([("callback_example2", ())])
     True
 
     >>> i.bind("gogogo", callback_example)
@@ -103,7 +103,7 @@ class I(dict):
             cb = cb.__name__
         assert cb in _cbs, cb
         assert isinstance(log, str), log
-        cb_args = (cb,) + args
+        cb_args = cb, args
         self.listeners[log].add(cb_args)
 
     def unbind(self, log, cb, *args):
@@ -112,7 +112,7 @@ class I(dict):
         assert cb in _cbs, cb
         assert isinstance(log, str), log
         all_cb_args = self.listeners[log]
-        cb_args = (cb,) + args
+        cb_args = cb, args
         if cb_args in all_cb_args:
             all_cb_args.remove(cb_args)
 
@@ -124,7 +124,7 @@ class I(dict):
         self.logs.append([k, infos, n])
         all_cb_args = self.listeners[k]
         for cb_args in list(all_cb_args):
-            _cbs[cb_args[0]](self, k, infos, n, *cb_args[1:])
+            _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
 
     def save(self, k):
         self.cache.append(["save", self.i, k, self[k]])
