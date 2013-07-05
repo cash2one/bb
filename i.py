@@ -8,7 +8,19 @@ import collections
 import sys
 
 
+# map looks like this:
+#    {"func_name": func, ...}
+# why prefer "func_name" mapping instead of use function directly:
+#   * reload functions at running
+#   * persist this "function-link" at shutdown
+#   * easy to read
 _cbs = {}
+
+def register_log_callback(callback):
+    name = callback.__name__
+    assert name not in _cbs, name
+    _cbs[name] = callback
+    return callback
 
 class I(dict):
     """
@@ -78,7 +90,7 @@ class I(dict):
         self[k] = self.__getattribute__("_default_" + k)
         return self[k]
 
-    def __getattr__(self, k):   # use prudently
+    def __getattr__(self, k):   # use this prudently
         return self[k]
 
     # i, cache, logs, listeners are protected and readonly
@@ -148,11 +160,6 @@ class I(dict):
             )
 
 
-def register_log_callback(callback):
-    name = callback.__name__
-    assert name not in _cbs, name
-    _cbs[name] = callback
-    return callback
 
 # examples here:
 @register_log_callback
