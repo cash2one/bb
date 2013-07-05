@@ -75,10 +75,12 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
+    DEQUE_MAXLEN = 100
+
     def __init__(self, n, source=None):
         self._i = int(n)
         self._cache = []
-        self._logs = collections.deque(maxlen=100)
+        self._logs = collections.deque(maxlen=self.DEQUE_MAXLEN)
         self._listeners = collections.defaultdict(set)
         if source is not None:
             assert isinstance(source, dict)
@@ -129,17 +131,19 @@ class I(dict):
             all_cb_args.remove(cb_args)
 
     def send(self, k, v):
-        self.cache.append(["save", self.i, k, v])
+        self.cache.append(["send", self.i, k, v])
+
+    def save(self, k):
+        self.cache.append(["save", self.i, k, self[k]])
 
     def log(self, k, infos=None, n=1):
+        if infos:
+            assert isinstance(infos, dict), infos
         self.cache.append(["log", self.i, k, infos, n])
         self.logs.append([k, infos, n])
         all_cb_args = self.listeners[k]
         for cb_args in list(all_cb_args):
             _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
-
-    def save(self, k):
-        self.cache.append(["save", self.i, k, self[k]])
 
     @property
     def _default_foo(self):
