@@ -18,6 +18,7 @@ class TestI(unittest.TestCase):
         i = random.randint(1, 10000)
         self.i_flag = i
         self.i = I(i)
+        self.assertIsInstance(I(i + 1, {"x": "yz"}), dict)
 
     def test_basic_attributes(self):
         i = self.i

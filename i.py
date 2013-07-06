@@ -83,7 +83,7 @@ class I(dict):
         self._logs = collections.deque(maxlen=self.DEQUE_MAXLEN)
         self._listeners = collections.defaultdict(set)
         if source is not None:
-            assert isinstance(source, dict)
+            assert isinstance(source, dict), source
             for k, v in source.items():
                 wrap = getattr(self, "_wrap_%s" % k, None)
                 self[k] = wrap(v) if wrap else v
@@ -137,13 +137,15 @@ class I(dict):
         self.cache.append(["save", self.i, k, self[k]])
 
     def log(self, k, infos=None, n=1):
-        if infos:
-            assert isinstance(infos, dict), infos
+        assert isinstance(k, str), k
+        assert isinstance(infos, (dict, type(None))), infos
+        assert isinstance(n, int), n
         self.cache.append(["log", self.i, k, infos, n])
         self.logs.append([k, infos, n])
         all_cb_args = self.listeners[k]
-        for cb_args in list(all_cb_args):
-            _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
+        if all_cb_args:
+            for cb_args in list(all_cb_args):
+                _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
 
     @property
     def _default_foo(self):
