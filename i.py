@@ -115,25 +115,27 @@ class I(dict):
     def bind(self, log, cb, *args):
         if callable(cb):
             cb = cb.__name__
-        assert cb in _cbs, cb
         assert isinstance(log, str), log
+        assert cb in _cbs, cb
         cb_args = cb, args
         self.listeners[log].add(cb_args)
 
     def unbind(self, log, cb, *args):
         if callable(cb):
             cb = cb.__name__
-        assert cb in _cbs, cb
         assert isinstance(log, str), log
+        assert cb in _cbs, cb
         all_cb_args = self.listeners[log]
         cb_args = cb, args
         if cb_args in all_cb_args:
             all_cb_args.remove(cb_args)
 
     def send(self, k, v):
+        assert isinstance(k, str), k
         self.cache.append(["send", self.i, k, v])
 
     def save(self, k):
+        assert isinstance(k, str), k
         self.cache.append(["save", self.i, k, self[k]])
 
     def log(self, k, infos=None, n=1):
@@ -146,6 +148,9 @@ class I(dict):
         if all_cb_args:
             for cb_args in list(all_cb_args):
                 _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
+
+    def render(self, rc):
+        assert isinstance(rc, dict), rc
 
     @property
     def _default_foo(self):
@@ -164,7 +169,6 @@ class I(dict):
         return collections.Counter(
             {int(k) if k.isdigit() else k: v for k, v in raw.items()}
             )
-
 
 
 # examples here:
