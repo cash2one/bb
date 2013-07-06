@@ -98,7 +98,7 @@ def hub(Q_in, Q_out, Q_err):
     _filter = functools.partial(filter, None)
 
     procs = _processes
-    instrs = _instructions
+    insts = _instructions
 
     from json import dumps, loads, JSONEncoder
 
@@ -117,7 +117,7 @@ def hub(Q_in, Q_out, Q_err):
                               sort_keys=True, indent=4)
 
     def send(_, i, k, obj):
-        Q_out.put([int(i), instrs[k], dump1(obj).encode()])
+        Q_out.put([int(i), insts[k], dump1(obj).encode()])
 
     def save(cmd, i, k, obj):
         Q_err.put([cmd, int(i), k, obj])
@@ -128,12 +128,17 @@ def hub(Q_in, Q_out, Q_err):
     def pay(cmd, i, n):
         Q_err.put([cmd, int(i), n])
 
-    consumers = {
-        "send": send,
-        "save": save,
-        "log": log,
-        "pay": pay,
-    }
+    consumers = [
+        send,
+        save,
+        log,
+        pay,
+    ]
+
+    for c in consumers:
+        assert callable(c), c
+
+    cm = {c.__name__: c for c in consumers}
 
     while True:
         try:
@@ -148,12 +153,12 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            producer = procs[instrs[v[1]]]
+            producer = procs[insts[v[1]]]
             outs = producer(v[0], loads(v[2].decode()))
             if not isinstance(outs, list):
                 outs = list(outs)
             for f in _filter(outs):
-                consumers[f[0]](*f)
+                cm[f[0]](*f)
             del outs[:]
         except Exception:
             logging.exception("!!!")

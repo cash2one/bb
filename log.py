@@ -46,11 +46,20 @@ def log(Q_err):
     def pay(_, i, n):
         logging.info("%d, %d", i, n)
 
-    consumers = {
-        "log": log,
-        "save": save,
-        "pay": pay,
-    }
+    def fight(_, i, n):
+        logging.info("%d, %d", i, n)
+
+    consumers = [
+        log,
+        save,
+        pay,
+        fight,
+    ]
+
+    for c in consumers:
+        assert callable(c), c
+
+    cm = {c.__name__: c for c in consumers}
 
     while True:
         try:
@@ -64,7 +73,7 @@ def log(Q_err):
             break
 
         try:
-            consumers[v[0]](*v)
+            cm[v[0]](*v)
         except Exception:
             logging.exception("!!!")
 
