@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # at prompt:
 # ./z.sh | nc box 8000
