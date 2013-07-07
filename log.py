@@ -1,11 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
->>> try:
-...     import queue
-... except ImportError:
-...     import Queue as queue
+>>> import queue
 >>> q2 = queue.Queue()
 >>> i = 2
 >>> q2.put(["log", i, 1370883768.117528, "dead", {"killed by": 3}, 1])
@@ -15,19 +11,11 @@
 
 >>> q2.qsize()
 0
-
 """
-
-from __future__ import division, print_function, unicode_literals
-
-
-import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s:%(levelname)s:%(message)s",
-                   )
 
 
 def log(Q_err):
+    import logging
     import signal
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")

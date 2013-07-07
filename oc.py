@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # Objects' Counter
-
-from __future__ import division, print_function, unicode_literals
-
 
 import collections
 import functools

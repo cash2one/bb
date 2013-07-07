@@ -1,11 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
->>> try:
-...     import queue
-... except ImportError:
-...     import Queue as queue
+>>> import queue
 >>> q0 = queue.Queue()
 >>> q1 = queue.Queue()
 >>> q2 = queue.Queue()
@@ -32,19 +28,19 @@ True
 
 """
 
-from __future__ import division, print_function, unicode_literals
-
-
-import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s:%(levelname)s:%(message)s",
-                   )
 
 _processes = {
     #'foo': process_message_foo,
     #'ping': process_message_ping,
     # ...
 }
+
+def handle_input(signal):
+    def reg(func):
+        assert signal not in _processes
+        _processes[signal] = func
+        return func
+    return reg
 
 instructions = [
     "ping",
@@ -59,12 +55,6 @@ for i, v in enumerate(instructions, 1):
     _instructions[v] = i
 
 
-def handle_input(signal):
-    def reg(func):
-        assert signal not in _processes
-        _processes[signal] = func
-        return func
-    return reg
 
 @handle_input("ping")
 def process_example(i, obj):
@@ -86,6 +76,7 @@ def process_example(i, obj):
 
 def hub(Q_in, Q_out, Q_err):
     import functools
+    import logging
     import signal
     from time import time
     def not_be_terminated(signal_number, stack_frame):
