@@ -7,6 +7,8 @@
 # ....
 #
 
+echo ${1:-0}
+
 while read s
 do
     instruction=${s%%:*}

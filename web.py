@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import division, print_function, unicode_literals
-
 # This is bb server
 """
    /--->Q0--->\
@@ -12,16 +8,11 @@ Web            Hub --->Q2---> Log
 """
 
 
-import logging
-logging.basicConfig(level=logging.DEBUG,
-                    format="%(asctime)s:%(levelname)s:%(message)s",
-                   )
-
-pid_index = 0
 def main(port, backstage):
     import gc
     gc.disable()
-    import time
+
+    import logging
     import multiprocessing
     Q0 = multiprocessing.Queue()
     Q1 = multiprocessing.Queue()
@@ -36,20 +27,36 @@ def main(port, backstage):
 
 
     # main from here
+    import time
+    import weakref
     from struct import pack, unpack
+
+    staffs = weakref.WeakValueDictionary()
+
     from tornado import ioloop
     from tornado.tcpserver import TCPServer
     io_loop = ioloop.IOLoop.instance()
 
     class Connection(object):
-        def __init__(self, stream, address, i):
+        def __init__(self, stream, address):
             self.stream = stream
-            self.i = i
-            logging.info("%s in", self.i)
-            self.stream.set_close_callback(self.close)
+            self.address = address
             #self.stream.read_bytes(1, self.msg_byte)
             #self.stream.read_until(b'\n', self.msg_print)
-            self.stream.read_bytes(4, self.msg_head)
+            self.stream.read_until(b'\n', self.login)
+            logging.info("%s try in", address)
+
+        def login(self, auth):
+            i = int(auth)
+            if i in range(10):   # lots todo :)
+                self.i = i
+                staffs[i] = self
+                self.stream.set_close_callback(self.logout)
+                self.stream.read_bytes(4, self.msg_head)
+                logging.info("%s %s login", self.address, i)
+            else:
+                logging.info("%s %s auth failed", self.address, i)
+                self.stream.close()
 
         def msg_byte(self, byte):
             print(byte)
@@ -61,35 +68,29 @@ def main(port, backstage):
             self.stream.read_until(b'\n', self.msg_print)
 
         def msg_head(self, chunk):
-            logging.info("head: %s", chunk)
-            instruction, length_of_body = unpack(b'!HH', chunk)
+            #logging.info("head: %s", chunk)
+            instruction, length_of_body = unpack("!HH", chunk)
             #logging.info("%d, %d", instruction, length_of_body)
             self.instruction = instruction
             if not self.stream.closed():
                 self.stream.read_bytes(length_of_body, self.msg_body)
 
         def msg_body(self, chunk):
-            logging.info("body: %s", chunk)
+            #logging.info("body: %s", chunk)
             if not chunk:
                 chunk = b'0'
             Q0.put([self.i, self.instruction, chunk])
             if not self.stream.closed():
                 self.stream.read_bytes(4, self.msg_head)
 
-        def close(self):
+        def logout(self):
             self.stream.close()
-            logging.info("%s out", self.i)
-
-    import sys
-    import weakref
-    staffs = weakref.WeakValueDictionary()
+            logging.info("%s %s logout", self.address, self.i)
 
 
     class BBServer(TCPServer):
         def handle_stream(self, stream, address):
-            global pid_index
-            pid_index += 1
-            staffs[pid_index] = Connection(stream, address, pid_index)
+            Connection(stream, address)
 
     # SIGTERM
     import signal
@@ -120,6 +121,7 @@ def main(port, backstage):
     <form action="/gc_collect">
         <input type="submit" value="gc.collect()">
     </form>
+    staffs: {{ list(staffs.keys()) }}
     <table border="1">
     {% for obj, history in sorted(types.items(), key=lambda x: x[1][-1], reverse=True) %}
         <tr>
@@ -130,7 +132,7 @@ def main(port, backstage):
 
     class MainHandler(web.RequestHandler):
         def get(self):
-            self.write(template.generate(types=recorder))
+            self.write(template.generate(types=recorder, staffs=staffs))
 
     class GcHandler(web.RequestHandler):
         def get(self):
@@ -147,8 +149,8 @@ def main(port, backstage):
 
     hub.join()
     log.join()
-    logging.debug("all sub-processes are exited")
-    logging.debug("before clean Queues: %d, %d, %d",
+    logging.info("all sub-processes are exited")
+    logging.info("before clean Queues: %d, %d, %d",
                   Q0.qsize(), Q1.qsize(), Q2.qsize())
     while not Q0.empty():
         Q0.get()
@@ -156,7 +158,7 @@ def main(port, backstage):
         Q1.get()
     while not Q2.empty():
         Q2.get()
-    logging.debug("after clean Queues: %d, %d, %d",
+    logging.info("after clean Queues: %d, %d, %d",
                   Q0.qsize(), Q1.qsize(), Q2.qsize())
 
     logging.info("bye")
