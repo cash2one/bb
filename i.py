@@ -18,6 +18,7 @@ def register_log_callback(callback):
     _cbs[name] = callback
     return callback
 
+
 class I(dict):
     """
     >>> i = I(42, {"a": 1, "b": 3})

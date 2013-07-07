@@ -29,51 +29,6 @@ True
 """
 
 
-_processes = {
-    #'foo': process_message_foo,
-    #'ping': process_message_ping,
-    # ...
-}
-
-def handle_input(signal):
-    def reg(func):
-        assert signal not in _processes
-        _processes[signal] = func
-        return func
-    return reg
-
-instructions = [
-    "ping",
-    "pong",
-    "type",
-]
-
-_instructions = {}
-
-for i, v in enumerate(instructions, 1):
-    _instructions[i] = v
-    _instructions[v] = i
-
-
-
-@handle_input("ping")
-def process_example(i, obj):
-    yield "send", i, "pong", obj + 1
-    yield "log", i, "record_some_thing", {"xixi": 2}, 3
-    yield "save", i, "gold", list(range(100))
-    yield
-    yield
-    yield "pay", i, 10
-
-@handle_input("pong")
-def process_example(i, obj):
-    return [("send", i, "pong", obj - 1), ("send", i, "pong", obj - 2)]
-
-@handle_input("type")
-def process_example(i, obj):
-    yield "send", i, "type", {"t": str(type(obj)), "v": obj}
-
-
 def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
@@ -88,8 +43,7 @@ def hub(Q_in, Q_out, Q_err):
 
     _filter = functools.partial(filter, None)
 
-    procs = _processes
-    insts = _instructions
+    from inst import processes, instructions
 
     from json import dumps, loads, JSONEncoder
 
@@ -108,7 +62,7 @@ def hub(Q_in, Q_out, Q_err):
                               sort_keys=True, indent=4)
 
     def send(_, i, k, obj):
-        Q_out.put([int(i), insts[k], dump1(obj).encode()])
+        Q_out.put([int(i), instructions[k], dump1(obj).encode()])
 
     def save(cmd, i, k, obj):
         Q_err.put([cmd, int(i), k, obj])
@@ -134,6 +88,8 @@ def hub(Q_in, Q_out, Q_err):
     for c in cm:
         assert isinstance(c, str), c
 
+    import other   # load all
+
     while True:
         try:
             v = Q_in.get()
@@ -147,7 +103,7 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            producer = procs[insts[v[1]]]
+            producer = processes[instructions[v[1]]]
             outs = producer(v[0], loads(v[2].decode()))
             if outs:
                 for f in _filter(outs):   # is _filter neccessary?

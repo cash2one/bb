@@ -102,9 +102,13 @@ def main(port, backstage):
 
     def msg(fd, event):
         i, cmd, data = Q1.get()
-        stream = staffs[i].stream
-        if not stream.closed():
-            stream.write(data)
+        if i in staffs:
+            stream = staffs[i].stream
+            if not stream.closed():
+                stream.write(data)
+        else:
+            logging.warning("%s is not online, send %s %s failed",
+                            i, cmd, data)
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
     server = BBServer()
