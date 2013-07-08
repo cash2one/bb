@@ -15,7 +15,7 @@ def flush(*caches):
     o = []
     for i in caches:
         o.extend(i)
-        i.clear()
+        del i[:]
     return o
 
 if __name__ == "__main__":
