@@ -3,6 +3,9 @@
 import collections
 import sys
 
+from bisect import bisect
+from itertools import accumulate
+from random import random
 
 # map looks like this:
 #    {"func_name": func, ...}
@@ -147,7 +150,29 @@ class I(dict):
                 _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
 
     def render(self, rc):
-        assert isinstance(rc, dict), rc
+        """
+        rc = (
+            ("a", 10),
+            ((("a", 1), ("b", 1)), (9, 1)),
+            (("b", 5), 0.5),
+        )
+        """
+        assert isinstance(rc, tuple), rc
+        booty = []
+        for r in rc:
+            foo, bar = r[0], r[1]
+            if isinstance(foo, str):
+                booty.append(r)
+            elif isinstance(bar, tuple):
+                assert foo and len(foo) == len(bar), foo
+                assert bar and all(n > 0 for n in bar), bar
+                lst = list(accumulate(bar))
+                booty.append(foo[bisect(lst, random() * lst[-1])])
+            else:
+                assert 0 <= bar < 1, bar
+                if random() < bar:
+                    booty.append(r[0])
+        return booty
 
     @property
     def _default_foo(self):
@@ -206,3 +231,16 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     doctest.testmod()
+    i = I(0)
+    rc = (
+        ("a", 10),
+        ((("a", 1), ("b", 1)), (99, 1)),
+        (("b", 5), 0.5),
+    )
+    c = collections.Counter()
+    for _ in range(10000):
+        #print(i.render(rc))
+        result = i.render(rc)
+        c[len(result)] += 1
+        c[result[1][0]] += 1
+    print(c)
