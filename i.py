@@ -165,7 +165,8 @@ class I(dict):
                 booty.append(r)
             elif isinstance(bar, tuple):
                 assert foo and len(foo) == len(bar), foo
-                assert bar and all(n > 0 for n in bar), bar
+                assert all(isinstance(t, tuple) for t in foo), foo
+                assert all(n > 0 for n in bar), bar
                 lst = list(accumulate(bar))
                 booty.append(foo[bisect(lst, random() * lst[-1])])
             else:
