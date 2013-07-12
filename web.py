@@ -121,22 +121,13 @@ def main(port, backstage):
 
     ioloop.PeriodicCallback(record, 3000).start()
 
-    template = Template("""
-    <form action="/gc_collect">
-        <input type="submit" value="gc.collect()">
-    </form>
-    staffs: {{ list(staffs.keys()) }}
-    <table border="1">
-    {% for obj, history in sorted(types.items(), key=lambda x: x[1][-1], reverse=True) %}
-        <tr>
-        <td>{{ obj }}</td> <td>{{ list(history) }}</td>
-        </tr>
-    {% end %}
-    </table>""")
-
     class MainHandler(web.RequestHandler):
         def get(self):
-            self.write(template.generate(types=recorder, staffs=staffs))
+            self.render("stat.html",
+                        recorder=recorder,
+                        staffs=staffs,
+                        queues="%d, %d, %d" % (Q0.qsize(), Q1.qsize(), Q2.qsize()),
+                       )
 
     class GcHandler(web.RequestHandler):
         def get(self):

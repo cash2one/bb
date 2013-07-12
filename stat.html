@@ -1,0 +1,20 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>bb status</title>
+    </head>
+    <body>
+        <form action="/gc_collect">
+            <input type="submit" value="gc.collect">
+        </form>
+        <p>{{ list(staffs.keys()) }}</p>
+        <p>{{ queues }}</p>
+        <table border="1">
+            {% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
+            <tr>
+                <td>{{ obj }}</td> <td>{{ list(history) }}</td>
+            </tr>
+            {% end %}
+        </table>
+    </body>
+</html>
