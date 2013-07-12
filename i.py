@@ -158,17 +158,19 @@ class I(dict):
         )
         """
         assert isinstance(rc, tuple), rc
+        assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
         for r in rc:
             foo, bar = r[0], r[1]
             if isinstance(foo, str):
                 booty.append(r)
             elif isinstance(bar, tuple):
-                assert foo and len(foo) == len(bar), foo
+                assert foo, foo
+                assert len(foo) == len(bar), foo
                 assert all(isinstance(t, tuple) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
-                lst = list(accumulate(bar))
-                booty.append(foo[bisect(lst, random() * lst[-1])])
+                l = list(accumulate(bar))
+                booty.append(foo[bisect(l, random() * l[-1])])
             else:
                 assert 0 <= bar < 1, bar
                 if random() < bar:
@@ -240,7 +242,6 @@ if __name__ == "__main__":
     )
     c = collections.Counter()
     for _ in range(10000):
-        #print(i.render(rc))
         result = i.render(rc)
         c[len(result)] += 1
         c[result[1][0]] += 1
