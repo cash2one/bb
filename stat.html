@@ -8,7 +8,6 @@
             <input type="submit" value="gc.collect">
         </form>
         <p>{{ list(staffs.keys()) }}</p>
-        <p>{{ queues }}</p>
         <table border="1">
             {% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
             <tr>

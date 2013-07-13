@@ -13,16 +13,15 @@ def main(port, backstage):
     gc.disable()
 
     import logging
-    import multiprocessing
-    Q0 = multiprocessing.Queue()
-    Q1 = multiprocessing.Queue()
-    Q2 = multiprocessing.Queue()
+    from multiprocessing import Process
+    from multiprocessing.queues import Queue, SimpleQueue
+    Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
     from hub import hub
     from log import log
-    hub = multiprocessing.Process(target=hub, args=(Q0, Q1, Q2))
+    hub = Process(target=hub, args=(Q0, Q1, Q2))
     hub.start()
-    log = multiprocessing.Process(target=log, args=(Q2,))
+    log = Process(target=log, args=(Q2,))
     log.start()
 
 
@@ -116,25 +115,19 @@ def main(port, backstage):
 
     # web interface
     from oc import record, recorder
-    from tornado import web
-    from tornado.template import Template
+    from tornado.web import RequestHandler, Application
 
     ioloop.PeriodicCallback(record, 3000).start()
 
-    class MainHandler(web.RequestHandler):
+    class MainHandler(RequestHandler):
         def get(self):
-            self.render("stat.html",
-                        recorder=recorder,
-                        staffs=staffs,
-                        queues="%d, %d, %d" % (Q0.qsize(), Q1.qsize(), Q2.qsize()),
-                       )
+            self.render("stat.html", recorder=recorder, staffs=staffs)
 
-    class GcHandler(web.RequestHandler):
+    class GcHandler(RequestHandler):
         def get(self):
             gc.collect()
-            self.redirect("/")
 
-    web.Application([
+    Application([
         (r"/", MainHandler),
         (r"/gc_collect", GcHandler),
     ]).listen(backstage)
@@ -144,18 +137,6 @@ def main(port, backstage):
 
     hub.join()
     log.join()
-    logging.info("all sub-processes are exited")
-    logging.info("before clean Queues: %d, %d, %d",
-                  Q0.qsize(), Q1.qsize(), Q2.qsize())
-    while not Q0.empty():
-        Q0.get()
-    while not Q1.empty():
-        Q1.get()
-    while not Q2.empty():
-        Q2.get()
-    logging.info("after clean Queues: %d, %d, %d",
-                  Q0.qsize(), Q1.qsize(), Q2.qsize())
-
     logging.info("bye")
 
 
