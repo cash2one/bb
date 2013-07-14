@@ -14,6 +14,6 @@ def ping(i, n):
     j = staffs[2]
     i.send("pong", n + 1)
     i.save("foo")
-    j.send("pong", n + 1)
+    j.send("pong", n + 2)
     return flush(i.cache, j.cache)
 

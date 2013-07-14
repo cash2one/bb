@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # at prompt:
 # ./z.sh | nc box 8000
@@ -15,14 +15,15 @@ do
     json_body=${s#*:}
     json_length=${#json_body}
 
-    hi=$((instruction / 256))
-    lo=$((instruction % 256))
-    echo -ne "$(printf '\\x%x\\x%x' ${hi} ${lo})"
+    hi=$(printf "%o" $((instruction / 256)))
+    lo=$(printf "%o" $((instruction % 256)))
+    printf "\\$hi\\$lo"
 
-    hi=$((json_length / 256))
-    lo=$((json_length % 256))
-    echo -ne "$(printf '\\x%x\\x%x' ${hi} ${lo})"
-    echo -n "${json_body}"
+    hi=$(printf "%o" $((json_length / 256)))
+    lo=$(printf "%o" $((json_length % 256)))
+    printf "\\$hi\\$lo"
+
+    printf "${json_body}"
 done
 
 #sleep ${1:-1}
