@@ -83,8 +83,8 @@ class TestI(unittest.TestCase):
         i.send("tick", 2)
         self.assertEqual(i.cache,
                          [
-                             ["send", self.i_flag, "tick", 1],
-                             ["send", self.i_flag, "tick", 2],
+                             [self.i_flag, "tick", 1],
+                             [self.i_flag, "tick", 2],
                          ])
 
     def test_save(self):

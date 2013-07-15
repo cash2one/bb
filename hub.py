@@ -14,12 +14,10 @@
 
 >>> q1.get() == [i, PONG, b'65']
 True
->>> len(q2.get())
-6
->>> len(q2.get())
-4
->>> len(q2.get())
-3
+>>> q1.get() == [2, PONG, b'66']
+True
+>>> q2.get() == ["save", i, "foo", 5]
+True
 >>> q2.get() is None 
 True
 
@@ -61,33 +59,6 @@ def hub(Q_in, Q_out, Q_err):
                               separators = (",", ": "),
                               sort_keys=True, indent=4)
 
-    def send(_, i, k, obj):
-        Q_out.put([int(i), instructions[k], dump1(obj).encode()])
-
-    def save(cmd, i, k, obj):
-        Q_err.put([cmd, int(i), k, obj])
-
-    def log(cmd, i, k, infos, n):
-        Q_err.put([cmd, int(i), time(), k, infos, n])
-
-    def pay(cmd, i, n):
-        Q_err.put([cmd, int(i), n])
-
-    consumers = [
-        send,
-        save,
-        log,
-        pay,
-    ]
-
-    for c in consumers:
-        assert callable(c), c
-
-    cm = {c.__name__: c for c in consumers}
-
-    for c in cm:
-        assert isinstance(c, str), c
-
     import other   # load all
 
     while True:
@@ -106,9 +77,12 @@ def hub(Q_in, Q_out, Q_err):
             producer = processes[instructions[v[1]]]
             outs = producer(v[0], loads(v[2].decode()))
             if outs:
-                for f in _filter(outs):   # is _filter neccessary?
-                    consumer = cm[f[0]]
-                    consumer(*f)
+                for x in _filter(outs):   # is _filter neccessary?
+                    i = x[0]
+                    if isinstance(i, int):
+                        Q_out.put([i, instructions[x[1]], dump1(x[2]).encode()])
+                    else:
+                        Q_err.put(x)
         except Exception:
             logging.exception("!!!")
 

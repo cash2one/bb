@@ -132,7 +132,7 @@ class I(dict):
 
     def send(self, k, v):
         assert isinstance(k, str), k
-        self.cache.append(["send", self.i, k, v])
+        self.cache.append([self.i, k, v])
 
     def save(self, k):
         assert isinstance(k, str), k
