@@ -16,11 +16,15 @@
 
 def worker(Q):
     import logging
+    logging.info("log_worker start")
     while True:
         v = Q.get()
-        logging.info(v)
+        logging.info(v)   # TODO
         if v is None:
             break
+        Q.task_done()
+    logging.info("log_worker exit")
+    Q.task_done()
 
 def log(Q_err):
     import logging
@@ -31,8 +35,8 @@ def log(Q_err):
 
     from threading import Thread
     from queue import Queue
-    Q = Queue()
 
+    Q = Queue()
     Thread(target=worker, args=(Q,)).start()
 
     while True:
@@ -44,9 +48,37 @@ def log(Q_err):
             continue
 
         if v is None:
-            logging.debug("log exit")
-            Q.put(None)
+            logging.info("log exit")
             break
+
+    Q.join()
+
+
+def test(Q):
+    while True:
+        v = Q.get()
+        print(v)
+        if v is None:
+            break
+        Q.task_done()
+    Q.task_done()
+
+def main():
+    from threading import Thread
+    from queue import Queue
+
+    n = 3
+    Q = Queue()
+
+    for i in range(n):
+        Thread(target=test, args=(Q,)).start()
+
+    for i in range(100):
+        Q.put(i)
+
+    for i in range(n):
+        Q.put(None)
+    Q.join()
 
 
 
@@ -54,4 +86,5 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     doctest.testmod()
+    #main()
 
