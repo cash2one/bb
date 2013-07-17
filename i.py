@@ -151,23 +151,24 @@ class I(dict):
 
     def render(self, rc):
         """
-        rc = (
-            ("a", 10),
-            ((("a", 1), ("b", 1)), (9, 1)),
-            (("b", 5), 0.5),
-        )
+        rc = [
+            ["a", 10],
+            [[["a", 1], ["b", 1]], [9, 1]],
+            [["c", 1001, 5], 0.5],
+        ]
         """
-        assert isinstance(rc, tuple), rc
-        assert all(isinstance(r, tuple) for r in rc), rc
+        discount = self.foo   # example, 
+        assert isinstance(rc, list), rc
+        assert all(isinstance(r, list) for r in rc), rc
         booty = []
         for r in rc:
             foo, bar = r[0], r[1]
             if isinstance(foo, str):
                 booty.append(r)
-            elif isinstance(bar, tuple):
+            elif isinstance(bar, list):
                 assert foo, foo
                 assert len(foo) == len(bar), foo
-                assert all(isinstance(t, tuple) for t in foo), foo
+                assert all(isinstance(t, list) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
                 l = list(accumulate(bar))
                 booty.append(foo[bisect(l, random() * l[-1])])
@@ -175,6 +176,10 @@ class I(dict):
                 assert 0 <= bar < 1, bar
                 if random() < bar:
                     booty.append(r[0])
+
+        for i in booty:
+            i[-1] = int(i[-1] * discount)
+
         return booty
 
     @property
@@ -235,13 +240,14 @@ if __name__ == "__main__":
     import doctest
     doctest.testmod()
     i = I(0)
-    rc = (
-        ("a", 10),
-        ((("a", 1), ("b", 1)), (99, 1)),
-        (("b", 5), 0.5),
-    )
+    rc = [
+        ["a", 10],
+        [[["a", 1], ["b", 1]], [9, 1]],
+        [["c", 1001, 5], 0.5],
+    ]
+    print(i.render(rc))
     c = collections.Counter()
-    for _ in range(10000):
+    for _ in range(1000):
         result = i.render(rc)
         c[len(result)] += 1
         c[result[1][0]] += 1

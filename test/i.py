@@ -104,3 +104,6 @@ class TestI(unittest.TestCase):
         self.assertEqual(i.cache, [["log", i.i, "jump", None, 1]])
         self.assertEqual(list(i.logs), [["jump", None, 1]])
         self.assertEqual(i["foo"], 6)   # see function cb_test
+
+    def test_render(self):
+        i = self.i
