@@ -69,7 +69,7 @@ def hub(Q_in, Q_out, Q_err):
             continue
 
         if v is None:
-            logging.debug("hub exit")
+            logging.info("hub exit")
             Q_err.put(None)
             break
 
