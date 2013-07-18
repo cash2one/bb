@@ -21,6 +21,12 @@ def register_log_callback(callback):
     _cbs[name] = callback
     return callback
 
+class Box(list):
+    """
+    """
+    def exchange(self, i, j):
+        if i != j:
+            self[i], self[j] = self[j], self[i]
 
 class I(dict):
     """
@@ -279,5 +285,5 @@ if __name__ == "__main__":
     print(c)
     i.apply([["gold", 1]], 'xixi')
     i.apply([["gold", 2], ["gold", 3]], 'haha')
-    i.apply([["gold", -100], ["item", 2, 1]])
+    i.apply([["gold", -100], ["item", 2, 1]], 'pow')
     print(i)
