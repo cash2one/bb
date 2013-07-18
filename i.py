@@ -182,6 +182,27 @@ class I(dict):
 
         return booty
 
+    def apply(self, booty, cause=None):
+        """
+        booty = [["a", 50], ["b", 5], ["c", 1001, 25]]
+        """
+        assert all(isinstance(b[-1], int) for b in booty), booty
+        assert all(isinstance(b[0], str) for b in booty), booty
+        for b in booty:
+            method = self.__getattribute__("apply_" + b[0])
+            #print(id(method_apply))
+            method(*b[1:], cause=cause)
+
+    def apply_gold(self, count, cause):
+        if count > 0 and not cause:
+            raise Warning("+gold without cause is not allowed")
+        self["gold"] += count
+
+    def apply_item(self, index, count, cause):
+        if count > 0 and not cause:
+            raise Warning("+item without cause is not allowed")
+
+
     @property
     def _default_foo(self):
         return 5
@@ -193,6 +214,10 @@ class I(dict):
     @property
     def _default_foobar(self):
         return collections.Counter()
+
+    @property
+    def _default_gold(self):
+        return 500
 
     @staticmethod
     def _wrap_foobar(raw):
@@ -252,3 +277,7 @@ if __name__ == "__main__":
         c[len(result)] += 1
         c[result[1][0]] += 1
     print(c)
+    i.apply([["gold", 1]], 'xixi')
+    i.apply([["gold", 2], ["gold", 3]], 'haha')
+    i.apply([["gold", -100], ["item", 2, 1]])
+    print(i)
