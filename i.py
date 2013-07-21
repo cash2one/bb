@@ -25,6 +25,7 @@ class Box(list):
     """
     """
     def exchange(self, i, j):
+        assert i and j
         if i != j:
             self[i], self[j] = self[j], self[i]
 
@@ -82,6 +83,32 @@ class I(dict):
     __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
     DEQUE_MAXLEN = 100
+    asset_items = {
+        1: {
+            "multiple": 99,
+            "buy": 10,
+            "sell": 5,
+        },
+        2: {
+            "multiple": 99,
+            "buy": 88,
+            "sell": 44,
+        },
+        # ...
+
+        1001: {
+            "buy": 2000,
+            "sell": 1000,
+            #"attributes": [
+            #    ["strength", 2],
+            #    ["dexterity", 3],
+            #    ["strength", 1],
+            #],
+        },
+
+        # ...
+            
+    }
 
     def __init__(self, n, source=None):
         self._i = int(n)
@@ -163,28 +190,31 @@ class I(dict):
             [["c", 1001, 5], 0.5],
         ]
         """
-        discount = self.foo   # example, 
+        discount = self.foo   # just a example, 
         assert isinstance(rc, list), rc
         assert all(isinstance(r, list) for r in rc), rc
         booty = []
         for r in rc:
             foo, bar = r[0], r[1]
             if isinstance(foo, str):
-                booty.append(r)
+                booty.append(r[:])
             elif isinstance(bar, list):
                 assert foo, foo
                 assert len(foo) == len(bar), foo
                 assert all(isinstance(t, list) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
                 l = list(accumulate(bar))
-                booty.append(foo[bisect(l, random() * l[-1])])
+                booty.append(foo[bisect(l, random() * l[-1])][:])
             else:
                 assert 0 <= bar < 1, bar
                 if random() < bar:
-                    booty.append(r[0])
+                    booty.append(foo[:])
 
         for i in booty:
-            i[-1] = int(i[-1] * discount)
+            n = i[-1]
+            if not isinstance(n, int):
+                n = eval(n, None, {"lv": self["level"]})
+            i[-1] = int(n * discount)
 
         return booty
 
@@ -202,11 +232,28 @@ class I(dict):
     def apply_gold(self, count, cause):
         if count > 0 and not cause:
             raise Warning("+gold without cause is not allowed")
-        self["gold"] += count
+        gold = self["gold"] + count
+        if gold < 0:
+            raise Warning("gold: %s" % gold)
+        self["gold"] = gold
+        self.send("gold", gold)
 
-    def apply_item(self, index, count, cause):
+    def apply_item(self, item, count, cause):
         if count > 0 and not cause:
             raise Warning("+item without cause is not allowed")
+        bag = self["bag"]
+        multi = self.asset_items[item].get("multiple")
+        if multi:
+            try:
+                bag[bag.index(None)] = [item, count]
+            except ValueError:
+                self.log("lost", {"item": item}, n=count)
+        else:
+            for _ in range(count):
+                try:
+                    bag[bag.index(None)] = [item, {}]
+                except ValueError:
+                    self.log("lost", {"item": item})
 
 
     @property
@@ -224,6 +271,21 @@ class I(dict):
     @property
     def _default_gold(self):
         return 500
+
+    @property
+    def _default_level(self):
+        return 1
+
+    @property
+    def _default_bag(self):
+        bag = Box()
+        bag.append({"max": 10, "extra": 0})
+        bag.extend([None] * 20)
+        return bag
+
+    @staticmethod
+    def _wrap_bag(raw):
+        return Box(raw)
 
     @staticmethod
     def _wrap_foobar(raw):
@@ -271,8 +333,9 @@ if __name__ == "__main__":
     import doctest
     doctest.testmod()
     i = I(0)
+    i["level"] += 1
     rc = [
-        ["a", 10],
+        ["a", "lv**5"],
         [[["a", 1], ["b", 1]], [9, 1]],
         [["c", 1001, 5], 0.5],
     ]
@@ -285,5 +348,7 @@ if __name__ == "__main__":
     print(c)
     i.apply([["gold", 1]], 'xixi')
     i.apply([["gold", 2], ["gold", 3]], 'haha')
-    i.apply([["gold", -100], ["item", 2, 1]], 'pow')
+    i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
+    i.bag.exchange(1, 2)
     print(i)
+    print(i.logs)
