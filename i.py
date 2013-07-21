@@ -82,7 +82,9 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
-    DEQUE_MAXLEN = 100
+    MAX_LOGS_DEQUE_LENGTH = 100
+    MAX_BAG_SIZE = 10
+
     asset_items = {
         1: {
             "multiple": 99,
@@ -113,7 +115,7 @@ class I(dict):
     def __init__(self, n, source=None):
         self._i = int(n)
         self._cache = []
-        self._logs = collections.deque(maxlen=self.DEQUE_MAXLEN)
+        self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
         if source is not None:
             assert isinstance(source, dict), source
@@ -210,10 +212,11 @@ class I(dict):
                 if random() < bar:
                     booty.append(foo[:])
 
+        env = {"lv": self["level"]}
         for i in booty:
             n = i[-1]
             if not isinstance(n, int):
-                n = eval(n, None, {"lv": self["level"]})
+                n = eval(n, None, env)   # environments
             i[-1] = int(n * discount)
 
         return booty
@@ -279,8 +282,9 @@ class I(dict):
     @property
     def _default_bag(self):
         bag = Box()
-        bag.append({"max": 10, "extra": 0})
-        bag.extend([None] * 20)
+        size = self.MAX_BAG_SIZE
+        bag.append({"max": size, "extra": 0})
+        bag.extend([None] * size * 2)
         return bag
 
     @staticmethod
