@@ -4,7 +4,7 @@ import collections
 import sys
 
 from bisect import bisect
-from itertools import accumulate
+from itertools import accumulate, chain
 from random import random
 
 # map looks like this:
@@ -232,7 +232,7 @@ class I(dict):
             #print(id(method_apply))
             method(*b[1:], cause=cause)
 
-    def apply_gold(self, count, cause):
+    def apply_gold(self, count, cause=None):
         if count > 0 and not cause:
             raise Warning("+gold without cause is not allowed")
         gold = self["gold"] + count
@@ -241,22 +241,42 @@ class I(dict):
         self["gold"] = gold
         self.send("gold", gold)
 
-    def apply_item(self, item, count, cause):
+    def apply_item(self, item, count, cause=None, custom=1):
+        assert isinstance(count, int) and count, count
+        assert isinstance(custom, int) and custom > 0
         if count > 0 and not cause:
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         multi = self.asset_items[item].get("multiple")
-        if multi:
-            try:
-                bag[bag.index(None)] = [item, count]
-            except ValueError:
-                self.log("lost", {"item": item}, n=count)
-        else:
-            for _ in range(count):
+        if count > 0:
+            if multi:
                 try:
-                    bag[bag.index(None)] = [item, {}]
+                    bag[bag.index(None)] = [item, count]
                 except ValueError:
-                    self.log("lost", {"item": item})
+                    self.log("lost", {"item": item}, n=count)
+            else:
+                for _ in range(count):
+                    try:
+                        bag[bag.index(None)] = [item, {}]
+                    except ValueError:
+                        self.log("lost", {"item": item})
+        else:
+            assert multi, item
+            n = abs(count)
+            for i in chain(range(custom, len(bag)), range(1, custom)):
+                t = bag[i]
+                if t and t[0] == item:
+                    if t[1] > n:
+                        t[1] -= n
+                        n = 0
+                    else:
+                        bag[i] = None
+                        n -= t[1]
+                    if not n:
+                        break
+            else:
+                self.log("lost", {"item": item}, n=abs(count)-n)
+                raise Warning("-item faild")
 
 
     @property
@@ -335,7 +355,7 @@ def tower_daemon(i, k, infos, n, evaluation, callback):
 if __name__ == "__main__":
     print("doctest:")
     import doctest
-    doctest.testmod()
+    #doctest.testmod()
     i = I(0)
     i["level"] += 1
     rc = [
@@ -352,7 +372,15 @@ if __name__ == "__main__":
     print(c)
     i.apply([["gold", 1]], 'xixi')
     i.apply([["gold", 2], ["gold", 3]], 'haha')
-    i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
+    #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
     i.bag.exchange(1, 2)
+    i.apply([["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
+    #i.apply([["item", 2, -15]])
+    i.apply_item(2, -15, custom=3)
     print(i)
-    print(i.logs)
+    for _ in range(1):
+        i.apply_item(2, 1, "test", custom=3)
+    print(i)
+    i.apply_item(2, -15, custom=3)
+    print(i)
+    #print(i.logs)
