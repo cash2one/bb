@@ -187,7 +187,7 @@ class I(dict):
     def render(self, rc):
         """
         rc = [
-            ["a", 10],
+            ["a", "lv**5"],
             [[["a", 1], ["b", 1]], [9, 1]],
             [["c", 1001, 5], 0.5],
         ]
@@ -223,14 +223,23 @@ class I(dict):
 
     def apply(self, booty, cause=None):
         """
+        apply all booty, and merge updated-messages from sub-call
+
+        # write this directly or "render rc"
         booty = [["a", 50], ["b", 5], ["c", 1001, 25]]
+        apply(booty)
         """
         assert all(isinstance(b[-1], int) for b in booty), booty
         assert all(isinstance(b[0], str) for b in booty), booty
+        egg = collections.defaultdict(dict)
         for b in booty:
-            method = self.__getattribute__("apply_" + b[0])
-            #print(id(method_apply))
-            method(*b[1:], cause=cause)
+            method = self.__getattribute__("apply_%s" % b[0])
+            k, v = method(*b[1:], cause=cause)
+            if isinstance(v, int):
+                egg[k] = v
+            else:
+                egg[k].update(v)
+        return egg
 
     def apply_gold(self, count, cause=None):
         if count > 0 and not cause:
@@ -239,7 +248,7 @@ class I(dict):
         if gold < 0:
             raise Warning("gold: %s" % gold)
         self["gold"] = gold
-        self.send("gold", gold)
+        return "gold", gold
 
     def apply_item(self, item, count, cause=None, custom=1):
         assert isinstance(count, int) and count, count
@@ -247,36 +256,47 @@ class I(dict):
         if count > 0 and not cause:
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
+        changes = {}
         multi = self.asset_items[item].get("multiple")
         if count > 0:
             if multi:
                 try:
-                    bag[bag.index(None)] = [item, count]
+                    i = bag.index(None)
+                    x = [item, count]
+                    bag[i] = x
+                    changes[i] = x
                 except ValueError:
                     self.log("lost", {"item": item}, n=count)
             else:
                 for _ in range(count):
                     try:
-                        bag[bag.index(None)] = [item, {}]
+                        i = bag.index(None)
+                        x = [item, count]
+                        bag[i] = x
+                        bag[i] = x
+                        changes[i] = x
                     except ValueError:
                         self.log("lost", {"item": item})
         else:
-            assert multi, item
             n = abs(count)
-            for i in chain(range(custom, len(bag)), range(1, custom)):
+            for i in chain(range(custom, len(bag)), range(1, custom)):  # :)
                 t = bag[i]
                 if t and t[0] == item:
                     if t[1] > n:
                         t[1] -= n
                         n = 0
+                        changes[i] = t
                     else:
                         bag[i] = None
                         n -= t[1]
+                        changes[i] = None
                     if not n:
                         break
             else:
                 self.log("lost", {"item": item}, n=abs(count)-n)
                 raise Warning("-item faild")
+
+        return "bag", changes
 
 
     @property
@@ -301,15 +321,11 @@ class I(dict):
 
     @property
     def _default_bag(self):
-        bag = Box()
+        bag = []
         size = self.MAX_BAG_SIZE
         bag.append({"max": size, "extra": 0})
         bag.extend([None] * size * 2)
         return bag
-
-    @staticmethod
-    def _wrap_bag(raw):
-        return Box(raw)
 
     @staticmethod
     def _wrap_foobar(raw):
@@ -358,6 +374,7 @@ if __name__ == "__main__":
     #doctest.testmod()
     i = I(0)
     i["level"] += 1
+    """
     rc = [
         ["a", "lv**5"],
         [[["a", 1], ["b", 1]], [9, 1]],
@@ -370,17 +387,21 @@ if __name__ == "__main__":
         c[len(result)] += 1
         c[result[1][0]] += 1
     print(c)
+    """
+    import json
+    def p(o):
+        print("egg:", json.dumps(o, separators=(", ", ": ")))
     i.apply([["gold", 1]], 'xixi')
-    i.apply([["gold", 2], ["gold", 3]], 'haha')
+    p(i.apply([["gold", 2], ["gold", 3]], 'haha'))
     #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
-    i.bag.exchange(1, 2)
-    i.apply([["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
+    #i.bag.exchange(1, 2)
+    p(i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x'))
     #i.apply([["item", 2, -15]])
     i.apply_item(2, -15, custom=3)
     print(i)
-    for _ in range(1):
+    for _ in range(11):
         i.apply_item(2, 1, "test", custom=3)
     print(i)
-    i.apply_item(2, -15, custom=3)
+    i.apply_item(2, -14)
     print(i)
     #print(i.logs)
