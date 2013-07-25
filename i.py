@@ -205,7 +205,7 @@ class I(dict):
                 assert len(foo) == len(bar), foo
                 assert all(isinstance(t, list) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
-                l = list(accumulate(bar))
+                l = list(accumulate(bar))   # calc it outside?
                 booty.append(foo[bisect(l, random() * l[-1])][:])
             else:
                 assert 0 <= bar < 1, bar
@@ -231,24 +231,22 @@ class I(dict):
         """
         assert all(isinstance(b[-1], int) for b in booty), booty
         assert all(isinstance(b[0], str) for b in booty), booty
-        egg = collections.defaultdict(dict)
         for b in booty:
             method = self.__getattribute__("apply_%s" % b[0])
-            k, v = method(*b[1:], cause=cause)
-            if isinstance(v, int):
-                egg[k] = v
-            else:
-                egg[k].update(v)
-        return egg
+            method(*b[1:], cause=cause)
 
     def apply_gold(self, count, cause=None):
         if count > 0 and not cause:
             raise Warning("+gold without cause is not allowed")
+        before = self["gold"]
         gold = self["gold"] + count
         if gold < 0:
             raise Warning("gold: %s" % gold)
         self["gold"] = gold
-        return "gold", gold
+        self.send("gold", gold)
+        self.save("gold")
+        self.log("gold", {"cause": cause, "before": before, "after": gold},
+                 n=count)
 
     def apply_item(self, item, count, cause=None, custom=1):
         assert isinstance(count, int) and count, count
@@ -266,7 +264,9 @@ class I(dict):
                     bag[i] = x
                     changes[i] = x
                 except ValueError:
-                    self.log("lost", {"item": item}, n=count)
+                    self.log("lost", {"item": item,
+                                      "count": count,
+                                      "reason": "bag is full"})
             else:
                 for _ in range(count):
                     try:
@@ -276,8 +276,13 @@ class I(dict):
                         bag[i] = x
                         changes[i] = x
                     except ValueError:
-                        self.log("lost", {"item": item})
-        else:
+                        self.log("lost", {"item": item,
+                                          "reason": "bag is full"})
+        elif count < 0:
+            if not multi:
+                raise Warning("item %d has no multi, "
+                              "-item (count=%d) is not allowed"
+                              % (item, count))
             n = abs(count)
             for i in chain(range(custom, len(bag)), range(1, custom)):  # :)
                 t = bag[i]
@@ -293,10 +298,14 @@ class I(dict):
                     if not n:
                         break
             else:
-                self.log("lost", {"item": item}, n=abs(count)-n)
+                self.log("lost", {"item": item,
+                                  "count": abs(count)-n,
+                                  "reason": "-item but not enough"})
                 raise Warning("-item faild")
 
-        return "bag", changes
+        if changes:
+            self.send("bag", changes)   # dict is only for update
+            self.save("bag")
 
 
     @property
@@ -372,7 +381,7 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     #doctest.testmod()
-    i = I(0)
+    i = I(9527)
     i["level"] += 1
     """
     rc = [
@@ -392,10 +401,10 @@ if __name__ == "__main__":
     def p(o):
         print("egg:", json.dumps(o, separators=(", ", ": ")))
     i.apply([["gold", 1]], 'xixi')
-    p(i.apply([["gold", 2], ["gold", 3]], 'haha'))
+    i.apply([["gold", 2], ["gold", 3]], 'haha')
     #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
     #i.bag.exchange(1, 2)
-    p(i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x'))
+    i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
     #i.apply([["item", 2, -15]])
     i.apply_item(2, -15, custom=3)
     print(i)
@@ -404,4 +413,5 @@ if __name__ == "__main__":
     print(i)
     i.apply_item(2, -14)
     print(i)
-    #print(i.logs)
+    print(i.logs)
+    #print(i.cache)
