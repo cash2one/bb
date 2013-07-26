@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import collections
+import types
 import sys
 
 from bisect import bisect
@@ -186,31 +187,34 @@ class I(dict):
 
     def render(self, rc):
         """
-        rc = [
-            ["a", "lv**5"],
-            [[["a", 1], ["b", 1]], [9, 1]],
-            [["c", 1001, 5], 0.5],
-        ]
+        rc = (
+            ("a", "lv**5"),
+            ((("a", 1), ("b", 1)), (9, 1)),
+            (("c", 1001, 5), 0.5),
+        )
         """
         discount = self.foo   # just a example, 
-        assert isinstance(rc, list), rc
-        assert all(isinstance(r, list) for r in rc), rc
+        assert isinstance(rc, tuple), rc
+        assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
         for r in rc:
             foo, bar = r[0], r[1]
             if isinstance(foo, str):
-                booty.append(r[:])
-            elif isinstance(bar, list):
+                assert isinstance(bar, (int, str, types.CodeType))
+                booty.append(list(r))
+            elif isinstance(bar, tuple):
                 assert foo, foo
-                assert len(foo) == len(bar), foo
-                assert all(isinstance(t, list) for t in foo), foo
+                assert len(foo) == len(bar), foo + bar
+                assert all(isinstance(t, tuple) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
                 l = list(accumulate(bar))   # calc it outside?
-                booty.append(foo[bisect(l, random() * l[-1])][:])
-            else:
-                assert 0 <= bar < 1, bar
+                booty.append(list(foo[bisect(l, random() * l[-1])]))
+            elif isinstance(bar, float):
+                assert 0 < bar < 1, bar
                 if random() < bar:
-                    booty.append(foo[:])
+                    booty.append(list(foo))
+            else:
+                raise Warning("unsupported rc: %s" % (r,))
 
         env = {"lv": self["level"]}
         for i in booty:
@@ -384,11 +388,11 @@ if __name__ == "__main__":
     i = I(9527)
     i["level"] += 1
     """
-    rc = [
-        ["a", "lv**5"],
-        [[["a", 1], ["b", 1]], [9, 1]],
-        [["c", 1001, 5], 0.5],
-    ]
+    rc = (
+        ("a", compile("lv**5", "haha", "eval")),
+        ((("a", 1), ("b", 1)), (9, 1)),
+        (("c", 1001, 5), 0.5),
+    )
     print(i.render(rc))
     c = collections.Counter()
     for _ in range(1000):
