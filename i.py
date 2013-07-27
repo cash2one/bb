@@ -239,6 +239,9 @@ class I(dict):
             method = self.__getattribute__("apply_%s" % b[0])
             method(*b[1:], cause=cause)
 
+    def apply_null(self, count, cause):
+        """do nothing"""
+
     def apply_gold(self, count, cause=None):
         if count > 0 and not cause:
             raise Warning("+gold without cause is not allowed")
@@ -249,12 +252,13 @@ class I(dict):
         self["gold"] = gold
         self.send("gold", gold)
         self.save("gold")
-        self.log("gold", {"cause": cause, "before": before, "after": gold},
+        self.log("gold",
+                 {"cause": cause, "before": before, "after": gold},
                  n=count)
 
     def apply_item(self, item, count, cause=None, custom=1):
         assert isinstance(count, int) and count, count
-        assert isinstance(custom, int) and custom > 0
+        assert isinstance(custom, int) and custom > 0, custom
         if count > 0 and not cause:
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
