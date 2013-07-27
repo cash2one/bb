@@ -29,24 +29,21 @@ class BackdoorShell(InteractiveInterpreter):
 
         if not more:
             del buf[:]
-        out = io.getvalue()
+        out = io.getvalue() + ("... " if more else ">>> ")
         io.truncate(0)
         return out
 
 
 class Connection(object):
+    shell = BackdoorShell()   # global
     def __init__(self, stream, address):
-        self.address = address
-        self.shell = BackdoorShell()
         self.stream = stream
-        self._read_line()
+        self.stream.write(b">>> ")
+        self.stream.read_until(b'\n', self.handle_input)
 
-    def _read_line(self):
-        self.stream.read_until(b'\n', self._handle_read)
-
-    def _handle_read(self, line):
+    def handle_input(self, line):
         self.stream.write(self.shell.push(line.rstrip().decode()).encode())
-        self._read_line()
+        self.stream.read_until(b'\n', self.handle_input)
 
 
 import weakref
@@ -65,8 +62,8 @@ if __name__ == "__main__":
     server.listen(9527)
     from tornado import ioloop
     def record():
-        gc.collect()
-        print(list(connections))
+        #gc.collect()
+        print(sys.getrefcount(Connection))
     ioloop.PeriodicCallback(record, 1000).start()
     ioloop.IOLoop.instance().start()
 
