@@ -86,7 +86,7 @@ class I(dict):
     MAX_LOGS_DEQUE_LENGTH = 100
     MAX_BAG_SIZE = 10
 
-    asset_items = {
+    assets_items = {
         1: {
             "multiple": 99,
             "buy": 10,
@@ -263,7 +263,7 @@ class I(dict):
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         changes = {}
-        multi = self.asset_items[item].get("multiple")
+        multi = self.assets_items[item].get("multiple")
         if count > 0:
             if multi:
                 try:
@@ -408,7 +408,7 @@ if __name__ == "__main__":
     import json
     def p(o):
         print("egg:", json.dumps(o, separators=(", ", ": ")))
-    i.apply([["gold", 1]], 'xixi')
+    i.apply([["gold", 1], ["null", 0]], 'xixi')
     i.apply([["gold", 2], ["gold", 3]], 'haha')
     #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
     #i.bag.exchange(1, 2)
