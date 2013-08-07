@@ -74,7 +74,7 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            producer = processes[instructions[v[1]]]
+            producer = processes[v[1]]
             outs = producer(v[0], loads(v[2].decode()))
             if outs:
                 for x in _filter(outs):   # is _filter neccessary?
