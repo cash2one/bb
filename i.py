@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import collections
+import types
 import sys
 
 from bisect import bisect
-from itertools import accumulate
+from itertools import accumulate, chain
 from random import random
 
 # map looks like this:
@@ -82,8 +83,10 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
-    DEQUE_MAXLEN = 100
-    asset_items = {
+    MAX_LOGS_DEQUE_LENGTH = 100
+    MAX_BAG_SIZE = 10
+
+    assets_items = {
         1: {
             "multiple": 99,
             "buy": 10,
@@ -113,7 +116,7 @@ class I(dict):
     def __init__(self, n, source=None):
         self._i = int(n)
         self._cache = []
-        self._logs = collections.deque(maxlen=self.DEQUE_MAXLEN)
+        self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
         if source is not None:
             assert isinstance(source, dict), source
@@ -184,76 +187,133 @@ class I(dict):
 
     def render(self, rc):
         """
-        rc = [
-            ["a", 10],
-            [[["a", 1], ["b", 1]], [9, 1]],
-            [["c", 1001, 5], 0.5],
-        ]
+        rc = (
+            ("a", "lv**5"),
+            ((("a", 1), ("b", 1)), (9, 1)),
+            (("c", 1001, 5), 0.5),
+        )
         """
         discount = self.foo   # just a example, 
-        assert isinstance(rc, list), rc
-        assert all(isinstance(r, list) for r in rc), rc
+        assert isinstance(rc, tuple), rc
+        assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
         for r in rc:
             foo, bar = r[0], r[1]
             if isinstance(foo, str):
-                booty.append(r[:])
-            elif isinstance(bar, list):
+                assert isinstance(bar, (int, str, types.CodeType))
+                booty.append(list(r))
+            elif isinstance(bar, tuple):
                 assert foo, foo
-                assert len(foo) == len(bar), foo
-                assert all(isinstance(t, list) for t in foo), foo
+                assert len(foo) == len(bar), foo + bar
+                assert all(isinstance(t, tuple) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
-                l = list(accumulate(bar))
-                booty.append(foo[bisect(l, random() * l[-1])][:])
-            else:
-                assert 0 <= bar < 1, bar
+                l = list(accumulate(bar))   # calc it outside?
+                booty.append(list(foo[bisect(l, random() * l[-1])]))
+            elif isinstance(bar, float):
+                assert 0 < bar < 1, bar
                 if random() < bar:
-                    booty.append(foo[:])
+                    booty.append(list(foo))
+            else:
+                raise Warning("unsupported rc: %s" % (r,))
 
+        env = {"lv": self["level"]}
         for i in booty:
             n = i[-1]
             if not isinstance(n, int):
-                n = eval(n, None, {"lv": self["level"]})
+                n = eval(n, None, env)   # environments
             i[-1] = int(n * discount)
 
         return booty
 
     def apply(self, booty, cause=None):
         """
+        apply all booty, and merge updated-messages from sub-call
+
+        # write this directly or "render rc"
         booty = [["a", 50], ["b", 5], ["c", 1001, 25]]
+        apply(booty)
         """
         assert all(isinstance(b[-1], int) for b in booty), booty
         assert all(isinstance(b[0], str) for b in booty), booty
         for b in booty:
-            method = self.__getattribute__("apply_" + b[0])
-            #print(id(method_apply))
+            method = self.__getattribute__("apply_%s" % b[0])
             method(*b[1:], cause=cause)
 
-    def apply_gold(self, count, cause):
+    def apply_null(self, count, cause):
+        """do nothing"""
+
+    def apply_gold(self, count, cause=None):
         if count > 0 and not cause:
             raise Warning("+gold without cause is not allowed")
+        before = self["gold"]
         gold = self["gold"] + count
         if gold < 0:
             raise Warning("gold: %s" % gold)
         self["gold"] = gold
         self.send("gold", gold)
+        self.save("gold")
+        self.log("gold",
+                 {"cause": cause, "before": before, "after": gold},
+                 n=count)
 
-    def apply_item(self, item, count, cause):
+    def apply_item(self, item, count, cause=None, custom=1):
+        assert isinstance(count, int) and count, count
+        assert isinstance(custom, int) and custom > 0, custom
         if count > 0 and not cause:
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
-        multi = self.asset_items[item].get("multiple")
-        if multi:
-            try:
-                bag[bag.index(None)] = [item, count]
-            except ValueError:
-                self.log("lost", {"item": item}, n=count)
-        else:
-            for _ in range(count):
+        changes = {}
+        multi = self.assets_items[item].get("multiple")
+        if count > 0:
+            if multi:
                 try:
-                    bag[bag.index(None)] = [item, {}]
+                    i = bag.index(None)
+                    x = [item, count]
+                    bag[i] = x
+                    changes[i] = x
                 except ValueError:
-                    self.log("lost", {"item": item})
+                    self.log("lost", {"item": item,
+                                      "count": count,
+                                      "reason": "bag is full"})
+            else:
+                for _ in range(count):
+                    try:
+                        i = bag.index(None)
+                        x = [item, count]
+                        bag[i] = x
+                        bag[i] = x
+                        changes[i] = x
+                    except ValueError:
+                        self.log("lost", {"item": item,
+                                          "reason": "bag is full"})
+        elif count < 0:
+            if not multi:
+                raise Warning("item %d has no multi, "
+                              "-item (count=%d) is not allowed"
+                              % (item, count))
+            n = abs(count)
+            for i in chain(range(custom, len(bag)), range(1, custom)):  # :)
+                t = bag[i]
+                if t and t[0] == item:
+                    if t[1] > n:
+                        t[1] -= n
+                        n = 0
+                        changes[i] = t
+                    else:
+                        bag[i] = None
+                        n -= t[1]
+                        changes[i] = None
+                    if not n:
+                        break
+            else:
+                self.log("lost", {"item": item,
+                                  "count": abs(count)-n,
+                                  "reason": "-item but not enough"})
+                raise Warning("-item faild")
+
+        if changes:
+            self.send("bag", changes)   # dict is only for update
+            self.save("bag")
 
 
     @property
@@ -278,14 +338,11 @@ class I(dict):
 
     @property
     def _default_bag(self):
-        bag = Box()
-        bag.append({"max": 10, "extra": 0})
-        bag.extend([None] * 20)
+        bag = []
+        size = self.MAX_BAG_SIZE
+        bag.append({"max": size, "extra": 0})
+        bag.extend([None] * size * 2)
         return bag
-
-    @staticmethod
-    def _wrap_bag(raw):
-        return Box(raw)
 
     @staticmethod
     def _wrap_foobar(raw):
@@ -331,14 +388,15 @@ def tower_daemon(i, k, infos, n, evaluation, callback):
 if __name__ == "__main__":
     print("doctest:")
     import doctest
-    doctest.testmod()
-    i = I(0)
+    #doctest.testmod()
+    i = I(9527)
     i["level"] += 1
-    rc = [
-        ["a", "lv**5"],
-        [[["a", 1], ["b", 1]], [9, 1]],
-        [["c", 1001, 5], 0.5],
-    ]
+    """
+    rc = (
+        ("a", compile("lv**5", "haha", "eval")),
+        ((("a", 1), ("b", 1)), (9, 1)),
+        (("c", 1001, 5), 0.5),
+    )
     print(i.render(rc))
     c = collections.Counter()
     for _ in range(1000):
@@ -346,9 +404,22 @@ if __name__ == "__main__":
         c[len(result)] += 1
         c[result[1][0]] += 1
     print(c)
-    i.apply([["gold", 1]], 'xixi')
+    """
+    import json
+    def p(o):
+        print("egg:", json.dumps(o, separators=(", ", ": ")))
+    i.apply([["gold", 1], ["null", 0]], 'xixi')
     i.apply([["gold", 2], ["gold", 3]], 'haha')
-    i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
-    i.bag.exchange(1, 2)
+    #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
+    #i.bag.exchange(1, 2)
+    i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
+    #i.apply([["item", 2, -15]])
+    i.apply_item(2, -15, custom=3)
+    print(i)
+    for _ in range(11):
+        i.apply_item(2, 1, "test", custom=3)
+    print(i)
+    i.apply_item(2, -14)
     print(i)
     print(i.logs)
+    #print(i.cache)
