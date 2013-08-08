@@ -13,3 +13,10 @@ clean:
 	find * -name '*.pyo' -delete
 	find * -name 'out' -delete
 
+# python -O -c "from bb.web import main; main(8000, 8100)"
+# python -O -m bb.web
+pack:
+	rm -rf bb && mkdir bb
+	cp *.py bb
+	python -OO -m compileall -b -q bb
+	rm -f bb/*.py
