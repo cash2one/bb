@@ -26,6 +26,7 @@ True
 
 """
 
+import other   # load all
 
 def hub(Q_in, Q_out, Q_err):
     import functools
@@ -58,8 +59,6 @@ def hub(Q_in, Q_out, Q_err):
                               cls=BBEncoder,
                               separators = (",", ": "),
                               sort_keys=True, indent=4)
-
-    import other   # load all
 
     while True:
         try:
