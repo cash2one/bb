@@ -17,8 +17,8 @@ def main(port, backstage):
     from multiprocessing.queues import Queue, SimpleQueue
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
-    from hub import hub
-    from log import log
+    from bb.hub import hub
+    from bb.log import log
     hub = Process(target=hub, args=(Q0, Q1, Q2))
     hub.start()
     log = Process(target=log, args=(Q2,))
@@ -114,7 +114,7 @@ def main(port, backstage):
     server.listen(port)
 
     # web interface
-    from oc import record, recorder
+    from bb.oc import record, recorder
     from tornado.web import RequestHandler, Application
 
     ioloop.PeriodicCallback(record, 3000).start()

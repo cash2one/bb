@@ -11,7 +11,6 @@ instructions_list = [
 ]
 
 instructions = dict(zip(instructions_list, range(1, 2**16)))
-print(instructions)
 
 
 def handle_input(func):

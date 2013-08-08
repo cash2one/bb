@@ -26,7 +26,7 @@ True
 
 """
 
-import other   # load all
+from bb import other, inst   # load all
 
 def hub(Q_in, Q_out, Q_err):
     import functools
@@ -42,7 +42,8 @@ def hub(Q_in, Q_out, Q_err):
 
     _filter = functools.partial(filter, None)
 
-    from inst import processes, instructions
+    processes = inst.processes
+    instructions = inst.instructions
 
     from json import dumps, loads, JSONEncoder
 

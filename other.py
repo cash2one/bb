@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from i import I
-from inst import handle_input
-from util import flush
+from bb.i import I
+from bb.inst import handle_input
+from bb.util import flush
 
 staffs = {}
 for i in range(10):   # init all, todo
