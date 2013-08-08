@@ -4,7 +4,7 @@ import collections
 import random
 import unittest
 
-from i import I, register_log_callback, _cbs
+from bb.i import I, register_log_callback, _cbs
 
 @register_log_callback
 def cb_test(i, k, infos, n, *args):
