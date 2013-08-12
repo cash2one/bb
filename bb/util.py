@@ -7,6 +7,15 @@ class EvalCache(dict):
         self[k] = code
         return code
 
+def list_to_tuple(v):
+    """
+    >>> list_to_tuple([[[]]])
+    (((),),)
+    """
+    if isinstance(v, (list, tuple)):
+        v = tuple(list_to_tuple(i) for i in v)
+    return v
+
 def flush(*caches):
     """
     >>> l1 = [1, 2]
