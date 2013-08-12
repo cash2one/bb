@@ -8,6 +8,8 @@ from bisect import bisect
 from itertools import accumulate, chain
 from random import random
 
+from util import EvalCache
+
 # map looks like this:
 #    {"func_name": func, ...}
 # why prefer "func_name" mapping instead of use function directly:
@@ -67,7 +69,7 @@ class I(dict):
     >>> i.bind("gogogogo", callback_example)
     >>> len(i.listeners)
     3
-    >>> check(i, "tower", compile("i.a > 1", "<string>", "eval"), {"i": i}, f, "gogo")
+    >>> check(i, "tower", "i.a > 1", {"i": i}, f, "gogo")
     >>> len(i.listeners["gogo"])  # daemon launched
     1
     >>> i["a"] = 1
@@ -85,6 +87,8 @@ class I(dict):
 
     MAX_LOGS_DEQUE_LENGTH = 100
     MAX_BAG_SIZE = 10
+
+    eval_cache = EvalCache()
 
     assets_items = {
         1: {
@@ -221,10 +225,14 @@ class I(dict):
         for i in booty:
             n = i[-1]
             if not isinstance(n, int):
-                n = eval(n, None, env)   # environments
+                n = eval(self.eval_cache[n], None, env)   # environments
             i[-1] = int(n * discount)
 
         return booty
+
+    def eval(self, expr, env=None):
+        """is this necessary?"""
+        return eval(self.eval_cache[expr], None, env)
 
     def apply(self, booty, cause=None):
         """
@@ -392,9 +400,8 @@ if __name__ == "__main__":
     #doctest.testmod()
     i = I(9527)
     i["level"] += 1
-    """
     rc = (
-        ("a", compile("lv**5", "haha", "eval")),
+        ("a", "lv**5"),
         ((("a", 1), ("b", 1)), (9, 1)),
         (("c", 1001, 5), 0.5),
     )
@@ -405,6 +412,7 @@ if __name__ == "__main__":
         c[len(result)] += 1
         c[result[1][0]] += 1
     print(c)
+    """
     """
     import json
     def p(o):
