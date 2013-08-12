@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+# eval cache
+class EvalCache(dict):
+    def __missing__(self, k):
+        code = compile(k, k, "eval")
+        self[k] = code
+        return code
 
 def flush(*caches):
     """
