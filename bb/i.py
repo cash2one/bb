@@ -8,7 +8,7 @@ from bisect import bisect
 from itertools import accumulate, chain
 from random import random
 
-from util import EvalCache
+from bb.util import EvalCache
 
 # map looks like this:
 #    {"func_name": func, ...}
