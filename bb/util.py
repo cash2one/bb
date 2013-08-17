@@ -9,8 +9,9 @@ def build_dict(title, key, values):
     {1: [1, 1], 2: [4, 8]}
     >>> build_dict(title, "x", ("y", "z"))
     {1: (1, 1), 2: (4, 8)}
-    >>> build_dict(title, "x", {"y", "z"})
-    {1: {'y': 1, 'z': 1}, 2: {'y': 4, 'z': 8}}
+    >>> build_dict(title, "x", {"y", "z"}) == \\
+    ... {1: {'y': 1, 'z': 1}, 2: {'y': 4, 'z': 8}}
+    True
     """
     if isinstance(values, str):
         dct = ([x[key], x[values]] for x in title)
@@ -33,8 +34,10 @@ def build_list(title, keys):
     [[1, 1], [4, 8]]
     >>> build_list(title, ("y", "z"))
     [(1, 1), (4, 8)]
-    >>> build_list(title, {"y", "z"})
-    [{'y': 1, 'z': 1}, {'y': 4, 'z': 8}]
+    >>> build_list(title, {"y", "z"}) == \\
+    ... [{'y': 1, 'z': 1}, {'y': 4, 'z': 8}]
+    True
+    
     """
     if isinstance(keys, str):
         lst = (x[keys] for x in title)
