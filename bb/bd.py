@@ -38,6 +38,7 @@ class Connection(object):
     shell = BackdoorShell()   # global
     def __init__(self, stream, address):
         self.stream = stream
+        self.stream.set_close_callback(self.stream.close)
         self.stream.write(b">>> ")
         self.stream.read_until(b'\n', self.handle_input)
 
@@ -64,6 +65,6 @@ if __name__ == "__main__":
     def record():
         #gc.collect()
         print(sys.getrefcount(Connection))
-    ioloop.PeriodicCallback(record, 1000).start()
+    #ioloop.PeriodicCallback(record, 1000).start()
     ioloop.IOLoop.instance().start()
 
