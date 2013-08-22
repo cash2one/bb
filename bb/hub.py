@@ -61,16 +61,20 @@ def hub(Q_in, Q_out, Q_err):
                               separators = (",", ": "),
                               sort_keys=True, indent=4)
 
-    while True:
+    _int = int
+    _isinstance = isinstance
+    _None = None
+    _Exception = Exception
+    while 1:
         try:
             v = Q_in.get()
-        except Exception as e:
+        except _Exception as e:
             logging.error(e)
             continue
 
-        if v is None:
+        if v is _None:
             logging.info("hub exit")
-            Q_err.put(None)
+            Q_err.put(_None)
             break
 
         try:
@@ -79,11 +83,11 @@ def hub(Q_in, Q_out, Q_err):
             if outs:
                 for x in _filter(outs):   # is _filter neccessary?
                     i = x[0]
-                    if isinstance(i, int):
+                    if _isinstance(i, _int):
                         Q_out.put([i, instructions[x[1]], dump1(x[2]).encode()])
                     else:
                         Q_err.put(x)
-        except Exception:
+        except _Exception:
             logging.exception("!!!")
 
 
