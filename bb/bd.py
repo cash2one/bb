@@ -13,7 +13,6 @@ class BackdoorShell(InteractiveInterpreter):
     def __init__(self):
         InteractiveInterpreter.__init__(self)
         self.buf = []
-        self.io = StringIO()
 
     def push(self, line):
         buf = self.buf
@@ -21,17 +20,19 @@ class BackdoorShell(InteractiveInterpreter):
         source = "\n".join(buf)
 
         more = False
-        io = sys.stdout = sys.stderr = self.io
+        io = sys.stdout = sys.stderr = StringIO()
         try:
             more = self.runsource(source)
         finally:
             sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
 
-        if not more:
+        if more:
+            prompt = "... " 
+        else:
             del buf[:]
-        out = io.getvalue() + ("... " if more else ">>> ")
-        io.truncate(0)
-        return out
+            prompt = ">>> " 
+
+        return io.getvalue() + prompt
 
 
 class Connection(object):
