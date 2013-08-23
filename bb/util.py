@@ -1,35 +1,45 @@
 #!/usr/bin/env python
 
-def build_dict(title, key, values):
+def build_dict(title, key, values, value_wraps={}):
     """
     >>> title = [{"x":1, "y":1, "z":1}, {"x":2, "y":4, "z":8}]
-    >>> build_dict(title, "x", "y")
-    {1: 1, 2: 4}
+    >>> wraps1 = {"y": float}
+    >>> wraps2 = {"z": str}
+    >>> build_dict(title, "x", "y", wraps1)
+    {1: 1.0, 2: 4.0}
     >>> build_dict(title, "x", ["y", "z"])
     {1: [1, 1], 2: [4, 8]}
     >>> build_dict(title, "x", ("y", "z"))
     {1: (1, 1), 2: (4, 8)}
-    >>> build_dict(title, "x", {"y", "z"}) == \\
-    ... {1: {'y': 1, 'z': 1}, 2: {'y': 4, 'z': 8}}
+    >>> build_dict(title, "x", {"y", "z"}, wraps2) == \\
+    ... {1: {"y": 1, "z": "1"}, 2: {"y": 4, "z": "8"}}
     True
     """
+    def wrap(k):
+        wrapper = value_wraps.get(k)
+        return wrapper(x[k]) if wrapper else x[k]
+    dct = {}
     if isinstance(values, str):
-        dct = ([x[key], x[values]] for x in title)
+        for x in title:
+            dct[x[key]] = wrap(values)
     elif isinstance(values, list):
-        dct = ([x[key], list(x[k] for k in values)] for x in title)
+        for x in title:
+            dct[x[key]] = list(wrap(k) for k in values)
     elif isinstance(values, tuple):
-        dct = ([x[key], tuple(x[k] for k in values)] for x in title)
+        for x in title:
+            dct[x[key]] = tuple(wrap(k) for k in values)
     elif isinstance(values, set):
-        dct = ([x[key], dict((k, x[k]) for k in values)] for x in title)
+        for x in title:
+            dct[x[key]] = dict((k, wrap(k)) for k in values)
     else:
         raise ValueError(values)
-    return dict(dct)
+    return dct
 
-def build_list(title, keys):
+def build_list(title, keys, value_wraps={}):
     """
     >>> title = [{"x":1, "y":1, "z":1}, {"x":2, "y":4, "z":8}]
-    >>> build_list(title, "z")
-    [1, 8]
+    >>> build_list(title, "z", {"z": float})
+    [1.0, 8.0]
     >>> build_list(title, ["y", "z"])
     [[1, 1], [4, 8]]
     >>> build_list(title, ("y", "z"))
@@ -37,19 +47,27 @@ def build_list(title, keys):
     >>> build_list(title, {"y", "z"}) == \\
     ... [{'y': 1, 'z': 1}, {'y': 4, 'z': 8}]
     True
-    
     """
+    def wrap(k):
+        wrapper = value_wraps.get(k)
+        return wrapper(x[k]) if wrapper else x[k]
+    lst = []
     if isinstance(keys, str):
-        lst = (x[keys] for x in title)
+        for x in title:
+            lst.append(wrap(keys))
     elif isinstance(keys, list):
-        lst = (list(x[k] for k in keys) for x in title)
+        for x in title:
+            lst.append(list(wrap(k) for k in keys))
     elif isinstance(keys, tuple):
-        lst = (tuple(x[k] for k in keys) for x in title)
+        for x in title:
+            lst.append(tuple(wrap(k) for k in keys))
     elif isinstance(keys, set):
-        lst = (dict((k, x[k]) for k in keys) for x in title)
+        for x in title:
+            lst.append(dict((k, wrap(k)) for k in keys))
     else:
         raise ValueError(keys)
-    return list(lst)
+    return lst
+
 
 # eval cache
 class EvalCache(dict):
@@ -57,6 +75,7 @@ class EvalCache(dict):
         code = compile(k, k, "eval")
         self[k] = code
         return code
+
 
 def list_to_tuple(v):
     """
@@ -66,6 +85,7 @@ def list_to_tuple(v):
     if isinstance(v, (list, tuple)):
         v = tuple(list_to_tuple(i) for i in v)
     return v
+
 
 def flush(*caches):
     """
@@ -83,6 +103,8 @@ def flush(*caches):
         o.extend(i)
         del i[:]
     return o
+
+
 
 if __name__ == "__main__":
     print("doctest:")
