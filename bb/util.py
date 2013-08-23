@@ -71,10 +71,36 @@ def build_list(title, keys, value_wraps={}):
 
 # eval cache
 class EvalCache(dict):
+    """
+    >>> eval_cache = EvalCache()
+    >>> calc_task = ["%d + x" % i for i in range(1000)]
+    >>> x = 1
+    >>> sum(eval(c) for c in calc_task)   # always slow
+    500500
+    >>> sum(eval(eval_cache[c]) for c in calc_task)   # slow at first time
+    500500
+    >>> sum(eval(eval_cache[c]) for c in calc_task)   # faster!
+    500500
+    """
     def __missing__(self, k):
         code = compile(k, k, "eval")
         self[k] = code
         return code
+
+
+class Object(object):
+    """
+    >>> obj = Object({"x": 1, "y": 2, "z": 3})
+    >>> obj.a = 42
+    >>> obj.x
+    1
+    >>> obj.a
+    42
+    """
+    def __init__(self, dct=None):
+        self.__dict__.update(dct or {})
+    def __repr__(self):
+        return repr(self.__dict__)
 
 
 def list_to_tuple(v):
