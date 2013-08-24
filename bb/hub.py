@@ -26,13 +26,13 @@ True
 
 """
 
-from bb import other, inst   # load all
-
 def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
     import signal
     from time import time
+    from bb import other, inst   # load all
+
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
     signal.signal(signal.SIGTERM, not_be_terminated)
