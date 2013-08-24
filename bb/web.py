@@ -25,12 +25,10 @@ def main(port, backstage):
     sub_procs = {}
 
     def start():
-        for proc in sub_procs.values():
-            if proc.is_alive():
-                logging.warning("process:%d is running, failed to start",
-                                proc.pid)
-                return
         logging.info("starting sub processes...")
+        if any(proc.is_alive() for proc in sub_procs.values()):
+            logging.warning("sub processes are running, failed to start")
+            return
         reload(bb.hub)
         reload(bb.log)
         sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2))
@@ -42,6 +40,9 @@ def main(port, backstage):
 
     def stop():
         logging.info("stopping sub processes...")
+        if not all(proc.is_alive() for proc in sub_procs.values()):
+            logging.warning("sub processes are not running, failed to stop")
+            return
         Q0.put(None)
         for name, proc in sub_procs.items():
             proc.join()
