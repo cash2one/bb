@@ -17,8 +17,6 @@ def main(port, backstage):
     from multiprocessing.queues import Queue, SimpleQueue
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
-    from imp import reload
-
     import bb.hub
     import bb.log
 
@@ -29,8 +27,6 @@ def main(port, backstage):
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
             return
-        reload(bb.hub)
-        reload(bb.log)
         sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2))
         sub_procs["log"] = Process(target=bb.log.log, args=(Q2,))
         for name, proc in sub_procs.items():
