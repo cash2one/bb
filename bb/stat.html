@@ -4,10 +4,21 @@
         <title>bb status</title>
     </head>
     <body>
-        <form action="/gc_collect">
+        <p>
+        <form action="/gc">
             <input type="submit" value="gc.collect">
         </form>
+        </p>
+
+        <p>
+        <form action="/reload">
+            <input type="submit" value="reload">
+        </form>
+        </p>
+
         <p>{{ list(staffs.keys()) }}</p>
+
+        <p>
         <table border="1">
             {% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
             <tr>
@@ -15,5 +26,7 @@
             </tr>
             {% end %}
         </table>
+        </p>
+
     </body>
 </html>

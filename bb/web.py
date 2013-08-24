@@ -17,13 +17,27 @@ def main(port, backstage):
     from multiprocessing.queues import Queue, SimpleQueue
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
-    from bb.hub import hub
-    from bb.log import log
-    hub = Process(target=hub, args=(Q0, Q1, Q2))
-    hub.start()
-    log = Process(target=log, args=(Q2,))
-    log.start()
+    from imp import reload
 
+    import bb.hub
+    import bb.log
+
+    sub_procs = {}
+
+    def start():
+        reload(bb.hub)
+        reload(bb.log)
+        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2))
+        sub_procs["log"] = Process(target=bb.log.log, args=(Q2,))
+        for proc in sub_procs.values():
+            proc.start()
+
+    def stop():
+        Q0.put(None)
+        for proc in sub_procs.values():
+            proc.join()
+
+    start()
 
     # main from here
     import time
@@ -95,8 +109,8 @@ def main(port, backstage):
     import signal
     def term(signal_number, stack_frame):
         logging.info("will exit")
-        Q0.put(None)
         io_loop.stop()
+        stop()
     signal.signal(signal.SIGTERM, term)
 
     def msg(fd, event):
@@ -126,17 +140,25 @@ def main(port, backstage):
     class GcHandler(RequestHandler):
         def get(self):
             gc.collect()
+            self.redirect("/")
+
+    class ReloadHandler(RequestHandler):
+        def get(self):
+            print(time.time())
+            stop()
+            start()
+            print(time.time())
+            self.redirect("/")
 
     Application([
         (r"/", MainHandler),
-        (r"/gc_collect", GcHandler),
+        (r"/gc", GcHandler),
+        (r"/reload", ReloadHandler),
     ]).listen(backstage)
 
     gc.collect()
     io_loop.start()   # looping...
 
-    hub.join()
-    log.join()
     logging.info("bye")
 
 
