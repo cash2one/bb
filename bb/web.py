@@ -25,17 +25,28 @@ def main(port, backstage):
     sub_procs = {}
 
     def start():
+        for proc in sub_procs.values():
+            if proc.is_alive():
+                logging.warning("process:%d is running, failed to start",
+                                proc.pid)
+                return
+        logging.info("starting sub processes...")
         reload(bb.hub)
         reload(bb.log)
         sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2))
         sub_procs["log"] = Process(target=bb.log.log, args=(Q2,))
-        for proc in sub_procs.values():
+        for name, proc in sub_procs.items():
             proc.start()
+            logging.info("%s started, pid:%d", name, proc.pid)
+        logging.info("start sub processes success!")
 
     def stop():
+        logging.info("stopping sub processes...")
         Q0.put(None)
-        for proc in sub_procs.values():
+        for name, proc in sub_procs.items():
             proc.join()
+            logging.info("%s stopped, pid:%s", name, proc.pid)
+        logging.info("stop sub processes success!")
 
     start()
 
@@ -68,11 +79,10 @@ def main(port, backstage):
                 self.stream.read_bytes(4, self.msg_head)
                 logging.info("%s %s login", self.address, i)
             else:
-                logging.info("%s %s auth failed", self.address, i)
+                logging.warning("failed to auth %s %s", self.address, i)
                 self.stream.close()
 
         def msg_byte(self, byte):
-            print(byte)
             self.stream.write(byte)
             self.stream.read_bytes(1, self.msg_byte)
 
@@ -120,7 +130,7 @@ def main(port, backstage):
             if not stream.closed():
                 stream.write(data)
         else:
-            logging.warning("%s is not online, send %s %s failed",
+            logging.warning("%s is not online, failed to send %s %s",
                             i, cmd, data)
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
@@ -144,10 +154,8 @@ def main(port, backstage):
 
     class ReloadHandler(RequestHandler):
         def get(self):
-            print(time.time())
             stop()
             start()
-            print(time.time())
             self.redirect("/")
 
     Application([
