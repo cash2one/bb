@@ -30,7 +30,7 @@ def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
     import signal
-    from time import time
+
     from bb import other, inst   # load all
 
     def not_be_terminated(signal_number, stack_frame):
@@ -60,6 +60,49 @@ def hub(Q_in, Q_out, Q_err):
                               cls=BBEncoder,
                               separators = (",", ": "),
                               sort_keys=True, indent=4)
+
+    def init():
+        from collections import Counter
+        from redis import StrictRedis
+        db = StrictRedis("via")
+        pipe = db.pipeline()
+
+        raw = db.hgetall("z")
+        logging.info(len(raw))
+        uids = {}
+        for u, i in raw.items():
+            if i.isdigit():
+                uids[u.decode()] = int(i)
+            else:
+                logging.warning("%s -> %s", u, i)
+
+        ids = list(uids.values())
+        checker = Counter(ids)
+        if len(checker) != len(ids):
+            raise ValueError(checker.most_common(3))
+
+        for i in ids:
+            pipe.hgetall(i)
+        properties = pipe.execute(False)
+        P = other.P
+        I = other.I
+        for i, p in zip(ids, properties):
+            if isinstance(p, dict):
+                try:
+                    d = {k.decode(): loads(v.decode()) for k, v in p.items()}
+                    P[i] = I(i, d)
+                except Exception as e:
+                    logging.warning("%s: %d -> %s", e, i, p)
+            else:
+                logging.warning("%d -> %s", i, p)
+
+    try:
+        init()
+        logging.info(len(other.P))
+    except Exception as e:
+        logging.exception(e)
+        Q_err.put(None)
+        return
 
     while True:
         try:

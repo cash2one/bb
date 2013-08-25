@@ -4,16 +4,11 @@ from bb.i import I
 from bb.inst import handle_input
 from bb.util import flush
 
-staffs = {}
-for i in range(10):   # init all, todo
-    staffs[i] = I(i)
+P = {}
 
 @handle_input
 def ping(i, n):
-    i = staffs[i]
-    j = staffs[2]
+    i = P[i]
     i.send("pong", n + 1)
-    i.save("foo")
-    j.send("pong", n + 2)
-    return flush(i.cache, j.cache)
+    return flush(i.cache)
 
