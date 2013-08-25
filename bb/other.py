@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 from bb.i import I
-from bb.inst import handle_input
+from bb.inst import handle
 from bb.util import flush
 
 P = {}
 
-@handle_input
+@handle
 def ping(i, n):
     i = P[i]
     i.send("pong", n + 1)

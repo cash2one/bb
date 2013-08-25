@@ -13,7 +13,7 @@ instructions_list = [
 instructions = dict(zip(instructions_list, range(1, 2**16)))
 
 
-def handle_input(func):
+def handle(func):
     assert callable(func), func
     signal = func.__name__
     assert instructions[signal] not in processes, signal
