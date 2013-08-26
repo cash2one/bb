@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from bb.i import I
 from bb.inst import handle
 from bb.util import flush
 

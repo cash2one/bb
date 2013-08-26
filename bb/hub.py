@@ -84,13 +84,12 @@ def hub(Q_in, Q_out, Q_err):
         for i in ids:
             pipe.hgetall(i)
         properties = pipe.execute(False)
-        P = other.P
-        I = other.I
+        from bb.i import I
         for i, p in zip(ids, properties):
             if isinstance(p, dict):
                 try:
                     d = {k.decode(): loads(v.decode()) for k, v in p.items()}
-                    P[i] = I(i, d)
+                    other.P[i] = I(i, d)
                 except Exception as e:
                     logging.warning("%s: %d -> %s", e, i, p)
             else:
