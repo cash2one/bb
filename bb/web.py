@@ -71,7 +71,10 @@ def main(port, backstage, backdoor):
             i = int(auth)
             if i in range(10):   # lots todo :)
                 self.i = i
-                staffs[i] = self
+                old = staffs.get(i)
+                if old:
+                    old.close()
+                staffs[i] = self.stream
                 self.stream.set_close_callback(self.logout)
                 self.stream.read_bytes(4, self.msg_head)
                 logging.info("%s %s login", self.address, i)
@@ -122,10 +125,9 @@ def main(port, backstage, backdoor):
 
     def msg(fd, event):
         i, cmd, data = Q1.get()
-        if i in staffs:
-            stream = staffs[i].stream
-            if not stream.closed():
-                stream.write(data)
+        stream = staffs.get(i)
+        if stream and not stream.closed():
+            stream.write(data)
         else:
             logging.warning("%s is not online, failed to send %s %s",
                             i, cmd, data)
