@@ -31,7 +31,8 @@ def hub(Q_in, Q_out, Q_err):
     import logging
     import signal
 
-    from bb import other, inst   # load all
+    from bb import inst   # load all
+    from bb.other import P
 
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
@@ -89,7 +90,7 @@ def hub(Q_in, Q_out, Q_err):
             if isinstance(p, dict):
                 try:
                     d = {k.decode(): loads(v.decode()) for k, v in p.items()}
-                    other.P[i] = I(i, d)
+                    P[i] = I(i, d)
                 except Exception as e:
                     logging.warning("%s: %d -> %s", e, i, p)
             else:
@@ -97,7 +98,7 @@ def hub(Q_in, Q_out, Q_err):
 
     try:
         init()
-        logging.info(len(other.P))
+        logging.info(len(P))
     except Exception as e:
         logging.exception(e)
         Q_err.put(None)
@@ -117,7 +118,7 @@ def hub(Q_in, Q_out, Q_err):
 
         try:
             producer = processes[v[1]]
-            outs = producer(v[0], loads(v[2].decode()))
+            outs = producer(P[v[0]], loads(v[2].decode()))
             if outs:
                 for x in _filter(outs):   # is _filter neccessary?
                     i = x[0]
