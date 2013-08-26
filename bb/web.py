@@ -161,10 +161,16 @@ def main(port, backstage):
         (r"/reload", ReloadHandler),
     ]).listen(backstage)
 
+    import os
+    pid = "bb.pid"
+    with open(pid, "w") as f: f.write(str(os.getpid()))
+
     gc.collect()
     io_loop.start()   # looping...
 
     logging.info("bye")
+    if os.path.exists(pid): os.remove(pid)
+
 
 
 
