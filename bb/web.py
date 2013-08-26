@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage):
+def main(port, backstage, backdoor):
     import gc
     gc.disable()
 
@@ -131,8 +131,10 @@ def main(port, backstage):
                             i, cmd, data)
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
-    server = BBServer()
-    server.listen(port)
+    BBServer().listen(port)
+
+    from bb.bd import Backdoor
+    Backdoor().listen(backdoor)
 
     # web interface
     from bb.oc import record, recorder
@@ -178,7 +180,8 @@ if __name__ == "__main__":
     from tornado.options import define, options, parse_command_line
     define("port", default=8000, type=int, help="main port(TCP)")
     define("backstage", default=8100, type=int, help="backstage port(HTTP)")
+    define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
     define("leader", default="localhost:80", type=str, help="central controller")
     parse_command_line()
 
-    main(options.port, options.backstage)
+    main(options.port, options.backstage, options.backdoor)
