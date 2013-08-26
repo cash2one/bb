@@ -62,8 +62,6 @@ def main(port, backstage, backdoor):
         def __init__(self, stream, address):
             self.stream = stream
             self.address = address
-            #self.stream.read_bytes(1, self.msg_byte)
-            #self.stream.read_until(b'\n', self.msg_print)
             self.stream.read_until(b'\n', self.login)
             logging.info("%s try in", address)
 
@@ -82,24 +80,16 @@ def main(port, backstage, backdoor):
                 logging.warning("failed to auth %s %s", self.address, i)
                 self.stream.close()
 
-        def msg_byte(self, byte):
-            self.stream.write(byte)
-            self.stream.read_bytes(1, self.msg_byte)
-
-        def msg_print(self, chunk):
-            logging.info(chunk)
-            self.stream.read_until(b'\n', self.msg_print)
-
         def msg_head(self, chunk):
-            #logging.info("head: %s", chunk)
+            logging.debug("head: %s", chunk)
             instruction, length_of_body = unpack("!HH", chunk)
-            #logging.info("%d, %d", instruction, length_of_body)
+            logging.debug("%d, %d", instruction, length_of_body)
             self.instruction = instruction
             if not self.stream.closed():
                 self.stream.read_bytes(length_of_body, self.msg_body)
 
         def msg_body(self, chunk):
-            #logging.info("body: %s", chunk)
+            logging.debug("body: %s", chunk)
             if not chunk:
                 chunk = b'0'
             Q0.put([self.i, self.instruction, chunk])
