@@ -20,11 +20,12 @@ class BackdoorShell(InteractiveInterpreter):
         source = "\n".join(buf)
 
         more = False
+        stdout, stderr = sys.stdout, sys.stderr
         io = sys.stdout = sys.stderr = StringIO()
         try:
             more = self.runsource(source)
         finally:
-            sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__
+            sys.stdout, sys.stderr = stdout, stderr
 
         if more:
             prompt = "... " 
