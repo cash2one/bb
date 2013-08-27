@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+r"""
+>>> commands["shell_push"]("1 + 6")
+'7\n>>> '
+"""
+
 import logging
 
 processes = {}
@@ -22,6 +27,15 @@ def handle(func):
     else:
         logging.warning("\"%s\" is not in instructions", signal)
     return func
+
+
+from bb.bd import BackdoorShell
+shell = BackdoorShell()
+
+commands = {
+    "shell_push": lambda line: shell.push(line),
+}
+
 
 
 if __name__ == "__main__":
