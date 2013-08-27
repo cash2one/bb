@@ -141,7 +141,7 @@ def main(port, backstage, backdoor):
             self.stream.read_until(b'\n', self.handle_input)
 
         def handle_input(self, line):
-            Q0.put(["shell", line.rstrip().decode()])
+            Q0.put(["shell", line.decode()])
             self.stream.read_until(b'\n', self.handle_input)
 
     class BackdoorServer(TCPServer):

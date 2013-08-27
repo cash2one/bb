@@ -16,7 +16,7 @@ class BackdoorShell(InteractiveInterpreter):
 
     def push(self, line):
         buf = self.buf
-        buf.append(line)
+        buf.append(line.rstrip())
         source = "\n".join(buf)
 
         more = False
@@ -41,11 +41,11 @@ class Connection(object):
     def __init__(self, stream, address):
         self.stream = stream
         self.stream.set_close_callback(self.stream.close)
-        self.stream.write(b">>> ")
+        self.stream.write(b'>>> ')
         self.stream.read_until(b'\n', self.handle_input)
 
     def handle_input(self, line):
-        self.stream.write(self.shell.push(line.rstrip().decode()).encode())
+        self.stream.write(self.shell.push(line.decode()).encode())
         self.stream.read_until(b'\n', self.handle_input)
 
 
