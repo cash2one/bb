@@ -33,7 +33,7 @@ from bb.bd import BackdoorShell
 shell = BackdoorShell()
 
 commands = {
-    "shell_push": lambda line: shell.push(line),
+    "shell": lambda line: shell.push(line),
 }
 
 

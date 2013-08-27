@@ -119,16 +119,18 @@ def hub(Q_in, Q_out, Q_err):
 
         try:
             if len(v) == 2:
-                Q_out.put(commands[v[0]](v[1]))
+                cmd, data = v
+                Q_out.put([cmd, commands[cmd](data)])   # echo cmd
             else:
-                producer = processes[v[1]]
-                outs = producer(P[v[0]], loads(v[2].decode()))
+                i, cmd, data = v
+                producer = processes[cmd]
+                outs = producer(P[i], loads(data.decode()))
                 if outs:
                     for x in _filter(outs):   # is _filter neccessary?
-                        i = x[0]
+                        i, cmd, data = x
                         if isinstance(i, int):
-                            Q_out.put([i, instructions[x[1]],
-                                       dump1(x[2]).encode()])
+                            Q_out.put([i, instructions[cmd],
+                                       dump1(data).encode()])
                         else:
                             Q_err.put(x)
         except Exception:
