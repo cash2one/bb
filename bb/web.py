@@ -114,19 +114,43 @@ def main(port, backstage, backdoor):
     signal.signal(signal.SIGTERM, term)
 
     def msg(fd, event):
-        i, cmd, data = Q1.get()
-        stream = staffs.get(i)
-        if stream and not stream.closed():
-            stream.write(data)
-        else:
-            logging.warning("%s is not online, failed to send %s %s",
-                            i, cmd, data)
+        x = Q1.get()
+        if isinstance(x, str):
+            bd_stream = staffs.get("bd")
+            if bd_stream:
+                bd_stream.write(x.encode())
+        elif isinstance(x, list):
+            i, cmd, data = x
+            stream = staffs.get(i)
+            if stream and not stream.closed():
+                stream.write(data)
+            else:
+                logging.warning("%s is not online, failed to send %s %s",
+                                i, cmd, data)
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
     BBServer().listen(port)
 
     from bb.bd import Backdoor
     Backdoor().listen(backdoor)
+
+    class BackdoorConnection(object):
+        def __init__(self, stream, address):
+            self.stream = stream
+            staffs["bd"] = stream
+            self.stream.set_close_callback(self.stream.close)
+            self.stream.write(b"Backdoor\n>>> ")
+            self.stream.read_until(b'\n', self.handle_input)
+
+        def handle_input(self, line):
+            Q0.put(["shell_push", line.decode()])
+            self.stream.read_until(b'\n', self.handle_input)
+
+    class BackdoorServer(TCPServer):
+        def handle_stream(self, stream, address):
+            BackdoorConnection(stream, address)
+
+    BackdoorServer().listen(1024)
 
     # web interface
     from bb.oc import record, recorder

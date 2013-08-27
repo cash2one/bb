@@ -44,6 +44,7 @@ def hub(Q_in, Q_out, Q_err):
     _filter = functools.partial(filter, None)
 
     processes = inst.processes
+    commands = inst.commands
     instructions = inst.instructions
 
     from json import dumps, loads, JSONEncoder
@@ -117,15 +118,19 @@ def hub(Q_in, Q_out, Q_err):
             break
 
         try:
-            producer = processes[v[1]]
-            outs = producer(P[v[0]], loads(v[2].decode()))
-            if outs:
-                for x in _filter(outs):   # is _filter neccessary?
-                    i = x[0]
-                    if isinstance(i, int):
-                        Q_out.put([i, instructions[x[1]], dump1(x[2]).encode()])
-                    else:
-                        Q_err.put(x)
+            if len(v) == 2:
+                Q_out.put(commands[v[0]](v[1]))
+            else:
+                producer = processes[v[1]]
+                outs = producer(P[v[0]], loads(v[2].decode()))
+                if outs:
+                    for x in _filter(outs):   # is _filter neccessary?
+                        i = x[0]
+                        if isinstance(i, int):
+                            Q_out.put([i, instructions[x[1]],
+                                       dump1(x[2]).encode()])
+                        else:
+                            Q_err.put(x)
         except Exception:
             logging.exception("!!!")
 
