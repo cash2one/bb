@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 def build_dict(title, key, values, value_wraps={}):
-    """
+    r"""
     >>> title = [{"x":1, "y":1, "z":1}, {"x":2, "y":4, "z":8}]
     >>> wraps1 = {"y": float}
     >>> wraps2 = {"z": str}
@@ -11,7 +11,7 @@ def build_dict(title, key, values, value_wraps={}):
     {1: [1, 1], 2: [4, 8]}
     >>> build_dict(title, "x", ("y", "z"))
     {1: (1, 1), 2: (4, 8)}
-    >>> build_dict(title, "x", {"y", "z"}, wraps2) == \\
+    >>> build_dict(title, "x", {"y", "z"}, wraps2) == \
     ... {1: {"y": 1, "z": "1"}, 2: {"y": 4, "z": "8"}}
     True
     """
@@ -36,7 +36,7 @@ def build_dict(title, key, values, value_wraps={}):
     return dct
 
 def build_list(title, keys, value_wraps={}):
-    """
+    r"""
     >>> title = [{"x":1, "y":1, "z":1}, {"x":2, "y":4, "z":8}]
     >>> build_list(title, "z", {"z": float})
     [1.0, 8.0]
@@ -44,7 +44,7 @@ def build_list(title, keys, value_wraps={}):
     [[1, 1], [4, 8]]
     >>> build_list(title, ("y", "z"))
     [(1, 1), (4, 8)]
-    >>> build_list(title, {"y", "z"}) == \\
+    >>> build_list(title, {"y", "z"}) == \
     ... [{'y': 1, 'z': 1}, {'y': 4, 'z': 8}]
     True
     """
