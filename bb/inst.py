@@ -17,10 +17,10 @@ def handle(func):
     assert callable(func), func
     signal = func.__name__
     assert instructions[signal] not in processes, signal
-    if signal in instructions_list:
+    if signal in instructions:
         processes[instructions[signal]] = func
     else:
-        logging.warning("\"%s\" is not in instructions_list", signal)
+        logging.warning("\"%s\" is not in instructions", signal)
     return func
 
 
