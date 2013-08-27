@@ -53,6 +53,7 @@ def main(port, backstage, backdoor):
     from struct import pack, unpack
 
     staffs = weakref.WeakValueDictionary()
+    wheels = weakref.WeakSet()
 
     from tornado import ioloop
     from tornado.tcpserver import TCPServer
@@ -114,7 +115,7 @@ def main(port, backstage, backdoor):
     signal.signal(signal.SIGTERM, term)
 
     commands = {
-        "shell": lambda s: staffs["bd"].write(s.encode())
+        "shell": lambda s: [i.write(s.encode()) for i in wheels]
     }
 
     def msg(fd, event):
@@ -135,7 +136,7 @@ def main(port, backstage, backdoor):
     class BackdoorConnection(object):
         def __init__(self, stream, address):
             self.stream = stream
-            staffs["bd"] = stream
+            wheels.add(stream)
             self.stream.set_close_callback(self.stream.close)
             self.stream.write(b"Backdoor\n>>> ")
             self.stream.read_until(b'\n', self.handle_input)
