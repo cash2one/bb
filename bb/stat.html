@@ -6,7 +6,7 @@
     <body>
         <p>
         <form action="/gc">
-            <input type="submit" value="gc.collect">
+            <input type="submit" value="gc">
         </form>
         </p>
 
@@ -16,7 +16,15 @@
         </form>
         </p>
 
+        <p>
+        <form action="/close_door">
+            <input type="submit" value="close door">
+        </form>
+        </p>
+
         <p>{{ list(staffs.keys()) }}</p>
+
+        <p>{{ list(wheels.keys()) }}</p>
 
         <p>
         <table border="1">

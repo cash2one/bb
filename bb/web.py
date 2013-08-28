@@ -53,7 +53,7 @@ def main(port, backstage, backdoor):
     from struct import pack, unpack
 
     staffs = weakref.WeakValueDictionary()
-    wheels = weakref.WeakSet()
+    wheels = weakref.WeakValueDictionary()
 
     from tornado import ioloop
     from tornado.tcpserver import TCPServer
@@ -114,8 +114,13 @@ def main(port, backstage, backdoor):
         stop()
     signal.signal(signal.SIGTERM, term)
 
+    def command_shell(s):
+        s = s.encode()
+        for i in wheels.values():
+            i.write(s)
+
     commands = {
-        "shell": lambda s: [i.write(s.encode()) for i in wheels]
+        "shell": command_shell,
     }
 
     def msg(fd, event):
@@ -136,7 +141,7 @@ def main(port, backstage, backdoor):
     class BackdoorConnection(object):
         def __init__(self, stream, address):
             self.stream = stream
-            wheels.add(stream)
+            wheels[address] = stream
             self.stream.set_close_callback(self.stream.close)
             self.stream.write(b"Backdoor\n>>> ")
             self.stream.read_until(b'\n', self.handle_input)
@@ -158,7 +163,10 @@ def main(port, backstage, backdoor):
 
     class MainHandler(RequestHandler):
         def get(self):
-            self.render("stat.html", recorder=recorder, staffs=staffs)
+            self.render("stat.html",
+                        recorder=recorder,
+                        wheels=wheels,
+                        staffs=staffs)
 
     class GcHandler(RequestHandler):
         def get(self):
@@ -171,10 +179,17 @@ def main(port, backstage, backdoor):
             start()
             self.redirect("/")
 
+    class CloseDoorHandler(RequestHandler):
+        def get(self):
+            for i in wheels.values():
+                i.close()
+            self.redirect("/")
+
     Application([
         (r"/", MainHandler),
         (r"/gc", GcHandler),
         (r"/reload", ReloadHandler),
+        (r"/close_door", CloseDoorHandler),
     ]).listen(backstage)
 
     import os
