@@ -14,6 +14,8 @@ def build_dict(title, key, values, value_wraps={}):
     >>> build_dict(title, "x", {"y", "z"}, wraps2) == \
     ... {1: {"y": 1, "z": "1"}, 2: {"y": 4, "z": "8"}}
     True
+    >>> build_dict(title, "x", "null", wraps1)
+    {1: None, 2: None}
     """
     def wrap(k):
         w = value_wraps.get(k)
@@ -48,6 +50,8 @@ def build_list(title, values, value_wraps={}):
     >>> build_list(title, {"y", "z"}) == \
     ... [{'y': 1, 'z': 1}, {'y': 4, 'z': 8}]
     True
+    >>> build_list(title, "null")
+    [None, None]
     """
     def wrap(k):
         w = value_wraps.get(k)
