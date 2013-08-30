@@ -16,8 +16,9 @@ def build_dict(title, key, values, value_wraps={}):
     True
     """
     def wrap(k):
-        wrapper = value_wraps.get(k)
-        return wrapper(x[k]) if wrapper else x[k]
+        w = value_wraps.get(k)
+        v = x.get(k)
+        return w(v) if w else v if v else None
     dct = {}
     if isinstance(values, str):
         for x in title:
@@ -49,8 +50,9 @@ def build_list(title, values, value_wraps={}):
     True
     """
     def wrap(k):
-        wrapper = value_wraps.get(k)
-        return wrapper(x[k]) if wrapper else x[k]
+        w = value_wraps.get(k)
+        v = x.get(k)
+        return w(v) if w else v if v else None
     lst = []
     if isinstance(values, str):
         for x in title:
