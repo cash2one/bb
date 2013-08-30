@@ -20,7 +20,9 @@ def build_dict(title, key, values, value_wraps={}):
     def wrap(k):
         w = value_wraps.get(k)
         v = x.get(k)
-        return w(v) if w else v if v else None
+        if v is not None and callable(w):
+            v = w(v)
+        return v
     dct = {}
     if isinstance(values, str):
         for x in title:
@@ -56,7 +58,9 @@ def build_list(title, values, value_wraps={}):
     def wrap(k):
         w = value_wraps.get(k)
         v = x.get(k)
-        return w(v) if w else v if v else None
+        if v is not None and callable(w):
+            v = w(v)
+        return v
     lst = []
     if isinstance(values, str):
         for x in title:
