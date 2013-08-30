@@ -35,7 +35,7 @@ def build_dict(title, key, values, value_wraps={}):
         raise ValueError(values)
     return dct
 
-def build_list(title, keys, value_wraps={}):
+def build_list(title, values, value_wraps={}):
     r"""
     >>> title = [{"x":1, "y":1, "z":1}, {"x":2, "y":4, "z":8}]
     >>> build_list(title, "z", {"z": float})
@@ -52,20 +52,20 @@ def build_list(title, keys, value_wraps={}):
         wrapper = value_wraps.get(k)
         return wrapper(x[k]) if wrapper else x[k]
     lst = []
-    if isinstance(keys, str):
+    if isinstance(values, str):
         for x in title:
-            lst.append(wrap(keys))
-    elif isinstance(keys, list):
+            lst.append(wrap(values))
+    elif isinstance(values, list):
         for x in title:
-            lst.append(list(wrap(k) for k in keys))
-    elif isinstance(keys, tuple):
+            lst.append(list(wrap(k) for k in values))
+    elif isinstance(values, tuple):
         for x in title:
-            lst.append(tuple(wrap(k) for k in keys))
-    elif isinstance(keys, set):
+            lst.append(tuple(wrap(k) for k in values))
+    elif isinstance(values, set):
         for x in title:
-            lst.append(dict((k, wrap(k)) for k in keys))
+            lst.append(dict((k, wrap(k)) for k in values))
     else:
-        raise ValueError(keys)
+        raise ValueError(values)
     return lst
 
 
