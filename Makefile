@@ -5,7 +5,7 @@
 .PHONY: test clean
 
 test:
-	python -m unittest discover -p '*.py'
+	python3 -m unittest discover -p '*.py'
 
 clean:
 	rm -rf build/ dist/ MANIFEST 2>/dev/null || true
@@ -16,4 +16,4 @@ clean:
 # python -O -c "from bb.web import main; main(8000, 8100)"
 # python -O -m bb.web
 pack:
-	python -OO -m compileall -b -q bb
+	python3 -OO -m compileall -b -q bb
