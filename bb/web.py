@@ -91,9 +91,7 @@ def main(port, backstage, backdoor):
 
         def msg_body(self, chunk):
             logging.debug("body: %s", chunk)
-            if not chunk:
-                chunk = b'0'
-            Q0.put([self.i, self.instruction, chunk])
+            Q0.put([self.i, self.instruction, chunk or b'0'])
             if not self.stream.closed():
                 self.stream.read_bytes(4, self.msg_head)
 
@@ -175,6 +173,7 @@ def main(port, backstage, backdoor):
 
     class ReloadHandler(RequestHandler):
         def get(self):
+            gc.collect()
             stop()
             start()
             self.redirect("/")
