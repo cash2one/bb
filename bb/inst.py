@@ -5,8 +5,7 @@ r"""
 '7\n>>> '
 """
 
-import logging
-
+# {1: func_1, 2: func_2, ...}
 processes = {}
 
 instructions_list = [
@@ -15,17 +14,17 @@ instructions_list = [
     "type",
 ]
 
+# {"ping": 1, "pong": 2, ...}
 instructions = dict(zip(instructions_list, range(1, 2**16)))
 
 
 def handle(func):
     assert callable(func), func
-    signal = func.__name__
-    assert instructions[signal] not in processes, signal
-    if signal in instructions:
-        processes[instructions[signal]] = func
-    else:
-        logging.warning("\"%s\" is not in instructions", signal)
+    alias = func.__name__
+    assert alias in instructions, alias
+    signal = instructions[alias]
+    assert signal not in processes, "%s:%d" % (alias, signal)
+    processes[signal] = func
     return func
 
 
