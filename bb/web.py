@@ -91,7 +91,7 @@ def main(port, backstage, backdoor):
 
         def msg_body(self, chunk):
             logging.debug("body: %s", chunk)
-            Q0.put([self.i, self.instruction, chunk or b'0'])
+            Q0.put([self.i, self.instruction, chunk.decode() or "0"])
             if not self.stream.closed():
                 self.stream.read_bytes(4, self.msg_head)
 
@@ -130,7 +130,7 @@ def main(port, backstage, backdoor):
             i, cmd, data = x
             stream = staffs.get(i)
             if stream and not stream.closed():
-                stream.write(data)
+                stream.write(data.encode())
             else:
                 logging.warning("%s is not online, failed to send %s %s",
                                 i, cmd, data)
