@@ -127,8 +127,8 @@ def hub(Q_in, Q_out, Q_err):
                 outs = producer(P[i], loads(data.decode()))
                 if outs:
                     for x in _filter(outs):   # is _filter neccessary?
-                        i, cmd, data = x
-                        if isinstance(i, int):
+                        if isinstance(x[0], int):
+                            i, cmd, data = x
                             Q_out.put([i, instructions[cmd],
                                        dump1(data).encode()])
                         else:
