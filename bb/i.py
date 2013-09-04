@@ -49,7 +49,7 @@ class I(dict):
     True
     >>> i.logs.append("over")
     >>> #i.listeners["foo"].add("bar")
-    >>> i.bind("go", callback_example, 1)
+    >>> i.bind("go", "callback_example", 1)
     >>> i.listeners["go"] == set([("callback_example", (1,))])
     True
     >>> i.unbind("go", "callback_example", 1)
@@ -397,7 +397,7 @@ def tower_daemon(i, k, infos, n, evaluation, callback):
 if __name__ == "__main__":
     print("doctest:")
     import doctest
-    #doctest.testmod()
+    doctest.testmod()
     i = I(9527)
     i["level"] += 1
     rc = (
