@@ -129,7 +129,7 @@ class I(dict):
                 self[k] = wrap(v) if wrap else v
 
     def __missing__(self, k):
-        v = self.__getattribute__("_default_" + k)
+        v = self.__getattribute__("_default_%s" % k)
         self[k] = v
         return v
 
