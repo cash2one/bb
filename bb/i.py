@@ -172,8 +172,8 @@ class I(dict):
         assert isinstance(n, int), n
         self.cache.append(["log", self.i, k, infos, n])
         self.logs.append([k, infos, n])
-        for cb in list(self.listeners[k]):          # need a copy for iter
-            _cbs[cb[0]](self, k, infos, n, cb[1])   # cb may change listeners[k]
+        for cb in list(self.listeners[k]):   # need a copy for iter
+            _cbs[cb[0]](cb[1], self, k, infos, n)         # cb may change listeners[k]
 
     def render(self, rc):
         """
@@ -347,13 +347,14 @@ class I(dict):
 
 # examples here:
 @register_log_callback
-def callback_example(i, k, infos, n, extra):
-    i.unbind(k, callback_example, extra)
+def callback_example(extra, i, log, infos, n):
+    assert i.logs[-1] == [log, infos, n]
+    i.unbind(log, callback_example, extra)
     i.save("foo")
     i.send("msg", "haha")
 
 @register_log_callback
-def callback_example2(i, k, infos, n, extra):
+def callback_example2(extra, i, log, infos, n):
     i.save("foobar")
     i.save("a")
 

@@ -7,7 +7,7 @@ import unittest
 from bb.i import I, register_log_callback, _cbs
 
 @register_log_callback
-def cb_test(i, k, infos, n, *args):
+def cb_test(extra, i, k, infos, n):
     #print(i.i, k, infos, n, *args)
     i["foo"] += 1
 
@@ -41,40 +41,29 @@ class TestI(unittest.TestCase):
 
     def test_bind(self):
         i = self.i
-        i.bind("go", "cb_test")
-        self.assertEqual(i.listeners["go"], {("cb_test", ())})
-        i.bind("go", "cb_test", 1, 2, 3, 4, 5)
+        i.bind("go", "cb_test", None)
+        self.assertEqual(i.listeners["go"], {("cb_test", None)})
+        i.bind("go", "cb_test", (1, 2, 3, 4, 5))
         self.assertEqual(i.listeners["go"],
-                         {("cb_test", ()), ("cb_test", (1, 2, 3, 4, 5))})
+                         {("cb_test", None), ("cb_test", (1, 2, 3, 4, 5))})
 
     def test_unbind(self):
         i = self.i
-        i.bind("go", "cb_test")
-        i.bind("go", "cb_test", 1)
-        i.bind("go", "cb_test", 1, 2)
-        i.bind("go", "cb_test", 1, 2, 3)
-        i.bind("go", "cb_test", 1, 2, 3, 4)
-        i.bind("go", "cb_test", 1, 2, 3, 4, 5)
-        self.assertEqual(len(i.listeners["go"]), 6)
-        i.unbind("go", "cb_test", 1, 2, 3, 4, 5)
-        i.unbind("go", "cb_test", 1, 2, 3, 4)
-        i.unbind("go", "cb_test", 1, 2, 3)
-        i.unbind("go", "cb_test", 1, 2)
-        i.unbind("go", "cb_test", 1)
-        i.unbind("go", "cb_test")
+        i.bind("go", "cb_test", None)
+        self.assertEqual(len(i.listeners["go"]), 1)
+        i.unbind("go", "cb_test", None)
         self.assertEqual(len(i.listeners["go"]), 0)
 
     def test_bind_repeated(self):
         i = self.i
         for _  in range(100):
-            i.bind("go", "cb_test")
-        self.assertEqual(i.listeners["go"], {("cb_test", ())})
+            i.bind("go", "cb_test", None)
+        self.assertEqual(i.listeners["go"], {("cb_test", None)})
 
     def test_unbind_not_exist(self):
         i = self.i
-        self.assertEqual(len(i.listeners["go"]), 0)
         for _  in range(100):
-            i.unbind("go", "cb_test")
+            i.unbind("go", "cb_test", None)
         self.assertEqual(len(i.listeners["go"]), 0)
 
     def test_send(self):
@@ -99,11 +88,17 @@ class TestI(unittest.TestCase):
 
     def test_log(self):
         i = self.i
-        i.bind("jump", "cb_test")
+        i.bind("jump", "cb_test", None)
         i.log("jump")
-        self.assertEqual(i.cache, [["log", i.i, "jump", None, 1]])
-        self.assertEqual(list(i.logs), [["jump", None, 1]])
+        self.assertEqual(i.cache, [["log", i.i, "jump", {}, 1]])
+        self.assertEqual(list(i.logs), [["jump", {}, 1]])
         self.assertEqual(i["foo"], 6)   # see function cb_test
+
+    def test_log_infos(self):
+        i = self.i
+        i.log("jump", {"height": 3}, 5)
+        self.assertEqual(i.cache, [["log", i.i, "jump", {"height": 3}, 5]])
+        self.assertEqual(list(i.logs), [["jump", {"height": 3}, 5]])
 
     def test_render(self):
         i = self.i
