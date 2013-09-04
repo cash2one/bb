@@ -64,6 +64,15 @@ def hub(Q_in, Q_out, Q_err):
                               sort_keys=True, indent=4)
 
     def init():
+        from bb.i import I
+
+        # load others
+        from os.path import splitext, sep
+        from glob import glob
+        for m in set(map(lambda s: splitext(s)[0].replace(sep, "."),
+                         glob('[a-z]*.py*'))):
+            exec("import %s" % m)
+
         from collections import Counter
         from redis import StrictRedis
         db = StrictRedis("via")
@@ -86,7 +95,7 @@ def hub(Q_in, Q_out, Q_err):
         for i in ids:
             pipe.hgetall(i)
         properties = pipe.execute(False)
-        from bb.i import I
+
         for i, p in zip(ids, properties):
             if isinstance(p, dict):
                 try:
