@@ -54,6 +54,7 @@ def main(port, backstage, backdoor):
 
     staffs = weakref.WeakValueDictionary()
     wheels = weakref.WeakValueDictionary()
+    wss = weakref.WeakValueDictionary()
 
     from tornado import ioloop
     from tornado.tcpserver import TCPServer
@@ -190,6 +191,21 @@ def main(port, backstage, backdoor):
         (r"/reload", ReloadHandler),
         (r"/close_door", CloseDoorHandler),
     ]).listen(backstage)
+
+    from tornado.websocket import WebSocketHandler
+    class WebSocket(WebSocketHandler):
+        def open(self):
+            pass
+
+        def on_message(self, message):
+            try:
+                Q0.put([self.i, 1, message])
+            except AttributeError:
+                self.i = int(message)
+
+    Application([
+        (r"/ws", WebSocket),
+    ]).listen(port + 50)
 
     import os
     pid = "bb.pid"
