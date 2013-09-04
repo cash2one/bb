@@ -179,15 +179,18 @@ class I(dict):
         assert isinstance(k, str), k
         self.cache.append(["save", self.i, k, self[k]])
 
-    def log(self, k, infos=None, n=1):
+    def log(self, k, infos={}, n=1):
+        """infos must be read-only
+        default-value: `infos={}` is dangerous, but i like
+        """
         assert isinstance(k, str), k
-        assert isinstance(infos, (dict, type(None))), infos
+        assert isinstance(infos, dict), infos
         assert isinstance(n, int), n
         self.cache.append(["log", self.i, k, infos, n])
         self.logs.append([k, infos, n])
         all_cb_args = self.listeners[k]
         if all_cb_args:
-            for cb_args in list(all_cb_args):
+            for cb_args in list(all_cb_args):   # need a copy for iter
                 _cbs[cb_args[0]](self, k, infos, n, *cb_args[1])
 
     def render(self, rc):
