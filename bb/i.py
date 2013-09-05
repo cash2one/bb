@@ -10,6 +10,8 @@ from random import random
 
 from bb.util import EvalCache
 
+P = {}
+
 # map looks like this:
 #    {"func_name": func, ...}
 # why prefer "func_name" mapping instead of use function directly:
@@ -121,7 +123,7 @@ class I(dict):
         self[k] = v
         return v
 
-    def __getattr__(self, k):   # use this prudently
+    def __getattr__(self, k):  # use this prudently
         return self[k]
 
     # i, cache, logs, listeners are protected and readonly
@@ -172,8 +174,22 @@ class I(dict):
         assert isinstance(n, int), n
         self.cache.append(["log", self.i, k, infos, n])
         self.logs.append([k, infos, n])
-        for cb in list(self.listeners[k]):   # need a copy for iter
-            _cbs[cb[0]](cb[1], self, k, infos, n)         # cb may change listeners[k]
+        for cb in list(self.listeners[k]):  # need a copy for iter
+            _cbs[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
+
+    def flush(self, *others):
+        """be called at end"""
+        f = []
+        c = self.cache
+        if c:
+            f.extend(c)
+            del c[:]
+        for o in others:
+            c = o.cache
+            f.extend(c)
+            del c[:]
+        return f
+
 
     def render(self, rc):
         """
@@ -183,7 +199,7 @@ class I(dict):
             (("c", 1001, 5), 0.5),
         )
         """
-        discount = self.foo   # just a example, 
+        discount = self.foo  # just a example
         assert isinstance(rc, tuple), rc
         assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
@@ -197,7 +213,7 @@ class I(dict):
                 assert len(foo) == len(bar), foo + bar
                 assert all(isinstance(t, tuple) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
-                l = list(accumulate(bar))   # calc it outside?
+                l = list(accumulate(bar))  # calc it outside?
                 booty.append(list(foo[bisect(l, random() * l[-1])]))
             elif isinstance(bar, float):
                 assert 0 < bar < 1, bar
@@ -210,7 +226,7 @@ class I(dict):
         for i in booty:
             n = i[-1]
             if not isinstance(n, int):
-                n = eval(self.eval_cache[n], None, env)   # environments
+                n = eval(self.eval_cache[n], None, env)  # environments
             i[-1] = int(n * discount)
 
         return booty
@@ -306,7 +322,7 @@ class I(dict):
                 raise Warning("-item faild")
 
         if changes:
-            self.send("bag", changes)   # dict is only for update
+            self.send("bag", changes)  # dict is only for update
             self.save("bag")
 
 
@@ -357,6 +373,7 @@ def callback_example(extra, i, log, infos, n):
 def callback_example2(extra, i, log, infos, n):
     i.save("foobar")
     i.save("a")
+
 
 
 if __name__ == "__main__":

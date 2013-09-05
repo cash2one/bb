@@ -85,11 +85,11 @@ class EvalCache(dict):
     >>> eval_cache = EvalCache()
     >>> calc_task = ["%d + x" % i for i in range(1000)]
     >>> x = 1
-    >>> sum(eval(c) for c in calc_task)   # always slow
+    >>> sum(eval(c) for c in calc_task)  # always slow
     500500
-    >>> sum(eval(eval_cache[c]) for c in calc_task)   # slow at first time
+    >>> sum(eval(eval_cache[c]) for c in calc_task)  # slow at first time
     500500
-    >>> sum(eval(eval_cache[c]) for c in calc_task)   # faster!
+    >>> sum(eval(eval_cache[c]) for c in calc_task)  # faster!
     500500
     """
     def __missing__(self, k):
@@ -121,24 +121,6 @@ def list_to_tuple(v):
     if isinstance(v, (list, tuple)):
         v = tuple(list_to_tuple(i) for i in v)
     return v
-
-
-def flush(*caches):
-    """
-    >>> l1 = [1, 2]
-    >>> l2 = [3, 4, 5]
-    >>> flush(l1, l2)
-    [1, 2, 3, 4, 5]
-    >>> l1
-    []
-    >>> l2
-    []
-    """
-    o = []
-    for i in caches:
-        o.extend(i)
-        del i[:]
-    return o
 
 
 

@@ -30,7 +30,8 @@ def hub(Q_in, Q_out, Q_err):
     import signal
 
     from bb import inst   # load all
-    from bb.other import P
+    from bb.i import I, P
+
 
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
@@ -62,8 +63,6 @@ def hub(Q_in, Q_out, Q_err):
                               sort_keys=True, indent=4)
 
     def init():
-        from bb.i import I
-
         # load others
         from os.path import splitext, sep
         from glob import glob
