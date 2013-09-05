@@ -193,15 +193,20 @@ def main(port, backstage, backdoor):
     ]).listen(backstage)
 
     from tornado.websocket import WebSocketHandler
+    from json import loads
     class WebSocket(WebSocketHandler):
         def open(self):
             pass
 
+        def on_close(self):
+            pass
+
         def on_message(self, message):
+            inst, msg = loads(message)
             try:
-                Q0.put([self.i, 1, message])
+                Q0.put([self.i, inst, msg or "0"])
             except AttributeError:
-                self.i = int(message)
+                self.i = int(msg)
 
     Application([
         (r"/ws", WebSocket),
