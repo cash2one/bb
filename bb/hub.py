@@ -72,7 +72,7 @@ def hub(Q_in, Q_out, Q_err):
 
         from collections import Counter
         from redis import StrictRedis
-        db = StrictRedis("via")
+        db = StrictRedis()
         pipe = db.pipeline()
 
         raw = db.hgetall("z")
