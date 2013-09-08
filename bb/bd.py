@@ -54,7 +54,7 @@ connections = weakref.WeakValueDictionary()
 
 class Backdoor(TCPServer):
     def handle_stream(self, stream, address):
-        connections[address] = Connection(stream, address)
+        Connection(stream, address)
 
 
 
