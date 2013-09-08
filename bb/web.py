@@ -71,9 +71,9 @@ def main(port, backstage, backdoor):
             i = int(auth)
             if i in range(10):   # lots todo :)
                 self.i = i
-                old = staffs.get(i)
-                if old:
-                    old.close()
+                if i in staffs:
+                    staffs[i].close()
+                    logging.info("tcp kick %s", i)
                 staffs[i] = self.stream
                 self.stream.set_close_callback(self.logout)
                 self.stream.read_bytes(4, self.msg_head)
@@ -130,8 +130,11 @@ def main(port, backstage, backdoor):
         else:
             i, cmd, data = x
             stream = staffs.get(i)
-            if stream and not stream.closed():
-                stream.write(data.encode())
+            if stream:
+                if hasattr(stream, "write_message"):
+                    stream.write_message(data)
+                elif not stream.closed():
+                    stream.write(data.encode())
             else:
                 logging.warning("%s is not online, failed to send %s %s",
                                 i, cmd, data)
@@ -194,23 +197,37 @@ def main(port, backstage, backdoor):
 
     from tornado.websocket import WebSocketHandler
     from json import loads
+
     class WebSocket(WebSocketHandler):
         def open(self):
-            pass
+            print(id(self))
 
         def on_close(self):
-            pass
+            i = self.i
+            logging.info("%s %s logout", "ws", i)
+            staffs.pop(i, None)  # have to do it without gc enable
 
         def on_message(self, message):
             inst, msg = loads(message)
             try:
                 Q0.put([self.i, inst, msg or "0"])
             except AttributeError:
-                self.i = int(msg)
+                i = int(msg)
+                if i in range(10):   # lots todo :)
+                    self.i = i
+                    if i in staffs:
+                        staffs[i].close()
+                        logging.info("ws kick %s", i)
+                    staffs[i] = self
+                    logging.info("%s %s login", "ws", i)
+                else:
+                    logging.warning("failed to auth %s %s", "ws", i)
+                    self.close()
 
     Application([
         (r"/ws", WebSocket),
     ]).listen(port + 50)
+
 
     import os
     pid = "bb.pid"
