@@ -129,11 +129,11 @@ def main(port, backstage, backdoor):
             commands[cmd](data)
         else:
             i, cmd, data = x
-            stream = staffs.get(i)
+            stream = staffs.get(i)  # ws use `stream` too, for compatible
             if stream:
-                if hasattr(stream, "write_message"):
+                if hasattr(stream, "write_message"):  # ws
                     stream.write_message(data)
-                elif not stream.closed():
+                elif not stream.closed():  # tcp
                     stream.write(data.encode())
             else:
                 logging.warning("%s is not online, failed to send %s %s",
@@ -205,15 +205,16 @@ def main(port, backstage, backdoor):
         def on_close(self):
             i = self.i
             logging.info("%s %s logout", "ws", i)
-            staffs.pop(i, None)  # have to do it without gc enable
+            if staffs.get(i) is self:  # have to do it (without gc enable)
+                staffs.pop(i)
 
         def on_message(self, message):
             inst, msg = loads(message)
             try:
                 Q0.put([self.i, inst, msg or "0"])
-            except AttributeError:
+            except AttributeError:  # has no attribute `i`
                 i = int(msg)
-                if i in range(10):   # lots todo :)
+                if i in range(10):  # lots todo :)
                     self.i = i
                     if i in staffs:
                         staffs[i].close()
