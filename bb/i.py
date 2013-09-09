@@ -73,7 +73,7 @@ class I(dict):
     3
     """
 
-    __slots__ = ["_i", "_cache", "_logs", "_listeners"]
+    __slots__ = ["_i", "_cache", "_logs", "_listeners", "_env"]
 
     MAX_LOGS_DEQUE_LENGTH = 100
     MAX_BAG_SIZE = 10
@@ -117,6 +117,9 @@ class I(dict):
             for k, v in source.items():
                 wrap = getattr(self, "_wrap_%s" % k, None)
                 self[k] = wrap(v) if wrap else v
+        self._env = {
+            "lv": self["level"],
+        }
 
     def __missing__(self, k):
         v = self.__getattribute__("_default_%s" % k)
@@ -142,6 +145,10 @@ class I(dict):
     @property
     def listeners(self):
         return self._listeners
+
+    @property
+    def env(self):
+        return self._env
 
     def bind(self, log, cb, extra):
         if callable(cb):
@@ -222,18 +229,17 @@ class I(dict):
             else:
                 raise Warning("unsupported rc: %s" % (r,))
 
-        env = {"lv": self["level"]}
         for i in booty:
             n = i[-1]
             if not isinstance(n, int):
-                n = eval(self.eval_cache[n], None, env)  # environments
+                n = self.eval(n)
             i[-1] = int(n * discount)
 
         return booty
 
-    def eval(self, expr, env=None):
-        """is this necessary?"""
-        return eval(self.eval_cache[expr], None, env)
+    def eval(self, expr):
+        """depend on self.env"""
+        return eval(self.eval_cache[expr], None, self.env)
 
     def apply(self, booty, cause=None):
         """
