@@ -1,5 +1,6 @@
 [0-9]*
 *.swp
 *.py[co]
-.out
-.err
+*.out
+*.err
+*.pid
