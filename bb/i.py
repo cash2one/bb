@@ -112,14 +112,13 @@ class I(dict):
         self._cache = []
         self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
+        self._env = {}
         if source is not None:
             assert isinstance(source, dict), source
             for k, v in source.items():
                 wrap = getattr(self, "_wrap_%s" % k, None)
                 self[k] = wrap(v) if wrap else v
-        self._env = {
-            "lv": self["level"],
-        }
+        self.init_env()
 
     def __missing__(self, k):
         v = self.__getattribute__("_default_%s" % k)
@@ -149,6 +148,10 @@ class I(dict):
     @property
     def env(self):
         return self._env
+
+    def init_env(self):
+        env = self.env
+        env["lv"] = self["level"]
 
     def bind(self, log, cb, extra):
         if callable(cb):
