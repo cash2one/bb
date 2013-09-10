@@ -73,7 +73,7 @@ class I(dict):
     3
     """
 
-    __slots__ = ["_i", "_cache", "_logs", "_listeners", "_env"]
+    __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
     MAX_LOGS_DEQUE_LENGTH = 100
     MAX_BAG_SIZE = 10
@@ -112,13 +112,11 @@ class I(dict):
         self._cache = []
         self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
-        self._env = {}
         if source is not None:
             assert isinstance(source, dict), source
             for k, v in source.items():
                 wrap = getattr(self, "_wrap_%s" % k, None)
                 self[k] = wrap(v) if wrap else v
-        self.init_env()
 
     def __missing__(self, k):
         v = self.__getattribute__("_default_%s" % k)
@@ -144,14 +142,6 @@ class I(dict):
     @property
     def listeners(self):
         return self._listeners
-
-    @property
-    def env(self):
-        return self._env
-
-    def init_env(self):
-        env = self.env
-        env["lv"] = self["level"]
 
     def bind(self, log, cb, extra):
         if callable(cb):
@@ -242,7 +232,9 @@ class I(dict):
 
     def eval(self, expr):
         """depend on self.env"""
-        return eval(self.eval_cache[expr], None, self.env)
+        return eval(self.eval_cache[expr], None, {
+            "lv": self["level"],
+        })
 
     def apply(self, booty, cause=None):
         """
