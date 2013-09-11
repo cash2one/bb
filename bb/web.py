@@ -36,10 +36,10 @@ def main(port, backstage, backdoor):
 
     def stop():
         logging.info("stopping sub processes...")
-        if not all(proc.is_alive() for proc in sub_procs.values()):
+        if all(proc.is_alive() for proc in sub_procs.values()):
+            Q0.put(None)
+        else:
             logging.warning("sub processes are not running, failed to stop")
-            return
-        Q0.put(None)
         for name, proc in sub_procs.items():
             proc.join()
             logging.info("%s stopped, pid:%s", name, proc.pid)
