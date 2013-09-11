@@ -12,7 +12,7 @@
 >>> q0.put(None)
 >>> hub(q0, q1, q2)
 
->>> q1.get() == [i, PONG, "65"]
+>>> q1.get() == [i, PONG, "64"]
 True
 >>> q2.get() == ["save", i, "foo", 5]
 True
@@ -35,6 +35,8 @@ def hub(Q_in, Q_out, Q_err):
 
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
+        nonlocal loop
+        loop = False
     signal.signal(signal.SIGTERM, not_be_terminated)
 
     # None: shutdown
@@ -111,7 +113,8 @@ def hub(Q_in, Q_out, Q_err):
         Q_err.put(None)
         return
 
-    while True:
+    loop = True
+    while loop:
         try:
             v = Q_in.get()
         except Exception as e:

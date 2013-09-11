@@ -31,6 +31,8 @@ def log(Q_err):
     import signal
     def not_be_terminated(signal_number, stack_frame):
         logging.warning("received SIGTERM")
+        nonlocal loop
+        loop = False
     signal.signal(signal.SIGTERM, not_be_terminated)
 
     from threading import Thread
@@ -39,7 +41,8 @@ def log(Q_err):
     Q = Queue()
     Thread(target=worker, args=(Q,)).start()
 
-    while True:
+    loop = True
+    while loop:
         try:
             v = Q_err.get()
             Q.put(v)
