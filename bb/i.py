@@ -34,7 +34,75 @@ class Box(list):
         if i != j:
             self[i], self[j] = self[j], self[i]
 
-class I(dict):
+class Assets(object):
+    """all assets used by i"""
+    asset_items = {
+        1: {
+            "multiple": 99,
+            "buy": 10,
+            "sell": 5,
+        },
+        2: {
+            "multiple": 99,
+            "buy": 88,
+            "sell": 44,
+        },
+        # ...
+
+        1001: {
+            "buy": 2000,
+            "sell": 1000,
+            #"attributes": [
+            #    ["strength", 2],
+            #    ["dexterity", 3],
+            #    ["strength", 1],
+            #],
+        },
+        # ...
+    }
+    # ...
+
+class Defaults(object):
+    """default values used by i"""
+    @property
+    def _default_foo(self):
+        return 5
+
+    @property
+    def _default_bar(self):
+        return list()
+
+    @property
+    def _default_foobar(self):
+        return collections.Counter()
+
+    @property
+    def _default_gold(self):
+        return 500
+
+    @property
+    def _default_level(self):
+        return 1
+
+    @property
+    def _default_bag(self):
+        bag = []
+        size = self.MAX_BAG_SIZE
+        bag.append({"max": size, "extra": 0})
+        bag.extend([None] * size * 2)
+        return bag
+
+class Wrappers(object):
+    """value wrappers used by i"""
+    @staticmethod
+    def _wrap_foobar(raw):
+        return collections.Counter(
+            {int(k) if k.isdigit() else k: v for k, v in raw.items()}
+            )
+
+
+
+class I(dict, Assets, Defaults, Wrappers):
     """
     >>> i = I(42, {"a": 1, "b": 3})
     >>> i.i
@@ -79,33 +147,6 @@ class I(dict):
     MAX_BAG_SIZE = 10
 
     eval_cache = EvalCache()
-
-    assets_items = {
-        1: {
-            "multiple": 99,
-            "buy": 10,
-            "sell": 5,
-        },
-        2: {
-            "multiple": 99,
-            "buy": 88,
-            "sell": 44,
-        },
-        # ...
-
-        1001: {
-            "buy": 2000,
-            "sell": 1000,
-            #"attributes": [
-            #    ["strength", 2],
-            #    ["dexterity", 3],
-            #    ["strength", 1],
-            #],
-        },
-
-        # ...
-            
-    }
 
     def __init__(self, n, source=None):
         self._i = int(n)
@@ -190,7 +231,6 @@ class I(dict):
             del c[:]
         return f
 
-
     def render(self, rc):
         """
         rc = (
@@ -274,7 +314,7 @@ class I(dict):
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         changes = {}
-        multi = self.assets_items[item].get("multiple")
+        multi = self.asset_items[item].get("multiple")
         if count > 0:
             if multi:
                 try:
@@ -325,41 +365,6 @@ class I(dict):
         if changes:
             self.send("bag", changes)  # dict is only for update
             self.save("bag")
-
-
-    @property
-    def _default_foo(self):
-        return 5
-
-    @property
-    def _default_bar(self):
-        return list()
-
-    @property
-    def _default_foobar(self):
-        return collections.Counter()
-
-    @property
-    def _default_gold(self):
-        return 500
-
-    @property
-    def _default_level(self):
-        return 1
-
-    @property
-    def _default_bag(self):
-        bag = []
-        size = self.MAX_BAG_SIZE
-        bag.append({"max": size, "extra": 0})
-        bag.extend([None] * size * 2)
-        return bag
-
-    @staticmethod
-    def _wrap_foobar(raw):
-        return collections.Counter(
-            {int(k) if k.isdigit() else k: v for k, v in raw.items()}
-            )
 
 
 # examples here:
