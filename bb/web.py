@@ -122,9 +122,14 @@ def main(port, backstage, backdoor):
 
     commands = {
         "shell": command_shell,
+    }
+
+    hub_commands = {
         "status": lambda d: hub_status.update(d),
         "gc": lambda n: logging.info("hub gc collect return: %d", n),
     }
+
+    commands.update(hub_commands)
 
     def msg(fd, event):
         x = Q1.get()
@@ -172,11 +177,11 @@ def main(port, backstage, backdoor):
             self.render("stat.html",
                         recorder=recorder,
                         wheels=wheels,
+                        hub_commands=hub_commands,
                         staffs=staffs)
 
     class HubCommandHandler(RequestHandler):
         def get(self, cmd):
-            print(cmd)
             Q0.put([cmd, None])
             self.redirect("/hub_status")
 
@@ -185,6 +190,7 @@ def main(port, backstage, backdoor):
             self.render("stat.html",
                         recorder=hub_status,
                         wheels=wheels,
+                        hub_commands=hub_commands,
                         staffs=staffs)
 
     class GcHandler(RequestHandler):

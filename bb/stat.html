@@ -24,15 +24,11 @@
         </p>
 
         <p>
-        <form action="/hub/status">
-            <button>hub status</button>
+        {% for cmd in hub_commands %}
+        <form action="/hub/{{ cmd }}">
+            <button>hub {{ cmd }}</button>
         </form>
-        </p>
-
-        <p>
-        <form action="/hub/gc">
-            <button>hub gc</button>
-        </form>
+        {% end %}
         </p>
 
         <p>{{ list(staffs.keys()) }}</p>
