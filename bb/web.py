@@ -122,8 +122,8 @@ def main(port, backstage, backdoor):
 
     commands = {
         "shell": command_shell,
-        "hub_status": lambda d: hub_status.update(d),
-        "hub_gc": lambda n: logging.info("hub gc collect return: %d", n),
+        "status": lambda d: hub_status.update(d),
+        "gc": lambda n: logging.info("hub gc collect return: %d", n),
     }
 
     def msg(fd, event):
@@ -174,9 +174,10 @@ def main(port, backstage, backdoor):
                         wheels=wheels,
                         staffs=staffs)
 
-    class HubStatusQueryHandler(RequestHandler):
-        def get(self):
-            Q0.put(["hub_status", None])
+    class HubCommandHandler(RequestHandler):
+        def get(self, cmd):
+            print(cmd)
+            Q0.put([cmd, None])
             self.redirect("/hub_status")
 
     class HubStatusHandler(RequestHandler):
@@ -185,12 +186,6 @@ def main(port, backstage, backdoor):
                         recorder=hub_status,
                         wheels=wheels,
                         staffs=staffs)
-
-    class HubGcHandler(RequestHandler):
-        def get(self):
-            Q0.put(["hub_gc", None])
-            Q0.put(["hub_status", None])
-            self.redirect("/hub_status")
 
     class GcHandler(RequestHandler):
         def get(self):
@@ -215,9 +210,8 @@ def main(port, backstage, backdoor):
         (r"/gc", GcHandler),
         (r"/reload", ReloadHandler),
         (r"/close_door", CloseDoorHandler),
-        (r"/hub_status_query", HubStatusQueryHandler),
         (r"/hub_status", HubStatusHandler),
-        (r"/hub_gc", HubGcHandler),
+        (r"/hub/(.*)", HubCommandHandler),
     ]).listen(backstage)
 
     from tornado.websocket import WebSocketHandler

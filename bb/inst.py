@@ -38,8 +38,8 @@ from gc import collect
 
 commands = {
     "shell": lambda line: shell.push(line),
-    "hub_status": lambda null: record() or dict(recorder),
-    "hub_gc": lambda null: collect(),
+    "status": lambda null: record() or dict(recorder),
+    "gc": lambda null: collect(),
 }
 
 
