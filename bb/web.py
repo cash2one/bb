@@ -118,8 +118,11 @@ def main(port, backstage, backdoor):
         for i in wheels.values():
             i.write(s)
 
+    hub_status = {}
+
     commands = {
         "shell": command_shell,
+        "hub_status": lambda d: hub_status.update(d),
     }
 
     def msg(fd, event):
@@ -170,6 +173,18 @@ def main(port, backstage, backdoor):
                         wheels=wheels,
                         staffs=staffs)
 
+    class HubStatusQueryHandler(RequestHandler):
+        def get(self):
+            Q0.put(["hub_status", None])
+            self.redirect("/hub_status")
+
+    class HubStatusHandler(RequestHandler):
+        def get(self):
+            self.render("stat.html",
+                        recorder=hub_status,
+                        wheels=wheels,
+                        staffs=staffs)
+
     class GcHandler(RequestHandler):
         def get(self):
             gc.collect()
@@ -193,6 +208,8 @@ def main(port, backstage, backdoor):
         (r"/gc", GcHandler),
         (r"/reload", ReloadHandler),
         (r"/close_door", CloseDoorHandler),
+        (r"/hub_status_query", HubStatusQueryHandler),
+        (r"/hub_status", HubStatusHandler),
     ]).listen(backstage)
 
     from tornado.websocket import WebSocketHandler

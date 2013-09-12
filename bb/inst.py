@@ -31,8 +31,11 @@ def handle(func):
 from bb.bd import BackdoorShell
 shell = BackdoorShell()
 
+from bb.oc import record, recorder
+
 commands = {
     "shell": lambda line: shell.push(line),
+    "hub_status": lambda null: record() or dict(recorder),
 }
 
 
