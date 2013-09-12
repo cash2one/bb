@@ -113,6 +113,8 @@ def hub(Q_in, Q_out, Q_err):
         Q_err.put(None)
         return
 
+    import gc
+    gc.collect()
     loop = True
     while loop:
         try:
