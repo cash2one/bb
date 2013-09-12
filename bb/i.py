@@ -64,6 +64,9 @@ class Assets(object):
 
 class Defaults(object):
     """default values used by i"""
+
+    MAX_BAG_SIZE = 4
+
     @property
     def _default_foo(self):
         return 5
@@ -144,7 +147,6 @@ class I(dict, Assets, Defaults, Wrappers):
     __slots__ = ["_i", "_cache", "_logs", "_listeners"]
 
     MAX_LOGS_DEQUE_LENGTH = 100
-    MAX_BAG_SIZE = 10
 
     eval_cache = EvalCache()
 
