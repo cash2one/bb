@@ -31,6 +31,15 @@
         {% end %}
         </p>
 
+        <p>
+        <form action="/hub/render">
+            <textarea name="rewards">
+            [["gold", 5], ["item", 2, 1]]
+            </textarea>
+            <button>render rewards</button>
+        </form>
+        </p>
+
         <p>{{ list(staffs.keys()) }}</p>
 
         <p>{{ list(wheels.keys()) }}</p>

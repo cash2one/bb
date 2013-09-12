@@ -28,18 +28,20 @@ def handle(func):
     return func
 
 
-from bb.bd import BackdoorShell
-shell = BackdoorShell()
-
-from bb.oc import record, recorder
-recorder.clear()
-
 from gc import collect
+from bb.i import P
+from bb.bd import BackdoorShell
+from bb.oc import record, recorder
+from bb.util import list_to_tuple
+
+recorder.clear()
+shell = BackdoorShell()
 
 commands = {
     "shell": lambda line: shell.push(line),
     "status": lambda null: record() or dict(recorder),
     "gc": lambda null: collect(),
+    "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web")
 }
 
 

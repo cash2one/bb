@@ -122,6 +122,7 @@ def main(port, backstage, backdoor):
 
     commands = {
         "shell": command_shell,
+        "render": lambda n: n,
     }
 
     hub_commands = {
@@ -180,6 +181,14 @@ def main(port, backstage, backdoor):
                         hub_commands=hub_commands,
                         staffs=staffs)
 
+    class HubCommandRenderHandler(RequestHandler):
+        def get(self):
+            raw = self.get_arguments("rewards")[-1]
+            arg = loads(raw)
+            print(arg)
+            Q0.put(["render", arg])
+            self.redirect("/hub_status")
+
     class HubCommandHandler(RequestHandler):
         def get(self, cmd):
             Q0.put([cmd, None])
@@ -217,6 +226,7 @@ def main(port, backstage, backdoor):
         (r"/reload", ReloadHandler),
         (r"/close_door", CloseDoorHandler),
         (r"/hub_status", HubStatusHandler),
+        (r"/hub/render", HubCommandRenderHandler),
         (r"/hub/(.*)", HubCommandHandler),
     ]).listen(backstage)
 
