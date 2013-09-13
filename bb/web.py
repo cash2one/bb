@@ -169,7 +169,7 @@ def main(port, backstage, backdoor):
 
     # web interface
     from bb.oc import record, recorder
-    from tornado.web import RequestHandler, Application
+    from tornado.web import RequestHandler, Application, StaticFileHandler
 
     ioloop.PeriodicCallback(record, 3000).start()
 
@@ -228,6 +228,7 @@ def main(port, backstage, backdoor):
         (r"/hub_status", HubStatusHandler),
         (r"/hub/render", HubCommandRenderHandler),
         (r"/hub/(.*)", HubCommandHandler),
+        (r"/(.*\.css)", StaticFileHandler, {"path": "."}),
     ], static_path=".").listen(backstage)
 
     from tornado.websocket import WebSocketHandler
