@@ -228,7 +228,7 @@ def main(port, backstage, backdoor):
         (r"/hub_status", HubStatusHandler),
         (r"/hub/render", HubCommandRenderHandler),
         (r"/hub/(.*)", HubCommandHandler),
-    ]).listen(backstage)
+    ], static_path=".").listen(backstage)
 
     from tornado.websocket import WebSocketHandler
     from json import loads
