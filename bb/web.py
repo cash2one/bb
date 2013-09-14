@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, web_debug=0):
+def main(port, backstage, backdoor, web_debug=1):
     import gc
     gc.disable()
 

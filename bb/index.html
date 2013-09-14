@@ -5,7 +5,7 @@
 
 <p>
 {% for x in ["web", "hub", "log"] %}
-    <a href="{{ x }}_status" target="_blank">{{ x }}</a>
+<a href="{{ x }}_status" target="_blank">{{ x }}</a>
 {% end %}
 </p>
 
@@ -18,12 +18,12 @@
 
 <p>
 <form method="post">
-<select name="cmd">
-{% for b in options %}
-    <option>{{ b }}</option>
-{% end %}
-</select>
-<input type="submit" value="launch">
+    <select name="cmd">
+        {% for b in options %}
+        <option>{{ b }}</option>
+        {% end %}
+    </select>
+    <input type="submit" value="Go">
 </form>
 </p>
 

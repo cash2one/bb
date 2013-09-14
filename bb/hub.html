@@ -3,17 +3,16 @@
 <link rel="stylesheet" href="bb.css">
 <title>HUB</title>
 
-<p>
 <form method="post">
-<select name="cmd">
-{% for b in options %}
-    <option>{{ b }}</option>
-{% end %}
-</select>
-<input name="args">
-<input name="args">
-<input name="args">
-<input type="submit" value="launch">
+    <fieldset><legend>To hub</legend>
+        <select name="cmd">
+            {% for b in options %}
+            <option>{{ b }}</option>
+            {% end %}
+        </select>
+        <input name="args">
+        <input name="args">
+        <textarea name="args" rows=4></textarea>
+        <input type="submit" value="Go">
+    </fieldset>
 </form>
-</p>
-
