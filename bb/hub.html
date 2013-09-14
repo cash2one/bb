@@ -4,13 +4,16 @@
 <title>HUB</title>
 
 <p>
-<form>
+<form method="post">
 <select name="cmd">
-{% for b in selections %}
+{% for b in options %}
     <option>{{ b }}</option>
 {% end %}
 </select>
-<input type="submit" value="command">
+<input name="args">
+<input name="args">
+<input name="args">
+<input type="submit" value="launch">
 </form>
 </p>
 

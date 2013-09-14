@@ -121,10 +121,10 @@ def main(port, backstage, backdoor, web_debug=0):
 
     commands = {
         "shell": lambda s: [i.write(s.encode()) for i in wheels.values()],
-        "render": lambda n: n,
     }
 
     hub_commands = {
+        "": lambda null: None,
         "status": lambda d: hub_recorder.update(d),
         "gc": lambda n: logging.info("hub gc collect return: %d", n),
     }
@@ -179,14 +179,18 @@ def main(port, backstage, backdoor, web_debug=0):
             "HUB-RST": lambda: [gc.collect(), stop(), start()],
             "door-close": lambda: [i.close() for i in wheels.values()],
         }
+
         def get(self):
+            self.render("index.html",
+                        options=self.cmds,
+                        wheels=wheels,
+                        staffs=staffs)
+
+        def post(self):
             cmd = self.get_argument("cmd", None)
             if cmd:
                 self.cmds[cmd]()
-            self.render("index.html",
-                        buttons=self.cmds,
-                        wheels=wheels,
-                        staffs=staffs)
+            self.redirect("")
 
     class StatusHandler(RequestHandler):
         recorders = {
@@ -194,17 +198,21 @@ def main(port, backstage, backdoor, web_debug=0):
             "hub": hub_recorder,
             "log": log_recorder,
         }
+
         def get(self, key):
             self.render("status.html", recorder=self.recorders[key])
 
     class HubHandler(RequestHandler):
         def get(self):
+            self.render("hub.html", options=hub_commands)
+
+        def post(self):
             cmd = self.get_argument("cmd", None)
             args = self.get_arguments("args")
-            print(cmd, args)
             if cmd:
+                print(cmd, args)
                 Q0.put([cmd, args])
-            self.render("hub.html", selections=hub_commands)
+            self.redirect("")
 
 
     Application([

@@ -17,9 +17,9 @@
 <p>{{ list(wheels.keys()) }}</p>
 
 <p>
-<form>
+<form method="post">
 <select name="cmd">
-{% for b in buttons %}
+{% for b in options %}
     <option>{{ b }}</option>
 {% end %}
 </select>

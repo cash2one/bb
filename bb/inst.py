@@ -28,7 +28,7 @@ def handle(func):
     return func
 
 
-from gc import collect
+import gc
 from bb.i import P
 from bb.bd import BackdoorShell
 from bb.oc import record, recorder
@@ -40,7 +40,7 @@ shell = BackdoorShell()
 commands = {
     "shell": lambda line: shell.push(line),
     "status": lambda null: record() or dict(recorder),
-    "gc": lambda null: collect(),
+    "gc": lambda null: gc.collect(),
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web")
 }
 
