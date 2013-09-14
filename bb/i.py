@@ -10,7 +10,13 @@ from random import random
 
 from bb.util import EvalCache
 
-P = {}
+class _P(dict):
+    def __missing__(self, k):
+        i = I(k)
+        self[k] = i
+        return i
+
+P = _P()
 
 # map looks like this:
 #    {"func_name": func, ...}
@@ -155,7 +161,7 @@ class I(dict, Assets, Defaults, Wrappers):
         self._cache = []
         self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
-        if source is not None:
+        if source:
             assert isinstance(source, dict), source
             for k, v in source.items():
                 wrap = getattr(self, "_wrap_%s" % k, None)
