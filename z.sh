@@ -10,7 +10,7 @@
 # yes 1:2 | head -n 10000 | ./z.sh >out.bin
 #
 
-echo ${1:-0}
+echo ${1:-0} token
 
 while read s
 do
