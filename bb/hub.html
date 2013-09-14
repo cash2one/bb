@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+<link rel="stylesheet" href="bb.css">
+<title>HUB</title>
+
+<p>
+<form>
+<select name="cmd">
+{% for b in selections %}
+    <option>{{ b }}</option>
+{% end %}
+</select>
+<input type="submit" value="command">
+</form>
+</p>
+

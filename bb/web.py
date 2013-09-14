@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor):
+def main(port, backstage, backdoor, web_debug=True):
     import gc
     gc.disable()
 
@@ -23,6 +23,8 @@ def main(port, backstage, backdoor):
     sub_procs = {}
 
     def start():
+        if web_debug:
+            return
         logging.info("starting sub processes...")
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
@@ -111,14 +113,16 @@ def main(port, backstage, backdoor):
         logging.info("will exit")
         io_loop.stop()
         stop()
-    signal.signal(signal.SIGTERM, term)
+    if not web_debug:
+        signal.signal(signal.SIGTERM, term)
 
     def command_shell(s):
         s = s.encode()
         for i in wheels.values():
             i.write(s)
 
-    hub_status = {}
+    hub_recorder = {}
+    log_recorder = {}
 
     commands = {
         "shell": command_shell,
@@ -126,7 +130,7 @@ def main(port, backstage, backdoor):
     }
 
     hub_commands = {
-        "status": lambda d: hub_status.update(d),
+        "status": lambda d: hub_recorder.update(d),
         "gc": lambda n: logging.info("hub gc collect return: %d", n),
     }
 
@@ -168,68 +172,52 @@ def main(port, backstage, backdoor):
     BackdoorServer().listen(backdoor)
 
     # web interface
-    from bb.oc import record, recorder
+    from bb.oc import record, recorder as web_recorder
     from tornado.web import RequestHandler, Application, StaticFileHandler
 
     ioloop.PeriodicCallback(record, 3000).start()
 
     class MainHandler(RequestHandler):
+        cmds = {
+            "": lambda: None,
+            "gc": lambda: gc.collect(),
+            "HUB-RST": lambda: [gc.collect(), stop(), start()],
+            "door-close": lambda: [i.close() for i in wheels.values()],
+        }
         def get(self):
-            self.render("stat.html",
-                        recorder=recorder,
+            cmd = self.get_argument("cmd", None)
+            if cmd:
+                self.cmds[cmd]()
+            self.render("index.html",
+                        buttons=self.cmds,
                         wheels=wheels,
-                        hub_commands=hub_commands,
                         staffs=staffs)
 
-    class HubCommandRenderHandler(RequestHandler):
-        def get(self):
-            raw = self.get_arguments("rewards")[-1]
-            arg = loads(raw)
-            print(arg)
-            Q0.put(["render", arg])
-            self.redirect("/hub_status")
+    class StatusHandler(RequestHandler):
+        recorders = {
+            "web": web_recorder,
+            "hub": hub_recorder,
+            "log": log_recorder,
+        }
+        def get(self, key):
+            self.render("status.html", recorder=self.recorders[key])
 
-    class HubCommandHandler(RequestHandler):
-        def get(self, cmd):
-            Q0.put([cmd, None])
-            self.redirect("/hub_status")
-
-    class HubStatusHandler(RequestHandler):
+    class HubHandler(RequestHandler):
         def get(self):
-            self.render("stat.html",
-                        recorder=hub_status,
-                        wheels=wheels,
-                        hub_commands=hub_commands,
-                        staffs=staffs)
+            cmd = self.get_argument("cmd", None)
+            args = self.get_arguments("args")
+            print(cmd, args)
+            if cmd:
+                Q0.put([cmd, args])
+            self.render("hub.html", selections=hub_commands)
 
-    class GcHandler(RequestHandler):
-        def get(self):
-            gc.collect()
-            self.redirect("/")
-
-    class ReloadHandler(RequestHandler):
-        def get(self):
-            gc.collect()
-            stop()
-            start()
-            self.redirect("/")
-
-    class CloseDoorHandler(RequestHandler):
-        def get(self):
-            for i in wheels.values():
-                i.close()
-            self.redirect("/")
 
     Application([
         (r"/", MainHandler),
-        (r"/gc", GcHandler),
-        (r"/reload", ReloadHandler),
-        (r"/close_door", CloseDoorHandler),
-        (r"/hub_status", HubStatusHandler),
-        (r"/hub/render", HubCommandRenderHandler),
-        (r"/hub/(.*)", HubCommandHandler),
+        (r"/hub", HubHandler),
+        (r"/(.*)_status", StatusHandler),
         (r"/(.*\.css)", StaticFileHandler, {"path": "."}),
-    ], static_path=".").listen(backstage)
+    ], static_path=".", debug=web_debug).listen(backstage)
 
     from tornado.websocket import WebSocketHandler
     from json import loads

@@ -1,0 +1,29 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+<link rel="stylesheet" href="bb.css">
+<title>bb</title>
+
+<p>
+{% for x in ["web", "hub", "log"] %}
+    <a href="{{ x }}_status" target="_blank">{{ x }}</a>
+{% end %}
+</p>
+
+<p>
+<a href="hub" target="_blank">HUB</a>
+</p>
+
+<p>{{ list(staffs.keys()) }}</p>
+<p>{{ list(wheels.keys()) }}</p>
+
+<p>
+<form>
+<select name="cmd">
+{% for b in buttons %}
+    <option>{{ b }}</option>
+{% end %}
+</select>
+<input type="submit" value="launch">
+</form>
+</p>
+
