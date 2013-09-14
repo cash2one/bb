@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, web_debug=True):
+def main(port, backstage, backdoor, web_debug=0):
     import gc
     gc.disable()
 
@@ -116,16 +116,11 @@ def main(port, backstage, backdoor, web_debug=True):
     if not web_debug:
         signal.signal(signal.SIGTERM, term)
 
-    def command_shell(s):
-        s = s.encode()
-        for i in wheels.values():
-            i.write(s)
-
     hub_recorder = {}
     log_recorder = {}
 
     commands = {
-        "shell": command_shell,
+        "shell": lambda s: [i.write(s.encode()) for i in wheels.values()],
         "render": lambda n: n,
     }
 
