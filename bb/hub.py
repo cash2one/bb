@@ -66,44 +66,32 @@ def hub(Q_in, Q_out, Q_err):
 
     def init():
         # load others
-        from os.path import splitext, sep
+        from os.path import splitext
         from glob import glob
-        for m in set(map(lambda s: splitext(s)[0].replace(sep, "."),
-                         glob('[a-z]*.py*'))):
+        for m in set(map(lambda s: splitext(s)[0], glob('[a-z]*.py*'))):
             exec("import %s" % m)
 
         from collections import Counter
+
         from redis import StrictRedis
         db = StrictRedis()
         pipe = db.pipeline()
-
-        raw = db.hgetall("z")
+        raw = db.hgetall("z")  # TODO
         logging.info(len(raw))
         uids = {}
         for u, i in raw.items():
-            if i.isdigit():
-                uids[u.decode()] = int(i)
-            else:
-                logging.warning("%s -> %s", u, i)
-
+            uids[u.decode()] = int(i)  # raise it if error
         ids = list(uids.values())
         checker = Counter(ids)
-        if len(checker) != len(ids):
+        if len(checker) != len(ids):  # unique
             raise ValueError(checker.most_common(3))
-
         for i in ids:
             pipe.hgetall(i)
-        properties = pipe.execute(False)
+        properties = pipe.execute(True)  # DO NOT allow error occurs in redis
 
         for i, p in zip(ids, properties):
-            if isinstance(p, dict):
-                try:
-                    d = {k.decode(): loads(v.decode()) for k, v in p.items()}
-                    P[i] = I(i, d)
-                except Exception as e:
-                    logging.warning("%s: %d -> %s", e, i, p)
-            else:
-                logging.warning("%d -> %s", i, p)
+            d = {k.decode(): loads(v.decode()) for k, v in p.items()}
+            P[i] = I(i, d)
 
     try:
         init()
