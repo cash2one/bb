@@ -193,6 +193,7 @@ def main(port, backstage, backdoor, web_debug=0):
 
         def get(self):
             self.render("index.html",
+                        qsize=Q0.qsize(),
                         options=self.cmds,
                         wheels=wheels,
                         staffs=staffs)
