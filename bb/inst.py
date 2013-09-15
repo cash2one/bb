@@ -12,6 +12,7 @@ instructions_list = [
     "ping",
     "pong",
     "type",
+    "online",
 ]
 
 # {"ping": 1, "pong": 2, ...}

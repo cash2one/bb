@@ -16,3 +16,7 @@ def pong(i, n):
     j.send("pong", n)
     return i.flush(j)
 
+@handle
+def online(i, n):
+    i.online = n
+

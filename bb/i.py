@@ -151,7 +151,7 @@ class I(dict, Assets, Defaults, Wrappers):
     3
     """
 
-    __slots__ = ["_i", "_cache", "_logs", "_listeners"]
+    __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
     MAX_LOGS_DEQUE_LENGTH = 100
 
@@ -164,6 +164,7 @@ class I(dict, Assets, Defaults, Wrappers):
         self._cache = []
         self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
+        self.online = False
         if source:
             assert isinstance(source, dict), source
             for k, v in source.items():

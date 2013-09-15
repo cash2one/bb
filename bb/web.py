@@ -110,6 +110,7 @@ def main(port, backstage, backdoor, web_debug=0):
 
         def logout(self):
             self.stream.close()
+            Q0.put([self.i, 4, "false"])  # see inst.py, "online" is 4
             logging.info("%s %s logout", self.address, self.i)
 
     class BBServer(TCPServer):
