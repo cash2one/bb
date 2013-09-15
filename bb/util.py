@@ -14,8 +14,8 @@ def build_dict(title, key, values, value_wraps={}):
     >>> build_dict(title, "x", {"y", "z"}, wraps2) == \
     ... {1: {"y": 1, "z": "1"}, 2: {"y": 4, "z": "8"}}
     True
-    >>> build_dict(title, "x", "null", wraps1)
-    {1: None, 2: None}
+    >>> build_dict(title, "x", ["y", "not_exist"])
+    {1: [1, None], 2: [4, None]}
     """
     def wrap(k):
         w = value_wraps.get(k)
@@ -106,9 +106,14 @@ class Object(object):
     1
     >>> obj.a
     42
+    >>> Object()
+    {}
+    >>> Object({"key": "value"})
+    {'key': 'value'}
     """
     def __init__(self, dct=None):
-        self.__dict__.update(dct or {})
+        if isinstance(dct, dict):
+            self.__dict__.update(dct)
     def __repr__(self):
         return repr(self.__dict__)
 
