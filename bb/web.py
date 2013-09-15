@@ -53,6 +53,7 @@ def main(port, backstage, backdoor, web_debug=0):
     import time
     import weakref
     from struct import pack, unpack
+    from json import dumps, loads
 
     staffs = weakref.WeakValueDictionary()
     wheels = weakref.WeakValueDictionary()
@@ -133,9 +134,10 @@ def main(port, backstage, backdoor, web_debug=0):
     }
 
     hub_commands = {
-        "": lambda null: None,
+        "": lambda _: None,
         "status": lambda d: hub_recorder.update(d),
         "gc": lambda n: logging.info("hub gc collect return: %d", n),
+        "beginner": lambda i: logging.info("beginner error: %d", i) if i else i,
     }
 
     commands.update(hub_commands)
@@ -219,7 +221,7 @@ def main(port, backstage, backdoor, web_debug=0):
             cmd = self.get_argument("cmd", None)
             args = self.get_arguments("args")
             if cmd:
-                print(cmd, args)
+                logging.info("hub_commands: %s, %s", cmd, args)
                 Q0.put([cmd, args])
             self.redirect("")
 
@@ -238,7 +240,6 @@ def main(port, backstage, backdoor, web_debug=0):
     ], static_path=".", debug=web_debug).listen(backstage)
 
     from tornado.websocket import WebSocketHandler
-    from json import loads
 
     class WebSocket(WebSocketHandler):
         def open(self):

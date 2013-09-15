@@ -16,7 +16,8 @@ class _P(dict):
         self[k] = i
         return i
 
-P = _P()
+#P = _P()  # do not use this way
+P = {}
 
 # map looks like this:
 #    {"func_name": func, ...}
@@ -157,7 +158,9 @@ class I(dict, Assets, Defaults, Wrappers):
     eval_cache = EvalCache()
 
     def __init__(self, n, source=None):
-        self._i = int(n)
+        if not isinstance(n, int):
+            raise ValueError("is not int: %r" % n)
+        self._i = n
         self._cache = []
         self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
         self._listeners = collections.defaultdict(set)
