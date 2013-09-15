@@ -225,7 +225,7 @@ def main(port, backstage, backdoor, web_debug=0):
 
     class TokenUpdateHandler(RequestHandler):
         def get(self):
-            i, t = self.get_arguments("it")
+            i, t = self.get_arguments("_")
             tokens[int(i)] = t
 
 
