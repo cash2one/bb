@@ -198,8 +198,12 @@ def main(port, backstage, backdoor, web_debug=0):
                         staffs=staffs)
 
         def post(self):
+            """example:
+            wget -O - localhost:8100 --post-data="cmd=gc"
+            """
             cmd = self.get_argument("cmd", None)
             if cmd:
+                logging.info("main_commands: %s", cmd)
                 self.cmds[cmd]()
             self.redirect("")
 
@@ -218,6 +222,9 @@ def main(port, backstage, backdoor, web_debug=0):
             self.render("hub.html", options=hub_commands)
 
         def post(self):
+            """example:
+            wget -O - localhost:8100/hub --post-data="cmd=beginner&args=42"
+            """
             cmd = self.get_argument("cmd", None)
             args = self.get_arguments("args")
             if cmd:
@@ -227,7 +234,11 @@ def main(port, backstage, backdoor, web_debug=0):
 
     class TokenUpdateHandler(RequestHandler):
         def get(self):
+            """example:
+            wget -O - "localhost:8100/t?_=1&_=key"
+            """
             i, t = self.get_arguments("_")
+            logging.info("token_generation: %s, %r", i, t)
             tokens[int(i)] = t
 
 
