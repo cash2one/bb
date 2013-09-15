@@ -138,6 +138,7 @@ def main(port, backstage, backdoor, web_debug=0):
         "status": lambda d: hub_recorder.update(d),
         "gc": lambda n: logging.info("hub gc collect return: %d", n),
         "beginner": lambda i: logging.info("beginner error: %d", i) if i else i,
+        "amend": lambda args: logging.info("amend %d %s %r %r", *args),
     }
 
     commands.update(hub_commands)

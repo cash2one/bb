@@ -29,7 +29,8 @@ def handle(func):
 
 
 import gc
-from bb.i import I, P
+import json
+from bb.i import I, P, Wrappers
 from bb.bd import BackdoorShell
 from bb.oc import record, recorder
 from bb.util import list_to_tuple
@@ -43,11 +44,23 @@ def _beginner(i):
     else:
         return i  # send back if error
 
+def _amend(i, k, v):
+    v_ = P[i][k]  # old v
+    conv = getattr(Wrappers, "_wrap_%s" % k, None)
+    if conv:
+        v = conv(v)
+    t_, t = type(v_), type(v)
+    if t_ != t:
+        raise ValueError("%s vs %s" % (t_, t))
+    P[i][k] = v
+    return i, k, v_, v
+
 commands = {
     "shell": lambda line: shell.push(line),
     "status": lambda _: record() or dict(recorder),
     "gc": lambda _: gc.collect(),
     "beginner": lambda args: _beginner(int(args[0])),
+    "amend": lambda args: _amend(int(args[0]), args[1], json.loads(args[2])),
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web")
 }
 
