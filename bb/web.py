@@ -225,7 +225,10 @@ def main(port, backstage, backdoor, web_debug=0):
 
         def post(self):
             """example:
+            wget -O - localhost:8100/hub --post-data="cmd=gc"
+            wget -O - localhost:8100/hub --post-data="cmd=status"
             wget -O - localhost:8100/hub --post-data="cmd=beginner&args=42"
+            wget -O - localhost:8100/hub --post-data='cmd=amend&args=1&args=foobar&args={"1":1,"2":2}'
             """
             cmd = self.get_argument("cmd", None)
             args = self.get_arguments("args")
