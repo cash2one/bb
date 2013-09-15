@@ -140,6 +140,7 @@ def main(port, backstage, backdoor, web_debug=0):
         "gc": lambda n: logging.info("hub gc collect return: %d", n),
         "beginner": lambda i: logging.info("beginner error: %d", i) if i else i,
         "amend": lambda args: logging.info("amend %d %s %r %r", *args),
+        "run": lambda f: logging.info("run %s succeed" % f),
     }
 
     commands.update(hub_commands)
@@ -230,6 +231,7 @@ def main(port, backstage, backdoor, web_debug=0):
             wget -O - localhost:8100/hub --post-data="cmd=status"
             wget -O - localhost:8100/hub --post-data="cmd=beginner&args=42"
             wget -O - localhost:8100/hub --post-data='cmd=amend&args=1&args=foobar&args={"1":1,"2":2}'
+            wget -O - localhost:8100/hub --post-data="cmd=run&args=plus"
             """
             cmd = self.get_argument("cmd", None)
             args = self.get_arguments("args")

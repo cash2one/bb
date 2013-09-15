@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from bb.inst import handle
+from bb.inst import handle, run
 from bb.i import P
 
 @handle
@@ -20,3 +20,8 @@ def pong(i, n):
 def online(i, n):
     i.online = n
 
+@run
+def plus():
+    for i in P.values():
+        i["gold"] += 1
+    return "plus"

@@ -18,7 +18,6 @@ instructions_list = [
 # {"ping": 1, "pong": 2, ...}
 instructions = dict(zip(instructions_list, range(1, 2**16)))
 
-
 def handle(func):
     assert callable(func), func
     alias = func.__name__
@@ -26,6 +25,16 @@ def handle(func):
     signal = instructions[alias]
     assert signal not in processes, "%s:%d" % (alias, signal)
     processes[signal] = func
+    return func
+
+
+runners = {}  # launch certain function in runners by web
+
+def run(func):
+    assert callable(func), func
+    alias = func.__name__
+    assert alias not in runners, alias
+    runners[alias] = func
     return func
 
 
@@ -62,6 +71,7 @@ commands = {
     "gc": lambda _: gc.collect(),
     "beginner": lambda args: _beginner(int(args[0])),
     "amend": lambda args: _amend(int(args[0]), args[1], json.loads(args[2])),
+    "run": lambda args: runners[args[0]](),
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web")
 }
 
