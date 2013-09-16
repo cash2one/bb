@@ -24,4 +24,3 @@ def online(i, n):
 def plus():
     for i in P.values():
         i["gold"] += 1
-    return "plus"

@@ -71,8 +71,8 @@ commands = {
     "gc": lambda _: gc.collect(),
     "beginner": lambda args: _beginner(int(args[0])),
     "amend": lambda args: _amend(int(args[0]), args[1], json.loads(args[2])),
-    "run": lambda args: runners[args[0]](),
-    "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web")
+    "run": lambda args: [runners[i]() or i for i in args if i],
+    "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web"),
 }
 
 
