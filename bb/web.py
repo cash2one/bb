@@ -255,7 +255,7 @@ def main(port, backstage, backdoor, web_debug=0):
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
         (r"/(.*)_status", StatusHandler),
-    ], static_path="bb", debug=web_debug).listen(backstage)
+    ], static_path="_", debug=web_debug).listen(backstage)
 
     from tornado.websocket import WebSocketHandler
 
