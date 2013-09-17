@@ -186,7 +186,12 @@ def main(port, backstage, backdoor, web_debug=0):
 
     ioloop.PeriodicCallback(record, 3000).start()
 
-    class MainHandler(RequestHandler):
+    class BaseHandler(RequestHandler):
+        def back(self):
+            if self.request.host[0].isalpha():
+                self.redirect("")
+
+    class MainHandler(BaseHandler):
         cmds = {
             "": lambda: None,
             "gc": lambda: gc.collect(),
@@ -209,9 +214,9 @@ def main(port, backstage, backdoor, web_debug=0):
             if cmd:
                 logging.info("main_commands: %s", cmd)
                 self.cmds[cmd]()
-            self.redirect("")
+            self.back()
 
-    class StatusHandler(RequestHandler):
+    class StatusHandler(BaseHandler):
         recorders = {
             "web": web_recorder,
             "hub": hub_recorder,
@@ -221,7 +226,7 @@ def main(port, backstage, backdoor, web_debug=0):
         def get(self, key):
             self.render("status.html", recorder=self.recorders[key])
 
-    class HubHandler(RequestHandler):
+    class HubHandler(BaseHandler):
         def get(self):
             self.render("hub.html", options=hub_commands)
 
@@ -238,9 +243,9 @@ def main(port, backstage, backdoor, web_debug=0):
             if cmd:
                 logging.info("hub_commands: %s, %s", cmd, args)
                 Q0.put([cmd, args])
-            self.redirect("")
+            self.back()
 
-    class TokenUpdateHandler(RequestHandler):
+    class TokenUpdateHandler(BaseHandler):
         def get(self):
             """example:
             wget -O - "localhost:8100/t?_=1&_=key"
