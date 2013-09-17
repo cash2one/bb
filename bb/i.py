@@ -221,7 +221,8 @@ class I(dict, Assets, Defaults, Wrappers):
 
     def send(self, k, v):
         assert isinstance(k, str), k
-        self.cache.append([self.i, k, v])
+        if self.online:
+            self.cache.append([self.i, k, v])
 
     def save(self, k):
         assert isinstance(k, str), k
