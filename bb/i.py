@@ -45,12 +45,12 @@ class Assets(object):
     """all assets used by i"""
     asset_items = {
         1: {
-            "multiple": 99,
+            "multi": 99,
             "buy": 10,
             "sell": 5,
         },
         2: {
-            "multiple": 99,
+            "multi": 99,
             "buy": 88,
             "sell": 44,
         },
@@ -315,9 +315,8 @@ class I(dict, Assets, Defaults, Wrappers):
         self["gold"] = gold
         self.send("gold", gold)
         self.save("gold")
-        self.log("gold",
-                 {"cause": cause, "before": before, "after": gold},
-                 n=count)
+        self.log("gold", {"cause": cause, "before": before, "after": gold},
+                 count)
 
     def apply_item(self, item, count, cause=None, custom=1):
         assert isinstance(count, int) and count, count
@@ -326,12 +325,12 @@ class I(dict, Assets, Defaults, Wrappers):
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         changes = {}
-        multi = self.asset_items[item].get("multiple")
+        multi = self.asset_items[item].get("multi")
         if count > 0:
             if multi:
                 try:
                     i = bag.index(None)
-                    x = [item, count]
+                    x = [item, count]  # ID and COUNT
                     bag[i] = x
                     changes[i] = x
                 except ValueError:
@@ -342,8 +341,7 @@ class I(dict, Assets, Defaults, Wrappers):
                 for _ in range(count):
                     try:
                         i = bag.index(None)
-                        x = [item, count]
-                        bag[i] = x
+                        x = [item, {}]  # ID and META-INFO
                         bag[i] = x
                         changes[i] = x
                     except ValueError:
@@ -423,7 +421,7 @@ if __name__ == "__main__":
     #i.bag.exchange(1, 2)
     i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
     #i.apply([["item", 2, -15]])
-    i.apply_item(2, -15, custom=3)
+    i.apply_item(2, -5, custom=3)
     print(i)
     for _ in range(11):
         i.apply_item(2, 1, "test", custom=3)
