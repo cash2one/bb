@@ -55,6 +55,15 @@ class Assets(object):
             "sell": 44,
         },
         # ...
+        3: {
+            "multi": 6,
+            "buy": 88,
+            "sell": 44,
+            "output": (  # for apply
+                ("hp", "lv * 3"),
+                ((("mp", 1), ("mp", 5)), (9, 1)),
+            ),
+        },
 
         1001: {
             "buy": 2000,
