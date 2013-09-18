@@ -127,29 +127,18 @@ def main(port, backstage, backdoor, web_debug=0):
     if not web_debug:
         signal.signal(signal.SIGTERM, term)
 
-    hub_recorder = {}
-    log_recorder = {}
 
     commands = {
         "shell": lambda s: [i.write(s.encode()) for i in wheels.values()],
     }
 
-    hub_commands = {
-        "": lambda _: None,
-        "status": lambda d: hub_recorder.update(d),
-        "gc": lambda n: logging.info("hub gc collect return: %d", n),
-        "beginner": lambda i: logging.info("beginner error: %d", i) if i else i,
-        "amend": lambda args: logging.info("amend %d %s %r %r", *args),
-        "run": lambda f: logging.info("run %s succeed" % f),
-    }
-
-    commands.update(hub_commands)
-
     def msg(fd, event):
         x = Q1.get()
         if len(x) == 2:
             cmd, data = x
-            commands[cmd](data)
+            cb = commands.get(cmd) or (HC[cmd].popleft() if HC[cmd] else None)
+            #print(cmd, data, cb)
+            cb(data) if cb else None
         else:
             i, cmd, data = x
             stream = staffs.get(i)  # ws use `stream` too, for compatible
@@ -180,9 +169,9 @@ def main(port, backstage, backdoor, web_debug=0):
             BackdoorConnection(stream, address)
     BackdoorServer().listen(backdoor)
 
-    # web interface
-    from bb.oc import record, recorder as web_recorder
-    from tornado.web import RequestHandler, Application, StaticFileHandler
+    from bb.oc import record, recorder
+    from tornado.web import RequestHandler, Application, StaticFileHandler, \
+                            asynchronous
 
     ioloop.PeriodicCallback(record, 3000).start()
 
@@ -191,8 +180,13 @@ def main(port, backstage, backdoor, web_debug=0):
             if self.request.host[0].isalpha():
                 self.redirect("")
 
+    import collections
+    HC = collections.defaultdict(collections.deque)  # http commands
+
+    from functools import partial
+
     class MainHandler(BaseHandler):
-        cmds = {
+        commands = {
             "": lambda: None,
             "gc": lambda: gc.collect(),
             "HUB-RST": lambda: [gc.collect(), stop(), start()],
@@ -202,7 +196,7 @@ def main(port, backstage, backdoor, web_debug=0):
         def get(self):
             self.render("index.html",
                         qsize=Q0.qsize(),
-                        options=self.cmds,
+                        options=self.commands,
                         wheels=wheels,
                         staffs=staffs)
 
@@ -213,23 +207,24 @@ def main(port, backstage, backdoor, web_debug=0):
             cmd = self.get_argument("cmd", None)
             if cmd:
                 logging.info("main_commands: %s", cmd)
-                self.cmds[cmd]()
+                self.commands[cmd]()
             self.back()
 
-    class StatusHandler(BaseHandler):
-        recorders = {
-            "web": web_recorder,
-            "hub": hub_recorder,
-            "log": log_recorder,
-        }
-
-        def get(self, key):
-            self.render("status.html", recorder=self.recorders[key])
 
     class HubHandler(BaseHandler):
-        def get(self):
-            self.render("hub.html", options=hub_commands)
+        commands = {
+            "": None,
+            "status": lambda d: StatusHandler.recorders["hub"].update(d),
+            "gc": lambda n: logging.info("hub gc collect return: %d", n),
+            "beginner": lambda i: logging.info("beginner error: %d", i) if i else i,
+            "amend": lambda args: logging.info("amend %d %s %r %r", *args),
+            "run": lambda f: logging.info("run %s succeed" % f),
+        }
 
+        def get(self):
+            self.render("hub.html", options=self.commands)
+
+        @asynchronous
         def post(self):
             """example:
             wget -O - localhost:8100/hub --post-data="cmd=gc"
@@ -243,7 +238,20 @@ def main(port, backstage, backdoor, web_debug=0):
             if cmd:
                 logging.info("hub_commands: %s, %s", cmd, args)
                 Q0.put([cmd, args])
+                HC[cmd].append(partial(self.deal_echo, cmd))
+            else:
+                self.back()
+
+        def deal_echo(self, cmd, data):
+            self.commands[cmd](data)
             self.back()
+
+
+    class StatusHandler(BaseHandler):
+        recorders = {"web": recorder, "hub": {}, "log": {}}
+        def get(self, key):
+            self.render("status.html", recorder=self.recorders[key])
+
 
     class TokenUpdateHandler(BaseHandler):
         def get(self):
