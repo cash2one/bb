@@ -216,7 +216,7 @@ def main(port, backstage, backdoor, web_debug=0):
             "": None,
             "status": lambda d: StatusHandler.recorders["hub"].update(d),
             "gc": lambda n: logging.info("hub gc collect return: %d", n),
-            "beginner": lambda i: logging.info("beginner error: %d", i) if i else i,
+            "beginner": lambda i: logging.info("begin %d", i),
             "amend": lambda args: logging.info("amend %d %s %r %r", *args),
             "run": lambda f: logging.info("run %s succeed" % f),
         }
@@ -242,9 +242,14 @@ def main(port, backstage, backdoor, web_debug=0):
             else:
                 self.back()
 
-        def deal_echo(self, cmd, data):
-            self.commands[cmd](data)
-            self.back()
+        def deal_echo(self, cmd, result):
+            if isinstance(result, str) and result.startswith("Traceback"):
+                self.set_header("Content-Type", "text/plain")
+                self.write(result)
+                self.finish()
+            else:
+                self.commands[cmd](result)
+                self.back()
 
 
     class StatusHandler(BaseHandler):

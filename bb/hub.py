@@ -28,6 +28,9 @@ def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
     import signal
+    import traceback
+
+    from io import StringIO
 
     from bb import inst   # load all
     from bb.i import I, P
@@ -119,7 +122,14 @@ def hub(Q_in, Q_out, Q_err):
         try:
             if len(v) == 2:
                 cmd, data = v
-                Q_out.put([cmd, commands[cmd](data)])   # echo cmd
+                try:
+                    output = commands[cmd](data)
+                except Exception:
+                    _output = StringIO()
+                    traceback.print_exc(file=_output)
+                    output = _output.getvalue()
+                    logging.exception("!cmd")
+                Q_out.put([cmd, output])   # echo cmd and result(or error)
             else:
                 i, cmd, data = v
                 producer = processes[cmd]
@@ -132,7 +142,7 @@ def hub(Q_in, Q_out, Q_err):
                         else:
                             Q_err.put(x)
         except Exception:
-            logging.exception("!!!")
+            logging.exception("!")
 
 
 

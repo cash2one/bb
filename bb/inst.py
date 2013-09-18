@@ -5,6 +5,8 @@ r"""
 '7\n>>> '
 """
 
+import time
+
 # {1: func_1, 2: func_2, ...}
 processes = {}
 
@@ -49,10 +51,10 @@ recorder.clear()
 shell = BackdoorShell()
 
 def _beginner(i):
-    if isinstance(i, int) and i not in P:
-        P[i] = I(i)
-    else:
-        return i  # send back if error
+    if i in P:
+        raise KeyError("%d in P" % i)
+    P[i] = I(i)
+    return i
 
 def _amend(i, k, v):
     v_ = P[i][k]  # old v
