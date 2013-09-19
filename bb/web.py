@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, web_debug=0):
+def main(port, backstage, backdoor, web_debug):
     import gc
     gc.disable()
 
@@ -213,7 +213,7 @@ def main(port, backstage, backdoor, web_debug=0):
 
     class HubHandler(BaseHandler):
         commands = {
-            "": None,
+            #"": None,
             "status": lambda d: StatusHandler.recorders["hub"].update(d),
             "gc": lambda n: logging.info("hub gc collect return: %d", n),
             "beginner": lambda i: logging.info("begin %d", i),
@@ -333,6 +333,7 @@ if __name__ == "__main__":
     define("backstage", default=8100, type=int, help="backstage port(HTTP)")
     define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
     define("leader", default="localhost:80", type=str, help="central controller")
+    define("debug", default=False, type=bool, help="debug")
     parse_command_line()
 
-    main(options.port, options.backstage, options.backdoor)
+    main(options.port, options.backstage, options.backdoor, options.debug)
