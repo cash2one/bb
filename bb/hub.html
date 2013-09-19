@@ -1,10 +1,13 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
 <link rel="stylesheet" href="static/bb.css">
+<!--script src=static/bb.js></script-->
 <title>HUB</title>
 
+<p>
 <form method="post">
-    <fieldset><legend>To hub</legend>
+    <fieldset>
+        <legend>To hub</legend>
         <select name="cmd">
             {% for b in options %}
             <option>{{ b }}</option>
@@ -16,3 +19,17 @@
         <input type="submit" value="Go">
     </fieldset>
 </form>
+</p>
+<!--input type="submit" value="Go" onclick="add('txt')"-->
+
+<p>
+<fieldset>
+    <legend>History</legend>
+    {% for t, c, a, e in history %}
+    <p>
+    <b>{{ c }}</b> <i>{{ a }}</i> {{ t }} <br>
+    {{ e }}
+    </p>
+    {% end %}
+</fieldset>
+</p>

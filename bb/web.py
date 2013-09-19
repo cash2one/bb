@@ -221,8 +221,10 @@ def main(port, backstage, backdoor, web_debug=0):
             "run": lambda f: logging.info("run %s succeed" % f),
         }
 
+        history = collections.deque(maxlen=3)
+
         def get(self):
-            self.render("hub.html", options=self.commands)
+            self.render("hub.html", options=self.commands, history=self.history)
 
         @asynchronous
         def post(self):
@@ -237,18 +239,21 @@ def main(port, backstage, backdoor, web_debug=0):
             args = self.get_arguments("args")
             if cmd:
                 logging.info("hub_commands: %s, %s", cmd, args)
+                t = time.strftime("%H:%M:%S")
+                self.history.appendleft([t, cmd, args, None])
                 Q0.put([cmd, args])
-                HC[cmd].append(partial(self.deal_echo, cmd))
+                HC[cmd].append(partial(self.deal_echoed, cmd))
             else:
                 self.back()
 
-        def deal_echo(self, cmd, result):
-            if isinstance(result, str) and result.startswith("Traceback"):
+        def deal_echoed(self, cmd, echo):
+            self.history[0][-1] = echo
+            if isinstance(echo, str) and echo.startswith("Traceback"):
                 self.set_header("Content-Type", "text/plain")
-                self.write(result)
+                self.write(echo)
                 self.finish()
             else:
-                self.commands[cmd](result)
+                self.commands[cmd](echo)
                 self.back()
 
 
