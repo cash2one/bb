@@ -42,7 +42,7 @@ def run(func):
 
 import gc
 import json
-from bb.i import I, P, Wrappers
+from bb.i import I, P
 from bb.bd import BackdoorShell
 from bb.oc import record, recorder
 from bb.util import list_to_tuple
@@ -57,10 +57,10 @@ def _beginner(i):
     return i
 
 def _amend(i, k, v):
-    v_ = P[i][k]  # old v
-    conv = getattr(Wrappers, "_wrap_%s" % k, None)
-    if conv:
-        v = conv(v)
+    v_ = P[i][k]  # old
+    wrap = I._wrappers.get(k)
+    if wrap:
+        v = wrap(v)
     t_, t = type(v_), type(v)
     if t_ != t:
         raise ValueError("%s vs %s" % (t_, t))

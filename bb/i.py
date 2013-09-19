@@ -41,9 +41,8 @@ class Box(list):
         if i != j:
             self[i], self[j] = self[j], self[i]
 
-class Assets(object):
-    """all assets used by i"""
-    asset_items = {
+def init_assets():
+    I.assets["items"] = {
         1: {
             "multi": 99,
             "buy": 10,
@@ -78,50 +77,9 @@ class Assets(object):
     }
     # ...
 
-class Defaults(object):
-    """default values used by i"""
-
-    MAX_BAG_SIZE = 4
-
-    @property
-    def _default_foo(self):
-        return 5
-
-    @property
-    def _default_bar(self):
-        return list()
-
-    @property
-    def _default_foobar(self):
-        return collections.Counter()
-
-    @property
-    def _default_gold(self):
-        return 500
-
-    @property
-    def _default_level(self):
-        return 1
-
-    @property
-    def _default_bag(self):
-        bag = []
-        size = self.MAX_BAG_SIZE
-        bag.append({"max": size, "extra": 0})
-        bag.extend([None] * size * 2)
-        return bag
-
-class Wrappers(object):
-    """value wrappers used by i"""
-    @staticmethod
-    def _wrap_foobar(raw):
-        return collections.Counter(
-            {int(k) if k.isdigit() else k: v for k, v in raw.items()}
-            )
 
 
-
-class I(dict, Assets, Defaults, Wrappers):
+class I(dict):
     """
     >>> i = I(42, {"a": 1, "b": 3})
     >>> i.i
@@ -166,6 +124,22 @@ class I(dict, Assets, Defaults, Wrappers):
 
     eval_cache = EvalCache()
 
+    assets = {}
+
+    _defaults = {
+        "foo": 5,
+        "bar": list,
+        "foobar": collections.Counter,
+        "gold": 500,
+        "level": 1,
+        "bag": lambda: [{"max": 8}] + [None] * 8,
+    }
+
+    _wrappers = {
+        "foobar": lambda raw: collections.Counter(
+            {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
+    }
+
     def __init__(self, n, source=None):
         if not isinstance(n, int):
             raise ValueError("is not int: %r" % n)
@@ -177,11 +151,13 @@ class I(dict, Assets, Defaults, Wrappers):
         if source:
             assert isinstance(source, dict), source
             for k, v in source.items():
-                wrap = getattr(self, "_wrap_%s" % k, None)
+                wrap = self._wrappers.get(k)
                 self[k] = wrap(v) if wrap else v
 
     def __missing__(self, k):
-        v = self.__getattribute__("_default_%s" % k)
+        v = self._defaults[k]
+        if callable(v):
+            v = v()
         self[k] = v
         return v
 
@@ -335,7 +311,7 @@ class I(dict, Assets, Defaults, Wrappers):
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         changes = {}
-        multi = self.asset_items[item].get("multi")
+        multi = self.assets["items"][item].get("multi")
         if count > 0:
             if multi:
                 try:
@@ -386,6 +362,7 @@ class I(dict, Assets, Defaults, Wrappers):
             self.send("bag", changes)  # dict is only for update
             self.save("bag")
 
+init_assets()
 
 # examples here:
 @register_log_callback
@@ -430,7 +407,7 @@ if __name__ == "__main__":
     #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
     #i.bag.exchange(1, 2)
     i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
-    #i.apply([["item", 2, -15]])
+    i.apply([["item", 2, -5]])
     i.apply_item(2, -5, custom=3)
     print(i)
     for _ in range(11):
