@@ -82,6 +82,7 @@ def init_assets():
 class I(dict):
     """
     >>> i = I(42, {"a": 1, "b": 3})
+    >>> i.online = True
     >>> i.i
     42
     >>> i["a"]
