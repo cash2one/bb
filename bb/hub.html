@@ -1,26 +1,24 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
 <link rel="stylesheet" href="static/bb.css">
-<!--script src=static/bb.js></script-->
 <title>HUB</title>
 
 <p>
 <form method="post">
     <fieldset>
         <legend>To hub</legend>
-        <select name="cmd">
+        <select name="cmd" size="{{ len(options) }}">
             {% for b in options %}
             <option>{{ b }}</option>
             {% end %}
         </select>
-        <input name="args">
-        <input name="args">
-        <textarea name="args" rows=4 id="txt"></textarea>
+        <input name="args" id="txt1">
+        <input name="args" id="txt2">
+        <textarea name="args" id="txt3" rows=4>txt</textarea>
         <input type="submit" value="Go">
     </fieldset>
 </form>
 </p>
-<!--input type="submit" value="Go" onclick="add('txt')"-->
 
 <p>
 <fieldset>

@@ -187,7 +187,6 @@ def main(port, backstage, backdoor, web_debug):
 
     class MainHandler(BaseHandler):
         commands = {
-            "": lambda: None,
             "gc": lambda: gc.collect(),
             "HUB-RST": lambda: [gc.collect(), stop(), start()],
             "door-close": lambda: [i.close() for i in wheels.values()],
@@ -213,7 +212,6 @@ def main(port, backstage, backdoor, web_debug):
 
     class HubHandler(BaseHandler):
         commands = {
-            #"": None,
             "status": lambda d: StatusHandler.recorders["hub"].update(d),
             "gc": lambda n: logging.info("hub gc collect return: %d", n),
             "beginner": lambda i: logging.info("begin %d", i),

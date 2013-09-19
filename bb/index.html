@@ -25,7 +25,7 @@
 
 <p>
 <form method="post">
-    <select name="cmd">
+    <select name="cmd" size="{{ len(options) }}">
         {% for b in options %}
         <option>{{ b }}</option>
         {% end %}
