@@ -1,20 +1,24 @@
 #!/usr/bin/env python
 
-from bb.inst import handle, run
-from bb.i import P
+from bb.inst import instructions, processes, handle, run
+from bb.i import I, P
+
+assert len(I._defaults) <= 99
+
+def _echo_attr(key):
+    """1-99 echo only"""
+    return lambda i, _: [[i.i, key, i[key]]]
+
+for idx, key in enumerate(sorted(I._defaults)):
+    instructions[key] = idx
+    processes[idx] = _echo_attr(key)
+
 
 @handle
 def ping(i, n):
-    i.send("pong", n)
+    i.send("ping", n)
     i.save("foo")
     return i.flush()
-
-@handle
-def pong(i, n):
-    j = P[2]
-    i.send("pong", n)
-    j.send("pong", n)
-    return i.flush(j)
 
 @handle
 def online(i, n):
@@ -24,3 +28,6 @@ def online(i, n):
 def plus():
     for i in P.values():
         i["gold"] += 1
+
+#print(instructions)
+#print(processes)

@@ -12,13 +12,11 @@ processes = {}
 
 instructions_list = [
     "ping",
-    "pong",
-    "type",
     "online",
 ]
 
 # {"ping": 1, "pong": 2, ...}
-instructions = dict(zip(instructions_list, range(1, 2**16)))
+instructions = dict(zip(instructions_list, range(100, 2**16)))
 
 def handle(func):
     assert callable(func), func
