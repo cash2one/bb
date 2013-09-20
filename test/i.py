@@ -104,5 +104,11 @@ class TestI(unittest.TestCase):
         self.assertEqual(i.cache, [["log", i.i, "jump", {"height": 3}, 5]])
         self.assertEqual(list(i.logs), [["jump", {"height": 3}, 5]])
 
-    def test_render(self):
+    def test_render(self): #TODO
+        i = self.i
+
+    def test_apply(self): #TODO
+        i = self.i
+
+    def test_reward(self): #TODO
         i = self.i

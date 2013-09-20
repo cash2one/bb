@@ -230,6 +230,9 @@ class I(dict):
             del c[:]
         return f
 
+    def reward(self, rc, cause=None):
+        self.apply(self.render(rc), cause)
+
     def render(self, rc):
         """
         rc = (
@@ -275,7 +278,7 @@ class I(dict):
             "lv": self["level"],
         })
 
-    def apply(self, booty, cause=None):
+    def apply(self, booty, cause):
         """
         apply all booty, and merge updated-messages from sub-call
 
@@ -283,8 +286,8 @@ class I(dict):
         booty = [["a", 50], ["b", 5], ["c", 1001, 25]]
         apply(booty)
         """
-        assert all(isinstance(b[-1], int) for b in booty), booty
         assert all(isinstance(b[0], str) for b in booty), booty
+        assert all(isinstance(b[-1], int) for b in booty), booty
         for b in booty:
             method = self.__getattribute__("apply_%s" % b[0])
             method(*b[1:], cause=cause)
@@ -407,8 +410,9 @@ if __name__ == "__main__":
     i.apply([["gold", 2], ["gold", 3]], 'haha')
     #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
     #i.bag.exchange(1, 2)
-    i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], 'x')
-    i.apply([["item", 2, -5]])
+    i.reward((("gold", "lv*100"),), "reward")
+    i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], "test")
+    i.apply([["item", 2, -5]], "test")
     i.apply_item(2, -5, custom=3)
     print(i)
     for _ in range(11):
