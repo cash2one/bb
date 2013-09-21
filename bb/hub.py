@@ -59,7 +59,7 @@ def hub(Q_in, Q_out, Q_err):
                 return list(obj)
             return JSONEncoder.default(self, obj)
 
-    dump1 = functools.partial(dumps, ensure_ascii=False,
+    dumps = functools.partial(dumps, ensure_ascii=False,
                               cls=BBEncoder,
                               separators = (",", ":"))
     dump2 = functools.partial(dumps, ensure_ascii=False,
@@ -128,7 +128,7 @@ def hub(Q_in, Q_out, Q_err):
                     _output = StringIO()
                     traceback.print_exc(file=_output)
                     output = _output.getvalue()
-                    logging.exception("!cmd")
+                    logging.exception(v)
                 Q_out.put([cmd, output])   # echo cmd and result(or error)
             else:
                 i, cmd, data = v
@@ -138,11 +138,11 @@ def hub(Q_in, Q_out, Q_err):
                     for x in _filter(outs):   # is _filter neccessary?
                         if isinstance(x[0], int):
                             i, cmd, data = x
-                            Q_out.put([i, instructions[cmd], dump1(data)])
+                            Q_out.put([i, instructions[cmd], dumps(data)])
                         else:
                             Q_err.put(x)
         except Exception:
-            logging.exception("!")
+            logging.exception(v)
 
 
 
