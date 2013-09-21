@@ -52,8 +52,9 @@ def main(port, backstage, backdoor, web_debug):
     # main from here
     import time
     import weakref
-    from struct import pack, unpack
+    from functools import partial
     from json import dumps, loads
+    from struct import pack, unpack
 
     staffs = weakref.WeakValueDictionary()
     wheels = weakref.WeakValueDictionary()
@@ -62,6 +63,9 @@ def main(port, backstage, backdoor, web_debug):
     from tornado import ioloop
     from tornado.tcpserver import TCPServer
     io_loop = ioloop.IOLoop.instance()
+
+    fmt = "!HH"
+    dumps = partial(dumps, ensure_ascii=False, separators = (",", ":"))
 
     tokens = {1: "token"}
     class Connection(object):
@@ -96,7 +100,7 @@ def main(port, backstage, backdoor, web_debug):
 
         def msg_head(self, chunk):
             logging.debug("head: %s", chunk)
-            instruction, length_of_body = unpack("!HH", chunk)
+            instruction, length_of_body = unpack(fmt, chunk)
             logging.debug("%d, %d", instruction, length_of_body)
             self.instruction = instruction
             if not self.stream.closed():
@@ -144,9 +148,9 @@ def main(port, backstage, backdoor, web_debug):
             stream = staffs.get(i)  # ws use `stream` too, for compatible
             if stream:
                 if hasattr(stream, "write_message"):  # ws
-                    stream.write_message(data)
+                    stream.write_message(dumps([cmd, data]))  # dumps custom todo
                 elif not stream.closed():  # tcp
-                    stream.write(data.encode())
+                    stream.write(pack(fmt, cmd, len(data)) + data.encode())
             else:
                 logging.warning("%s is not online, failed to send %s %s",
                                 i, cmd, data)
@@ -183,7 +187,6 @@ def main(port, backstage, backdoor, web_debug):
     import collections
     HC = collections.defaultdict(collections.deque)  # http commands
 
-    from functools import partial
 
     class MainHandler(BaseHandler):
         commands = {

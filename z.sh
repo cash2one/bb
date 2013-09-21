@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # at prompt:
-# ./z.sh | nc box 8000
+# ./z.sh 1 | nc z 8000 | od -A x -v -w4 -tx1c
 # 1:99
 # ....
 # ....
