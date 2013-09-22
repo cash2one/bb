@@ -68,7 +68,8 @@ def main(port, backstage, backdoor, web_debug):
     null = "0"  # for json
     dumps = partial(dumps, ensure_ascii=False, separators = (",", ":"))
 
-    tokens = {1: "token"}
+    tokens = {}
+
     class Connection(object):
         def __init__(self, stream, address):
             self.stream = stream
@@ -179,6 +180,9 @@ def main(port, backstage, backdoor, web_debug):
                             asynchronous
 
     ioloop.PeriodicCallback(record, 3000).start()
+    ioloop.PeriodicCallback(lambda: tokens.update(
+        {1: "token", 2: "token", 3: "token"}
+        ), 2000).start()
 
     class BaseHandler(RequestHandler):
         def back(self):
