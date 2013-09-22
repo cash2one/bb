@@ -66,6 +66,7 @@ def main(port, backstage, backdoor, web_debug):
 
     fmt = "!HH"
     null = "0"  # for json
+    inst_online = 101  # see inst.py
     dumps = partial(dumps, ensure_ascii=False, separators = (",", ":"))
 
     tokens = {}
@@ -91,6 +92,7 @@ def main(port, backstage, backdoor, web_debug):
                 self.i = i
                 if i in staffs:
                     staffs[i].close()
+                    Q0.put([i, inst_online, null])
                     logging.info("tcp kick %s", i)
                 staffs[i] = self.stream
                 self.stream.set_close_callback(self.logout)
@@ -116,7 +118,7 @@ def main(port, backstage, backdoor, web_debug):
 
         def logout(self):
             self.stream.close()
-            Q0.put([self.i, 101, null])  # see inst.py, "online" is 101
+            Q0.put([self.i, inst_online, null])  # see inst.py, "online" is 101
             logging.info("%s %s logout", self.address, self.i)
 
     class BBServer(TCPServer):
@@ -294,26 +296,32 @@ def main(port, backstage, backdoor, web_debug):
 
         def on_close(self):
             i = self.i
+            Q0.put([i, inst_online, null])
             logging.info("%s %s logout", "ws", i)
             if staffs.get(i) is self:  # have to do it (without gc enable)
                 staffs.pop(i)
 
         def on_message(self, message):
-            inst, msg = loads(message)
+            i, msg = loads(message)
             try:
-                Q0.put([self.i, inst, msg or "0"])
-            except AttributeError:  # has no attribute `i`
-                i = int(msg)
-                if i in range(10):  # lots todo :)
+                Q0.put([self.i, i, msg or null])
+            except AttributeError:  # if has no attribute `i`, login it
+                try:
+                    k = loads(msg)
+                    t = tokens.pop(i)
+                    if k != t:
+                        raise Warning("error token: %s != %s" % (k, t))
                     self.i = i
                     if i in staffs:
                         staffs[i].close()
+                        Q0.put([i, inst_online, null])
                         logging.info("ws kick %s", i)
                     staffs[i] = self
                     logging.info("%s %s login", "ws", i)
-                else:
-                    logging.warning("failed to auth %s %s", "ws", i)
+                except Exception as e:
                     self.close()
+                    logging.error("failed to auth: %s: %s", type(e).__name__, e)
+
 
     Application([
         (r"/ws", WebSocket),
