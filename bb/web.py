@@ -65,6 +65,7 @@ def main(port, backstage, backdoor, web_debug):
     io_loop = ioloop.IOLoop.instance()
 
     fmt = "!HH"
+    null = "0"  # for json
     dumps = partial(dumps, ensure_ascii=False, separators = (",", ":"))
 
     tokens = {1: "token"}
@@ -108,13 +109,13 @@ def main(port, backstage, backdoor, web_debug):
 
         def msg_body(self, chunk):
             logging.debug("body: %s", chunk)
-            Q0.put([self.i, self.instruction, chunk.decode() or "0"])
+            Q0.put([self.i, self.instruction, chunk.decode() or null])
             if not self.stream.closed():
                 self.stream.read_bytes(4, self.msg_head)
 
         def logout(self):
             self.stream.close()
-            Q0.put([self.i, 4, "false"])  # see inst.py, "online" is 4
+            Q0.put([self.i, 101, null])  # see inst.py, "online" is 101
             logging.info("%s %s logout", self.address, self.i)
 
     class BBServer(TCPServer):
