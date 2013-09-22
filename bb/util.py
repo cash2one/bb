@@ -114,6 +114,10 @@ class Object(object):
     {}
     >>> Object({"key": "value"})
     {'key': 'value'}
+    >>> obj = Object()
+    >>> setattr(obj, "k", "v")
+    >>> obj
+    {'k': 'v'}
     """
     def __init__(self, dct=None):
         if isinstance(dct, dict):
