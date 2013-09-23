@@ -4,16 +4,16 @@ import collections
 import random
 import unittest
 
-from bb.i import I, register_log_callback, _cbs
+from bb.i import I
 
-@register_log_callback
+@I.register_log_callback
 def cb_test(extra, i, k, infos, n):
     #print(i.i, k, infos, n, *args)
     i["foo"] += 1
 
 class TestI(unittest.TestCase):
     def setUp(self):
-        self.assertIn("cb_test", _cbs), 
+        self.assertIn("cb_test", I._cbs),
         i = random.randint(1, 10000)
         self.i_flag = i
         self.i = I(i)

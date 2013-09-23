@@ -25,14 +25,6 @@ P = {}
 #   * reload functions at running
 #   * persist this "function-link" at shutdown
 #   * easy to read
-_cbs = {}
-
-def register_log_callback(callback):
-    name = callback.__name__
-    assert name not in _cbs, name
-    _cbs[name] = callback
-    return callback
-
 class Box(list):
     """
     """
@@ -141,6 +133,17 @@ class I(dict):
             {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
     }
 
+    _cbs = {}
+
+    @classmethod
+    def register_log_callback(cls, callback):
+        _cbs = cls._cbs
+        name = callback.__name__
+        assert name not in _cbs, name
+        _cbs[name] = callback
+        return callback
+
+
     def __init__(self, n, source=None):
         if not isinstance(n, int):
             raise ValueError("is not int: %r" % n)
@@ -186,14 +189,14 @@ class I(dict):
         if callable(cb):
             cb = cb.__name__
         assert isinstance(log, str), log
-        assert cb in _cbs, cb
+        assert cb in self._cbs, cb
         self.listeners[log].add((cb, extra))
 
     def unbind(self, log, cb, extra):
         if callable(cb):
             cb = cb.__name__
         assert isinstance(log, str), log
-        assert cb in _cbs, cb
+        assert cb in self._cbs, cb
         self.listeners[log].discard((cb, extra))
 
     def send(self, k, v):
@@ -214,7 +217,7 @@ class I(dict):
         self.cache.append(["log", self.i, k, infos, n])
         self.logs.append([k, infos, n])
         for cb in list(self.listeners[k]):  # need a copy for iter
-            _cbs[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
+            self._cbs[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
 
     def flush(self, *others):
         """be called at end"""
@@ -368,14 +371,14 @@ class I(dict):
 init_assets()
 
 # examples here:
-@register_log_callback
+@I.register_log_callback
 def callback_example(extra, i, log, infos, n):
     assert i.logs[-1] == [log, infos, n]
     i.unbind(log, callback_example, extra)
     i.save("foo")
     i.send("msg", "haha")
 
-@register_log_callback
+@I.register_log_callback
 def callback_example2(extra, i, log, infos, n):
     i.save("foobar")
     i.save("a")
