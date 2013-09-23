@@ -53,17 +53,9 @@ def hub(Q_in, Q_out, Q_err):
 
     from json import dumps, loads, JSONEncoder
 
-    class BBEncoder(JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, set):
-                return list(obj)
-            return JSONEncoder.default(self, obj)
-
-    dumps = functools.partial(dumps, ensure_ascii=False,
-                              cls=BBEncoder,
+    dumps = functools.partial(dumps, ensure_ascii=False, default=list,
                               separators = (",", ":"))
-    dump2 = functools.partial(dumps, ensure_ascii=False,
-                              cls=BBEncoder,
+    dump2 = functools.partial(dumps, ensure_ascii=False, default=list,
                               separators = (",", ": "),
                               sort_keys=True, indent=4)
 
