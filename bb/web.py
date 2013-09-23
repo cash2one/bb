@@ -53,7 +53,7 @@ def main(port, backstage, backdoor, web_debug):
     import time
     import weakref
     from functools import partial
-    from json import dumps, loads
+    from json import loads
     from struct import pack, unpack
 
     staffs = weakref.WeakValueDictionary()
@@ -67,7 +67,8 @@ def main(port, backstage, backdoor, web_debug):
     fmt = "!HH"
     null = "0"  # for json
     inst_online = 101  # see inst.py
-    dumps = partial(dumps, ensure_ascii=False, separators = (",", ":"))
+
+    from bb.js import dump1
 
     tokens = {}
 
@@ -152,7 +153,7 @@ def main(port, backstage, backdoor, web_debug):
             stream = staffs.get(i)  # ws use `stream` too, for compatible
             if stream:
                 if hasattr(stream, "write_message"):  # ws
-                    stream.write_message(dumps([cmd, data]))  # dumps custom todo
+                    stream.write_message(dump1([cmd, data]))  # dumps custom todo
                 elif not stream.closed():  # tcp
                     stream.write(pack(fmt, cmd, len(data)) + data.encode())
             else:

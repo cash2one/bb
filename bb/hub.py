@@ -31,9 +31,11 @@ def hub(Q_in, Q_out, Q_err):
     import traceback
 
     from io import StringIO
+    from json import loads
 
     from bb import inst   # load all
     from bb.i import I, P
+    from bb.js import dump1
 
 
     def not_be_terminated(signal_number, stack_frame):
@@ -51,13 +53,6 @@ def hub(Q_in, Q_out, Q_err):
     commands = inst.commands
     instructions = inst.instructions
 
-    from json import dumps, loads, JSONEncoder
-
-    dumps = functools.partial(dumps, ensure_ascii=False, default=list,
-                              separators = (",", ":"))
-    dump2 = functools.partial(dumps, ensure_ascii=False, default=list,
-                              separators = (",", ": "),
-                              sort_keys=True, indent=4)
 
     def init():
         # load others
@@ -130,7 +125,7 @@ def hub(Q_in, Q_out, Q_err):
                     for x in _filter(outs):   # is _filter neccessary?
                         if isinstance(x[0], int):
                             i, cmd, data = x
-                            Q_out.put([i, instructions[cmd], dumps(data)])
+                            Q_out.put([i, instructions[cmd], dump1(data)])
                         else:
                             Q_err.put(x)
         except Exception:

@@ -44,6 +44,7 @@ from bb.i import I, P
 from bb.bd import BackdoorShell
 from bb.oc import record, recorder
 from bb.util import list_to_tuple
+from bb.js import dump1
 
 recorder.clear()
 shell = BackdoorShell()
@@ -69,7 +70,7 @@ def _view_data(i, k):
     i = P[i]
     if k:
         i = i[k]
-    return json.dumps(i)
+    return dump1(i)
 
 commands = {
     "shell": lambda line: shell.push(line),
