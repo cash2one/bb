@@ -227,6 +227,8 @@ def main(port, backstage, backdoor, web_debug):
             "beginner": lambda i: logging.info("begin %d", i),
             "amend": lambda args: logging.info("amend %d %s %r %r", *args),
             "run": lambda f: logging.info("run %s succeed" % f),
+            "view_data": lambda x: logging.info("%r " % x),
+            "view_logs": lambda x: logging.info("%r " % x),
         }
 
         history = collections.deque(maxlen=3)
