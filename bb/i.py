@@ -198,8 +198,7 @@ class I(dict):
 
     def send(self, k, v):
         assert isinstance(k, str), k
-        if self.online:
-            self.cache.append([self.i, k, v])
+        self.cache.append([self.i, k, v])
 
     def save(self, k):
         assert isinstance(k, str), k
