@@ -70,10 +70,6 @@ class TestI(unittest.TestCase):
         i = self.i
         i.send("tick", 1)
         i.send("tick", 2)
-        self.assertEqual(i.cache, [])
-        i.online = True
-        i.send("tick", 1)
-        i.send("tick", 2)
         self.assertEqual(i.cache,
                          [
                              [self.i_flag, "tick", 1],
