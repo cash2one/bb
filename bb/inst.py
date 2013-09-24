@@ -5,7 +5,6 @@ r"""
 '7\n>>> '
 """
 
-import time
 
 # {1: func_1, 2: func_2, ...}
 processes = {}
@@ -40,6 +39,8 @@ def run(func):
 
 import gc
 import json
+import time
+
 from bb.i import I, P
 from bb.bd import BackdoorShell
 from bb.oc import record, recorder

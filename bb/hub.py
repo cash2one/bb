@@ -27,10 +27,10 @@ True
 def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
+    import io
     import signal
     import traceback
 
-    from io import StringIO
     from json import loads
 
     from bb import inst   # load all
@@ -44,8 +44,6 @@ def hub(Q_in, Q_out, Q_err):
         loop = False
     signal.signal(signal.SIGTERM, not_be_terminated)
 
-    # None: shutdown
-    # (signal, int, bytes): process request from Q_in
 
     _filter = functools.partial(filter, None)
 
@@ -59,7 +57,7 @@ def hub(Q_in, Q_out, Q_err):
         from os.path import splitext
         from glob import glob
         for m in set(map(lambda s: splitext(s)[0], glob('[a-z]*.py*'))):
-            exec("import %s" % m)
+            __import__(m)
 
         from collections import Counter
 
@@ -92,7 +90,7 @@ def hub(Q_in, Q_out, Q_err):
         return
 
     import gc
-    #gc.collect()
+    gc.collect()
     loop = True
     while loop:
         try:
@@ -112,7 +110,7 @@ def hub(Q_in, Q_out, Q_err):
                 try:
                     output = commands[cmd](data)
                 except Exception:
-                    _output = StringIO()
+                    _output = io.StringIO()
                     traceback.print_exc(file=_output)
                     output = _output.getvalue()
                     logging.exception(v)

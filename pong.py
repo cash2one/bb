@@ -29,13 +29,16 @@ def _test(_, i, log, infos, n):
 @handle
 def online(i, b):
     i.online = b
+    t = time.time()
     if b:
         i.bind("online", "_test", "on")
         i.bind("offline", "_test", "off")
-        i.log("online", {"time": time.time()})
+        i["login_time"] = t
+        i.log("online", {"time": t})
         # blabla...
     else:
-        i.log("offline", {"time": time.time()})
+        i["logout_time"] = t
+        i.log("offline", {"time": t})
 
 @run
 def plus():
