@@ -68,8 +68,6 @@ def main(port, backstage, backdoor, web_debug):
     null = "0"  # for json
     inst_online = 1  # see inst.py
 
-    from bb.js import dump1
-
     tokens = {}
 
     class Connection(object):
@@ -153,7 +151,7 @@ def main(port, backstage, backdoor, web_debug):
             stream = staffs.get(i)  # ws use `stream` too, for compatible
             if stream:
                 if hasattr(stream, "write_message"):  # ws
-                    stream.write_message(dump1([cmd, data]))  # dumps custom todo
+                    stream.write_message(str(cmd) + " " + data)
                 elif not stream.closed():  # tcp
                     stream.write(pack(fmt, cmd, len(data)) + data.encode())
             else:
@@ -307,7 +305,8 @@ def main(port, backstage, backdoor, web_debug):
                 staffs.pop(i)
 
         def on_message(self, message):
-            i, msg = loads(message)
+            i, msg = message.split(None, 1)
+            i = int(i)
             try:
                 Q0.put([self.i, i, msg or null])
             except AttributeError:  # if has no attribute `i`, login it
