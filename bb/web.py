@@ -191,6 +191,8 @@ def main(port, backstage, backdoor, web_debug):
         def back(self):
             if self.request.host[0].isalpha():
                 self.redirect("")
+            else:
+                self.finish()
 
     import collections
     HC = collections.defaultdict(collections.deque)  # http commands
