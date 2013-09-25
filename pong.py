@@ -11,7 +11,7 @@ def _echo_attr(key):
     """1-99 echo only"""
     return lambda i, _: [[i.i, key, i[key]]]
 
-for idx, key in enumerate(sorted(I._defaults)):
+for idx, key in enumerate(sorted(I._defaults), 2**8):  # 256-511
     instructions[key] = idx
     processes[idx] = _echo_attr(key)
 
@@ -19,7 +19,6 @@ for idx, key in enumerate(sorted(I._defaults)):
 @handle
 def ping(i, n):
     i.send("ping", n)
-    i.save("foo")
     return i.flush()
 
 @I.register_log_callback

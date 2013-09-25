@@ -66,7 +66,7 @@ def main(port, backstage, backdoor, web_debug):
 
     fmt = "!HH"
     null = "0"  # for json
-    inst_online = 101  # see inst.py
+    inst_online = 1  # see inst.py
 
     from bb.js import dump1
 

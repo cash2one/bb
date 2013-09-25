@@ -15,7 +15,7 @@ instructions_list = [
 ]
 
 # {"ping": 1, "pong": 2, ...}
-instructions = dict(zip(instructions_list, range(100, 2**16)))
+instructions = dict(zip(instructions_list, range(2**8)))  # 0-255
 
 def handle(func):
     assert callable(func), func
