@@ -9,3 +9,7 @@ body {
     border: 2px solid LightGrey;
     */
 }
+
+a {
+    text-decoration: none;
+}
