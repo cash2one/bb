@@ -122,7 +122,7 @@ class I(dict):
     _defaults = {
         "foo": 5,
         "bar": lambda _: [_["foo"]],
-        "foobar": lambda _: collections.Counter(),
+        "foobar": lambda _: collections.Counter({1: 1, 2: 1}),
         "gold": 500,
         "level": 1,
         "bag": lambda _: [{"max": 8}] + [None] * 8,

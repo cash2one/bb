@@ -81,6 +81,22 @@ def hub(Q_in, Q_out, Q_err):
             d = {k.decode(): loads(v.decode()) for k, v in p.items()}
             P[i] = I(i, d)
 
+        limits = {
+            "foo": lambda v: v < 10,
+        }
+        tmp = I(0)
+        types = {k: type(tmp[k]) for k in I._defaults}
+        logging.debug(types)
+        for i in P.values():
+            for k, t in types.items():
+                v = i.get(k)
+                if v is not None and type(v) is not t:
+                    raise TypeError(v)
+            for k, v in i.items():
+                f = limits.get(k)
+                if f is not None and not f(v):
+                    raise ValueError(v)
+
     try:
         init()
         logging.info(len(P))

@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 import collections
+import json
 import random
 import unittest
 
 from bb.i import I
+from bb.js import dump1
 
 @I.register_log_callback
 def cb_test(extra, i, k, infos, n):
@@ -37,6 +39,15 @@ class TestI(unittest.TestCase):
         bar = i["bar"]
         self.assertEqual(bar, [5])
         self.assertIs(bar, i["bar"])
+
+    def test_wrappers(self):
+        self.assertGreaterEqual(set(I._defaults), set(I._wrappers))  # :)
+        i = self.i
+        for k, w in i._wrappers.items():
+            v = i[k]
+            v2 = w(json.loads(dump1(v)))
+            self.assertEqual(v, v2)
+            self.assertIs(type(v), type(v2))
 
     def test_bind(self):
         i = self.i
