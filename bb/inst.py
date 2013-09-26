@@ -50,10 +50,10 @@ from bb.js import dump1
 recorder.clear()
 shell = BackdoorShell()
 
-def _beginner(i):
+def _beginner(i, name):
     if i in P:
         raise KeyError("%d in P" % i)
-    P[i] = I(i)
+    P[i] = I(i, {"name": name})
     return i
 
 def _amend(i, k, v):
@@ -77,7 +77,7 @@ commands = {
     "shell": lambda line: shell.push(line),
     "status": lambda _: record() or dict(recorder),
     "gc": lambda _: gc.collect(),
-    "beginner": lambda args: _beginner(int(args[0])),
+    "beginner": lambda args: _beginner(int(args[0]), args[1]),
     "amend": lambda args: _amend(int(args[0]), args[1], json.loads(args[2])),
     "run": lambda args: [runners[i]() or i for i in args if i],
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web"),
