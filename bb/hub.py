@@ -100,8 +100,8 @@ def hub(Q_in, Q_out, Q_err):
     try:
         init()
         logging.info(len(P))
-    except Exception as e:
-        logging.exception(e)
+    except Exception:
+        logging.exception("init error")
         Q_err.put(None)
         return
 
