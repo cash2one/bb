@@ -34,9 +34,8 @@ class TestI(unittest.TestCase):
 
     def test_default_items(self):
         i = self.i
-        self.assertEqual(i["foo"], 5)
         bar = i["bar"]
-        self.assertEqual(bar, [])
+        self.assertEqual(bar, [5])
         self.assertIs(bar, i["bar"])
 
     def test_bind(self):
@@ -83,7 +82,7 @@ class TestI(unittest.TestCase):
         self.assertEqual(i.cache,
                          [
                              ["save", self.i_flag, "foo", 5],
-                             ["save", self.i_flag, "bar", []],
+                             ["save", self.i_flag, "bar", [5]],
                          ])
 
     def test_log(self):

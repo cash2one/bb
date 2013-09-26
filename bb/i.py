@@ -121,11 +121,11 @@ class I(dict):
 
     _defaults = {
         "foo": 5,
-        "bar": list,
-        "foobar": collections.Counter,
+        "bar": lambda _: [_["foo"]],
+        "foobar": lambda _: collections.Counter(),
         "gold": 500,
         "level": 1,
-        "bag": lambda: [{"max": 8}] + [None] * 8,
+        "bag": lambda _: [{"max": 8}] + [None] * 8,
     }
 
     _wrappers = {
@@ -161,7 +161,7 @@ class I(dict):
     def __missing__(self, k):
         v = self._defaults[k]
         if callable(v):
-            v = v()
+            v = v(self)
         self[k] = v
         return v
 
