@@ -57,15 +57,17 @@ def _beginner(i, name):
     return i
 
 def _amend(i, k, v):
-    v_ = P[i][k]  # old
+    _i = P[i]
     wrap = I._wrappers.get(k)
-    if wrap:
-        v = wrap(v)
-    t_, t = type(v_), type(v)
-    if t_ != t:
-        raise ValueError("%s vs %s" % (t_, t))
-    P[i][k] = v
-    return i, k, v_, v
+    v_new = wrap(v) if wrap else v
+    v_old = _i.get(k)
+    if k in I._defaults:
+        v_old = _i[k]
+        t_old, t_new = type(v_old), type(v_new)
+        if t_old != t_new:
+            raise ValueError("%s vs %s" % (t_old, t_new))
+    _i[k] = v_new
+    return i, k, v_old, v_new
 
 def _view_data(i, k):
     i = P[i]
