@@ -141,6 +141,7 @@ def main(port, backstage, backdoor, web_debug):
 
     def msg(fd, event):
         x = Q1.get()
+        logging.debug("msg from hub: %r", x)
         if len(x) == 2:
             cmd, data = x
             cb = commands.get(cmd) or (HC[cmd].popleft() if HC[cmd] else None)
@@ -305,6 +306,7 @@ def main(port, backstage, backdoor, web_debug):
                 staffs.pop(i)
 
         def on_message(self, message):
+            logging.debug("ws message: %r", message)
             i, msg = message.split(None, 1)
             i = int(i)
             try:
