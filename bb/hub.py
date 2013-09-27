@@ -36,6 +36,7 @@ def hub(Q_in, Q_out, Q_err):
     from bb import inst   # load all
     from bb.i import I, P
     from bb.js import dump1
+    from bb.exc import exc_map
 
 
     def not_be_terminated(signal_number, stack_frame):
@@ -108,6 +109,7 @@ def hub(Q_in, Q_out, Q_err):
     import gc
     gc.collect()
     loop = True
+
     while loop:
         try:
             v = Q_in.get()
@@ -134,7 +136,11 @@ def hub(Q_in, Q_out, Q_err):
             else:
                 i, cmd, data = v
                 producer = processes[cmd]
-                outs = producer(P[i], loads(data))
+                try:
+                    outs = producer(P[i], loads(data))
+                except Exception as e:
+                    Q_out.put([i, 0, dump1(exc_map.get(type(e), -1))])
+                    raise e
                 if outs:
                     for x in _filter(outs):   # is _filter neccessary?
                         if isinstance(x[0], int):
