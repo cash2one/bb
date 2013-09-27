@@ -85,8 +85,8 @@ def hub(Q_in, Q_out, Q_err):
         limits = {
             "foo": lambda v: v < 10,
         }
-        tmp = I(0)
-        types = {k: type(tmp[k]) for k in I._defaults}
+        tpl = I(0)
+        types = {k: type(tpl[k]) for k in I._defaults}
         logging.debug(types)
         for i in P.values():
             for k, t in types.items():
