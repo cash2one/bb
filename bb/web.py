@@ -53,7 +53,6 @@ def main(port, backstage, backdoor, web_debug):
     import time
     import weakref
     from functools import partial
-    from json import loads
     from struct import pack, unpack
 
     staffs = weakref.WeakValueDictionary()
@@ -313,7 +312,7 @@ def main(port, backstage, backdoor, web_debug):
                 Q0.put([self.i, i, msg or null])
             except AttributeError:  # if has no attribute `i`, login it
                 try:
-                    k = loads(msg)
+                    k = msg
                     t = tokens.pop(i)
                     if k != t:
                         raise Warning("error token: %s != %s" % (k, t))
