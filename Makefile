@@ -2,7 +2,7 @@
 #VERSION = $(shell python setup.py --version)
 #ALLFILES = $(shell echo bottle.py test/*.py test/views/*.tpl)
 
-.PHONY: test clean
+.PHONY: test clean pack
 
 test:
 	python3 -m unittest discover -s test -p "*.py"
