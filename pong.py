@@ -2,7 +2,7 @@
 
 import time
 
-from bb.inst import instructions, processes, handle, run
+from bb.inst import instructions, processes, handle, pre, run
 from bb.i import I, P
 
 assert len(I._defaults) <= 99
@@ -17,6 +17,7 @@ for idx, key in enumerate(sorted(I._defaults), 2**8):  # 256-511
 
 
 @handle
+@pre((int, float, str, list, dict, bool))
 def ping(i, n):
     i.send("ping", n)
     return i.flush()
@@ -26,6 +27,7 @@ def _test(_, i, log, infos, n):
     print(_, i, log, infos, n, i.listeners, i.logs, sep="\n")
 
 @handle
+#@pre(bool, lambda x: x is True)
 def online(i, b):
     i.online = b
     t = time.time()

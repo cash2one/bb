@@ -26,6 +26,21 @@ def handle(func):
     processes[signal] = func
     return func
 
+def pre(types, value_checker=None):
+    assert isinstance(types, (type, tuple))
+    if value_checker is not None:
+        assert callable(value_checker)
+    def _(func):
+        def type_and_value(i, x):
+            if not isinstance(x, types):
+                raise TypeError(x)
+            if value_checker and not value_checker(x):
+                raise ValueError(x)
+            return func(i, x)
+        type_and_value.__name__ = func.__name__
+        return type_and_value
+    return _
+
 
 runners = {}  # launch certain function in runners by web
 
