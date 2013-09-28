@@ -5,7 +5,7 @@
 .PHONY: test clean
 
 test:
-	python3 -m unittest discover -p '*.py'
+	python3 -m unittest discover -s test -p "*.py"
 
 clean:
 	rm -rf build/ dist/ MANIFEST 2>/dev/null || true
