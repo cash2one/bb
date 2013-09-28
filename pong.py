@@ -5,7 +5,7 @@ import time
 from bb.inst import instructions, processes, handle, pre, run
 from bb.i import I, P
 
-assert len(I._defaults) <= 99
+assert len(I._defaults) < 256
 
 def _echo_attr(key):
     """1-99 echo only"""
