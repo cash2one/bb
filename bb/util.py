@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 def build_dict(title, key, values, value_wraps={}):
     r"""

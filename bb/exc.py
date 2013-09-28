@@ -13,3 +13,10 @@ def collect_exceptions():
 
 exc_map = dict(collect_exceptions())
 exc_recorder = collections.defaultdict(collections.Counter)
+
+
+if __name__ == "__main__":
+    from pprint import pprint
+    pprint(exc_map)
+
+
