@@ -95,7 +95,7 @@ def hub(Q_in, Q_out, Q_err):
                     raise TypeError(v)
             for k, v in i.items():
                 f = limits.get(k)
-                if f is not None and not f(v):
+                if f and not f(v):
                     raise ValueError(v)
 
     try:
