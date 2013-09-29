@@ -3,11 +3,13 @@
 """
 """
 
+import logging
+
 def import_others():
     from os.path import splitext
     from glob import glob
     for m in set(map(lambda s: splitext(s)[0], glob('[a-z]*.py*'))):
-        assert not print(m)
+        logging.debug(m)
         __import__(m)
 
 def load_data(index_name):
@@ -19,7 +21,7 @@ def load_data(index_name):
     db = StrictRedis()
     pipe = db.pipeline()
     raw = db.hgetall(index_name)
-    assert not print("all:", len(raw))
+    logging.debug("all: %d", len(raw))
     uids = {}  # unique identifiers
     for u, i in raw.items():
         uids[u.decode()] = int(i)  # raise it if error
@@ -55,7 +57,7 @@ limits = {
 from bb.i import I
 tpl = I(0)
 types = {k: type(tpl[k]) for k in I._defaults}
-assert not print(types)
+logging.debug(types)
 
 def check(i, limits=limits):
     for k, t in types.items():

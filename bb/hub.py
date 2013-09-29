@@ -5,16 +5,11 @@
 >>> q0 = queue.Queue()
 >>> q1 = queue.Queue()
 >>> q2 = queue.Queue()
->>> i = 2
->>> PING = 1
->>> PONG = 2
->>> q0.put([i, PING, "64"])
+>>> q0.put([1, 0, "0"])
 >>> q0.put(None)
 >>> hub(q0, q1, q2)
 
->>> q1.get() == [i, PONG, "64"]
-True
->>> q2.get() == ["save", i, "foo", 5]
+>>> q1.get() == [1, 0, "0"]
 True
 >>> q2.get() is None 
 True
