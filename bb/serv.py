@@ -51,22 +51,27 @@ limits = {
     "level": lambda v: v < 250,
 }
 
+from bb.i import I
+tpl = I(0)
+types = {k: type(tpl[k]) for k in I._defaults}
+assert not print(types)
+
+def check(i, limits=limits):
+    for k, t in types.items():
+        v = i.get(k)
+        if v is not None and type(v) is not t:
+            raise TypeError("%d %r %r" % (i.i, k, v))
+    for k, v in i.items():
+        f = limits.get(k)
+        if f and not f(v):
+            raise ValueError("%d %r %r" % (i.i, k, v))
+
 def check_all(limits=limits):
     """
     """
-    from bb.i import I, P
-    tpl = I(0)
-    types = {k: type(tpl[k]) for k in I._defaults}
-    assert not print(types)
+    from bb.i import P
     for i in P.values():
-        for k, t in types.items():
-            v = i.get(k)
-            if v is not None and type(v) is not t:
-                raise TypeError("%d %r %r" % (i.i, k, v))
-        for k, v in i.items():
-            f = limits.get(k)
-            if f and not f(v):
-                raise ValueError("%d %r %r" % (i.i, k, v))
+        check(i, limits)
 
 
 if __name__ == "__main__":
