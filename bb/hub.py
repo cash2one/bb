@@ -33,10 +33,11 @@ def hub(Q_in, Q_out, Q_err):
 
     from json import loads
 
-    from bb import inst   # load all
-    from bb.i import I, P
+    from bb import inst   # load all instructions
+    from bb.i import P
     from bb.js import dump1
     from bb.exc import exc_map, exc_recorder
+    from bb.serv import load_data, build_all, check_all, import_others
 
 
     def not_be_terminated(signal_number, stack_frame):
@@ -52,54 +53,10 @@ def hub(Q_in, Q_out, Q_err):
     commands = inst.commands
     instructions = inst.instructions
 
-
-    def init():
-        # load others
-        from os.path import splitext
-        from glob import glob
-        for m in set(map(lambda s: splitext(s)[0], glob('[a-z]*.py*'))):
-            __import__(m)
-
-        from collections import Counter
-
-        from redis import StrictRedis
-        db = StrictRedis()
-        pipe = db.pipeline()
-        raw = db.hgetall("z")  # TODO
-        logging.info(len(raw))
-        uids = {}
-        for u, i in raw.items():
-            uids[u.decode()] = int(i)  # raise it if error
-        ids = list(uids.values())
-        checker = Counter(ids)
-        if len(checker) != len(ids):  # unique
-            raise ValueError(checker.most_common(3))
-        for i in ids:
-            pipe.hgetall(i)
-        properties = pipe.execute(True)  # DO NOT allow error occurs in redis
-
-        for i, p in zip(ids, properties):
-            d = {k.decode(): loads(v.decode()) for k, v in p.items()}
-            P[i] = I(i, d)
-
-        limits = {
-            "foo": lambda v: v < 10,
-        }
-        tpl = I(0)
-        types = {k: type(tpl[k]) for k in I._defaults}
-        logging.debug(types)
-        for i in P.values():
-            for k, t in types.items():
-                v = i.get(k)
-                if v is not None and type(v) is not t:
-                    raise TypeError(v)
-            for k, v in i.items():
-                f = limits.get(k)
-                if f and not f(v):
-                    raise ValueError(v)
-
     try:
-        init()
+        logging.info(len(P))
+        build_all(load_data("z"))
+        check_all()
         logging.info(len(P))
     except Exception:
         logging.exception("init error")
