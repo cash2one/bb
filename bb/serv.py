@@ -7,6 +7,7 @@ def import_others():
     from os.path import splitext
     from glob import glob
     for m in set(map(lambda s: splitext(s)[0], glob('[a-z]*.py*'))):
+        assert not print(m)
         __import__(m)
 
 def load_data(index_name):

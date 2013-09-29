@@ -54,9 +54,9 @@ def hub(Q_in, Q_out, Q_err):
     instructions = inst.instructions
 
     try:
-        logging.info(len(P))
         build_all(load_data("z"))
         check_all()
+        import_others()
         logging.info(len(P))
     except Exception:
         logging.exception("init error")
