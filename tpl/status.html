@@ -1,15 +1,18 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
 <link rel="stylesheet" href="static/bb.css">
+<link rel="stylesheet" href="static/ui.css">
+
 <title>status</title>
 
 <p>
-<table border="1">
-{% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
+<table>
+    <th>object</th> <th>history</th>
+    {% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
     <tr>
-    <td>{{ obj }}</td>
-    <td>{{ str(list(history))[1:-1] }}</td>
+        <td>{{ obj }}</td>
+        <td>{{ str(list(history))[1:-1] }}</td>
     </tr>
-{% end %}
+    {% end %}
 </table>
 </p>

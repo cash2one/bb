@@ -1,17 +1,19 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
 <link rel="stylesheet" href="static/bb.css">
+<link rel="stylesheet" href="static/ui.css">
+
 <title>bb</title>
 
-<p>
 {% for x in ["web", "hub", "log"] %}
-<a href="{{ x }}_status" target="_blank">{{ x }}</a>
+<a href="{{ x }}_status" target="_blank" class="smallbtn">{{ x }}</a>
 {% end %}
-</p>
 
-<p>
-<a href="hub" target="_blank">HUB</a>
-</p>
+<br> <br> <br>
+
+<a href="hub" target="_blank" class="bigbtn">HUB</a>
+
+<br> <br> <br>
 
 <form action="t">
     <input name="_" value="1">
@@ -19,11 +21,8 @@
     <input type="submit" value="gen token">
 </form>
 
-<p>{{ qsize }}</p>
-<p>{{ list(staffs.keys()) }}</p>
-<p>{{ list(wheels.keys()) }}</p>
+<br> <br> <br>
 
-<p>
 <form method="post">
     <select name="cmd" size="{{ len(options) }}">
         {% for b in options %}
@@ -32,5 +31,8 @@
     </select>
     <input type="submit" value="Go">
 </form>
-</p>
+
+<p>{{ qsize }}</p>
+<p>{{ list(staffs.keys()) }}</p>
+<p>{{ list(wheels.keys()) }}</p>
 
