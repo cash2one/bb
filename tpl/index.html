@@ -6,22 +6,18 @@
 <title>bb</title>
 
 {% for x in ["web", "hub", "log"] %}
-<a href="{{ x }}_status" target="_blank" class="smallbtn">{{ x }}</a>
+<a href="{{ x }}_status" target="_blank" class="tagbtn">{{ x }}</a>
 {% end %}
 
-<br> <br> <br>
-
-<a href="hub" target="_blank" class="bigbtn">HUB</a>
-
-<br> <br> <br>
+<p>
+<a href="hub" target="_blank" class="tagbtn">HUB</a>
+</p>
 
 <form action="t">
     <input name="_" value="1">
     <input name="_" value="token">
     <input type="submit" value="gen token">
 </form>
-
-<br> <br> <br>
 
 <form method="post">
     <select name="cmd" size="{{ len(options) }}">

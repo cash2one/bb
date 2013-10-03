@@ -36,8 +36,6 @@ table td {
 select,
 input,
 textarea {
-	font-family: "Helvetica Neue", Helvetica, sans-serif;
-	font-size: 15px;
 	color: #444;
 	padding: 4px;
 	border: 1px solid #ddd;
@@ -46,10 +44,11 @@ textarea {
 }
 
 input[type="submit"] {
-      padding: 6px 20px;
-      cursor: pointer;
-      color: #eeeeee;
-      background-color: #c43c35;
+    padding: 4px 14px;
+    cursor: pointer;
+    color: #eeeeee;
+    background-color: #d9348c;
+    border-radius: 14px;
 }
 
 select:hover,
