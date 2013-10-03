@@ -40,6 +40,7 @@ def online(i, b):
     else:
         i["logout_time"] = t
         i.log("offline", {"time": t})
+    return i.flush()
 
 @run
 def plus():
