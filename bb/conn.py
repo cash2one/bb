@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+dumy_send = lambda x: print(x)
+
 def http():
     """TODO"""
 
-def websocket(Q0, tokens, staffs):
+def websocket(staffs, send=dumy_send, tokens=None):
     import logging
 
     from tornado.websocket import WebSocketHandler
@@ -16,7 +18,7 @@ def websocket(Q0, tokens, staffs):
 
         def on_close(self):
             i = self.i
-            Q0.put([i, ONLINE, NULL])
+            send([i, ONLINE, NULL])
             logging.info("%s %s logout", "ws", i)
             if staffs.get(i) is self:  # have to do it (without gc enable)
                 staffs.pop(i)
@@ -26,27 +28,28 @@ def websocket(Q0, tokens, staffs):
             i, msg = message.split(None, 1)
             i = int(i)
             try:
-                Q0.put([self.i, i, msg or NULL])
+                send([self.i, i, msg or NULL])
             except AttributeError:  # if has no attribute `i`, login it
                 try:
                     k = msg
-                    t = tokens.pop(i)
-                    if k != t:
-                        raise Warning("error token: %s != %s" % (k, t))
+                    t = tokens.pop(i) if tokens is not None else None
+                    if t is not None and k != t:
+                        raise Warning("error token: %r != %r" % (k, t))
                     self.i = i
                     if i in staffs:
                         staffs[i].close()
-                        Q0.put([i, ONLINE, NULL])
+                        send([i, ONLINE, NULL])
                         logging.info("ws kick %s", i)
                     staffs[i] = self
                     logging.info("%s %s login", "ws", i)
                 except Exception as e:
                     self.close()
                     logging.error("failed to auth: %s: %s", type(e).__name__, e)
+
     return WebSocket
 
 
-def tcp(Q0, tokens, staffs):
+def tcp(staffs, send=dumy_send, tokens=None):
 
     import logging
     from struct import pack, unpack
@@ -70,13 +73,13 @@ def tcp(Q0, tokens, staffs):
                 i, k = auth.split()
                 i = int(i)
                 k = k.decode()
-                t = tokens.pop(i)
-                if k != t:
-                    raise Warning("error token: %s != %s" % (k, t))
+                t = tokens.pop(i) if tokens is not None else None
+                if t is not None and k != t:
+                    raise Warning("error token: %r != %r" % (k, t))
                 self.i = i
                 if i in staffs:
                     staffs[i].close()
-                    Q0.put([i, ONLINE, NULL])
+                    send([i, ONLINE, NULL])
                     logging.info("tcp kick %s", i)
                 staffs[i] = self.stream
                 self.stream.set_close_callback(self.logout)
@@ -96,13 +99,13 @@ def tcp(Q0, tokens, staffs):
 
         def msg_body(self, chunk):
             logging.debug("body: %s", chunk)
-            Q0.put([self.i, self.instruction, chunk.decode() or NULL])
+            send([self.i, self.instruction, chunk.decode() or NULL])
             if not self.stream.closed():
                 self.stream.read_bytes(4, self.msg_head)
 
         def logout(self):
             self.stream.close()
-            Q0.put([self.i, ONLINE, NULL])  # see inst.py, "online" is 101
+            send([self.i, ONLINE, NULL])  # see inst.py, "online" is 101
             logging.info("%s %s logout", self.address, self.i)
 
 
@@ -113,18 +116,18 @@ def tcp(Q0, tokens, staffs):
     return Server
 
 
-def backdoor(Q0, wheels):
+def backdoor(staffs, send=dumy_send):
     from tornado.tcpserver import TCPServer
     class Connection(object):
         def __init__(self, stream, address):
             self.stream = stream
-            wheels[address] = stream
+            staffs[address] = stream
             self.stream.set_close_callback(self.stream.close)
             self.stream.write(b"Backdoor\n>>> ")
             self.stream.read_until(b'\n', self.handle_input)
 
         def handle_input(self, line):
-            Q0.put(["shell", line.decode()])
+            send(["shell", line.decode()])
             self.stream.read_until(b'\n', self.handle_input)
 
     class Server(TCPServer):

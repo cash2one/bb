@@ -214,15 +214,15 @@ def main(port, backstage, backdoor, web_debug):
 
     from bb import conn
 
-    conn.tcp(Q0, tokens, staffs)().listen(port)
-    conn.backdoor(Q0, wheels)().listen(backdoor)
+    conn.tcp(staffs, Q0.put, tokens)().listen(port)
+    conn.backdoor(wheels, Q0.put)().listen(backdoor)
 
     Application([
         (r"/", MainHandler),
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
         (r"/(.*)_status", StatusHandler),
-        (r"/ws", conn.websocket(Q0, tokens, staffs)),
+        (r"/ws", conn.websocket(staffs, Q0.put, tokens)),
     ], static_path="_", template_path="tpl", debug=web_debug).listen(backstage)
 
 
