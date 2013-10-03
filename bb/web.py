@@ -53,17 +53,12 @@ def main(port, backstage, backdoor, web_debug):
     import time
     import weakref
     from functools import partial
-    from struct import pack
 
     staffs = weakref.WeakValueDictionary()
     wheels = weakref.WeakValueDictionary()
-    wss = weakref.WeakValueDictionary()
 
     from tornado import ioloop
-    from tornado.tcpserver import TCPServer
     io_loop = ioloop.IOLoop.instance()
-
-    from bb.const import FMT
 
     tokens = {}
 
@@ -92,12 +87,9 @@ def main(port, backstage, backdoor, web_debug):
             cb(data) if cb else None
         else:
             i, cmd, data = x
-            stream = staffs.get(i)  # ws use `stream` too, for compatible
-            if stream:
-                if hasattr(stream, "write_message"):  # ws
-                    stream.write_message(str(cmd) + " " + data)
-                elif not stream.closed():  # tcp
-                    stream.write(pack(FMT, cmd, len(data)) + data.encode())
+            s = staffs.get(i)
+            if s:
+                s.send(cmd, data)
             else:
                 logging.warning("%s is not online, failed to send %s %s",
                                 i, cmd, data)
@@ -105,8 +97,7 @@ def main(port, backstage, backdoor, web_debug):
 
 
     from bb.oc import record, recorder
-    from tornado.web import RequestHandler, Application, StaticFileHandler, \
-                            asynchronous
+    from tornado.web import RequestHandler, Application, asynchronous
 
     ioloop.PeriodicCallback(record, 3000).start()
     ioloop.PeriodicCallback(lambda: tokens.update(
@@ -214,7 +205,7 @@ def main(port, backstage, backdoor, web_debug):
 
     from bb import conn
 
-    conn.tcp(staffs, Q0.put, tokens)().listen(port)
+    conn.tcp(staffs, Q0.put, )().listen(port)
     conn.backdoor(wheels, Q0.put)().listen(backdoor)
 
     Application([
@@ -222,7 +213,7 @@ def main(port, backstage, backdoor, web_debug):
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
         (r"/(.*)_status", StatusHandler),
-        (r"/ws", conn.websocket(staffs, Q0.put, tokens)),
+        (r"/ws", conn.websocket(staffs, Q0.put, )),
     ], static_path="_", template_path="tpl", debug=web_debug).listen(backstage)
 
 
