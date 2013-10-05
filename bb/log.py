@@ -13,17 +13,29 @@
 0
 """
 
-
-def worker(Q):
+def worker(name, Q, task):
     import logging
-    logging.info("log_worker start")
+    import time
+
+    logging.info("log_worker %s start" % name)
+
     while True:
         v = Q.get()
-        Q.task_done()
         if v is None:
             break
-        logging.info(v)   # TODO
-    logging.info("log_worker exit")
+        logging.info("%r: %r" % (name, v))
+
+        try:
+            task(*v)
+            time.sleep(1)  # test blocking
+        except Exception as e:
+            logging.error(e)
+
+        Q.task_done()
+
+    logging.info("log_worker %s exit" % name)
+    Q.task_done()
+
 
 def log(Q_err):
     import logging
@@ -35,27 +47,44 @@ def log(Q_err):
         loop = False
     signal.signal(signal.SIGTERM, terminate)
 
+    from redis import StrictRedis
+    db = StrictRedis()
 
     from threading import Thread
     from queue import Queue
 
-    Q = Queue()
-    Thread(target=worker, args=(Q,)).start()
+    from bb.js import dump2
+
+    tasks = {
+        "save": (Queue(), lambda i, k, v: db.hset(i, k, dump2(v))),
+        "log": (Queue(), lambda *args: logging.info(args)),
+        "battle": (Queue(), lambda *args: logging.info(args)),
+        "buy": (Queue(), lambda *args: logging.info(args)),
+    }
+
+    for k, v in tasks.items():
+        Thread(target=worker, args=(k, v[0], v[1])).start()
 
     loop = True
     while loop:
         try:
             v = Q_err.get()
-            Q.put(v)
         except Exception as e:
             logging.error(e)
             continue
 
         if v is None:
+            for q, _ in tasks.values():
+                q.put(None)
+                q.join()
             logging.info("log exit")
             break
 
-    Q.join()
+        try:
+            tasks[v[0]][0].put(v[1:])
+        except Exception as e:
+            logging.error(e)
+
 
 
 def test(Q):
@@ -80,7 +109,7 @@ def main():
     for i in range(n):
         Thread(target=test, args=(Q,)).start()
 
-    for i in range(1000**2):
+    for i in range(100**2):
         Q.put(i)
     print(i)
 
@@ -94,5 +123,4 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     doctest.testmod()
-    main()
-
+    #main()
