@@ -35,11 +35,11 @@ def hub(Q_in, Q_out, Q_err):
     from bb.srv import load_data, build_all, check_all, import_others
 
 
-    def not_be_terminated(signal_number, stack_frame):
+    def terminate(signal_number, stack_frame):
         logging.warning("received SIGTERM")
         nonlocal loop
         loop = False
-    signal.signal(signal.SIGTERM, not_be_terminated)
+    signal.signal(signal.SIGTERM, terminate)
 
 
     _filter = functools.partial(filter, None)

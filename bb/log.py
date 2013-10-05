@@ -19,21 +19,22 @@ def worker(Q):
     logging.info("log_worker start")
     while True:
         v = Q.get()
-        logging.info(v)   # TODO
+        Q.task_done()
         if v is None:
             break
-        Q.task_done()
+        logging.info(v)   # TODO
     logging.info("log_worker exit")
-    Q.task_done()
 
 def log(Q_err):
     import logging
     import signal
-    def not_be_terminated(signal_number, stack_frame):
+
+    def terminate(signal_number, stack_frame):
         logging.warning("received SIGTERM")
         nonlocal loop
         loop = False
-    signal.signal(signal.SIGTERM, not_be_terminated)
+    signal.signal(signal.SIGTERM, terminate)
+
 
     from threading import Thread
     from queue import Queue
@@ -58,13 +59,16 @@ def log(Q_err):
 
 
 def test(Q):
+    i = 0
     while True:
         v = Q.get()
-        print(v)
+        Q.task_done()
+        #print(v)
         if v is None:
             break
-        Q.task_done()
-    Q.task_done()
+        else:
+            i += 1
+    print(i)
 
 def main():
     from threading import Thread
@@ -76,8 +80,9 @@ def main():
     for i in range(n):
         Thread(target=test, args=(Q,)).start()
 
-    for i in range(100):
+    for i in range(1000**2):
         Q.put(i)
+    print(i)
 
     for i in range(n):
         Q.put(None)
@@ -89,5 +94,5 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     doctest.testmod()
-    #main()
+    main()
 
