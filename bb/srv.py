@@ -49,17 +49,11 @@ def build_all(data):
         P[i] = I(i, v)
 
 
-limits = {
-    "foo": lambda v: v < 10,
-    "level": lambda v: v < 250,
-}
-
-from bb.i import I
-tpl = I(0)
-types = {k: type(tpl[k]) for k in I._defaults}
-logging.debug(types)
-
-def check(i, limits=limits):
+def check(i, types=None, limits=None):
+    if types is None:
+        from bb.tpl import types
+    if limits is None:
+        from bb.tpl import limits
     for k, t in types.items():
         v = i.get(k)
         if v is not None and type(v) is not t:
@@ -69,12 +63,18 @@ def check(i, limits=limits):
         if f and not f(v):
             raise ValueError("%d %r %r" % (i.i, k, v))
 
-def check_all(limits=limits):
+def check_all(types=None, limits=None):
     """
     """
+    if types is None:
+        from bb.tpl import types
+    if limits is None:
+        from bb.tpl import limits
+    logging.debug(types)
+    logging.debug(limits)
     from bb.i import P
     for i in P.values():
-        check(i, limits)
+        check(i, types, limits)
 
 
 if __name__ == "__main__":
