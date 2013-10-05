@@ -32,7 +32,7 @@ def hub(Q_in, Q_out, Q_err):
     from bb.i import P
     from bb.js import dump1
     from bb.exc import exc_map, exc_recorder
-    from bb.serv import load_data, build_all, check_all, import_others
+    from bb.srv import load_data, build_all, check_all, import_others
 
 
     def not_be_terminated(signal_number, stack_frame):
