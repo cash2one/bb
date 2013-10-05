@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, web_debug):
+def main(port, backstage, backdoor, web_debug=False):
     import gc
     gc.disable()
 
@@ -230,12 +230,25 @@ def main(port, backstage, backdoor, web_debug):
 
 
 if __name__ == "__main__":
+    from json import loads
+    from time import strftime
+    from urllib.request import urlopen
+    from urllib.parse import urlencode
+    from bb.util import Object
+    url = "http://localhost:8888/1?"
+    start_time = strftime("%y%m%d-%H%M%S")
+    with urlopen(url + urlencode({"run": start_time})) as f:
+        ports = Object(loads(f.read().decode()))
+    print(ports)
+
     from tornado.options import define, options, parse_command_line
-    define("port", default=8000, type=int, help="main port(TCP)")
-    define("backstage", default=8100, type=int, help="backstage port(HTTP)")
-    define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
-    define("leader", default="localhost:80", type=str, help="central controller")
+    #define("port", default=8000, type=int, help="main port(TCP)")
+    #define("backstage", default=8100, type=int, help="backstage port(HTTP)")
+    #define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
     define("debug", default=False, type=bool, help="debug")
     parse_command_line()
 
-    main(options.port, options.backstage, options.backdoor, options.debug)
+    main(ports.port, ports.backstage, ports.backdoor, options.debug)
+
+    with urlopen(url + urlencode({"quit": start_time})) as f:
+        print(f.read())
