@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, web_debug=False):
+def main(port, backstage, backdoor, zones, web_debug=False):
     import gc
     gc.disable()
 
@@ -29,7 +29,7 @@ def main(port, backstage, backdoor, web_debug=False):
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
             return
-        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2))
+        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2, zones))
         sub_procs["log"] = Process(target=bb.log.log, args=(Q2,))
         for name, proc in sub_procs.items():
             proc.start()
@@ -230,25 +230,34 @@ def main(port, backstage, backdoor, web_debug=False):
 
 
 if __name__ == "__main__":
-    from json import loads
     from time import strftime
     from urllib.request import urlopen
-    from urllib.parse import urlencode
-    from bb.util import Object
-    url = "http://localhost:8888/1?"
-    start_time = strftime("%y%m%d-%H%M%S")
-    with urlopen(url + urlencode({"run": start_time})) as f:
-        ports = Object(loads(f.read().decode()))
-    print(ports)
 
     from tornado.options import define, options, parse_command_line
-    #define("port", default=8000, type=int, help="main port(TCP)")
-    #define("backstage", default=8100, type=int, help="backstage port(HTTP)")
-    #define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
-    define("debug", default=False, type=bool, help="debug")
+    define("port", default=8000, type=int, help="main port(TCP)")
+    define("backstage", default=8100, type=int, help="backstage port(HTTP)")
+    define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
+    define("debug", default=False, type=bool)
+    define("zones", default=[1, 2], type=int, multiple=True)
+    define("leader", default="localhost:8888", type=str)
     parse_command_line()
 
-    main(ports.port, ports.backstage, ports.backdoor, options.debug)
+    zones = options.zones
+    if len(set(zones)) != len(zones):
+        raise ValueError(zones)
 
-    with urlopen(url + urlencode({"quit": start_time})) as f:
-        print(f.read())
+    start_time = strftime("%y%m%d-%H%M%S")
+    for z in zones:
+        url = "http://%s/%d?run=%s&ports=%d&ports=%d&ports=%d" % (
+            options.leader, z, start_time,
+            options.port, options.backstage, options.backdoor)
+        with urlopen(url) as f:
+            print("run", z, f.read().decode())
+
+    main(options.port, options.backstage, options.backdoor,
+         zones, options.debug)
+
+    for z in zones:
+        url = "http://%s/%d?quit=%s" % (options.leader, z, start_time)
+        with urlopen(url) as f:
+            print("quit", z, f.read().decode())

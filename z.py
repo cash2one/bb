@@ -5,26 +5,34 @@ import time
 import tornado.ioloop
 import tornado.web
 
-keys = ["port", "backstage", "backdoor"]
-
-db = {
-    1: [8000, 8100, 8200, None],
-    2: [8000, 8100, 8200, None],
+group = {
 }
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write(db)
+        self.write(group)
 
 class SonHandler(tornado.web.RequestHandler):
+    """log todo"""
     def get(self, i):
-        i = db[int(i)]
-        if i[-1] is None:
-            i[-1] = self.get_argument("run")
-            self.write(dict(zip(keys, i)))
-        elif self.get_argument("quit") in (i[-1], "force"):
-            i[-1] = None
-            self.write("quit")
+        print(self.request.remote_ip)
+        print(self.request.arguments)
+        i = int(i)
+        # register
+        if i not in group:
+            run = self.get_argument("run", None)
+            if run:
+                group[i] = {
+                    "run": run,
+                    "ip": self.request.remote_ip,
+                    "ports": tuple(self.get_arguments("ports")),
+                }
+                self.write(group[i])
+        # quit
+        else:
+            quit = self.get_argument("quit", None)
+            if quit in (group[i]["run"], "force"):
+                self.write(group.pop(i))
 
 application = tornado.web.Application([
     (r"/", MainHandler),

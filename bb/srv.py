@@ -12,7 +12,7 @@ def import_others():
         logging.debug(m)
         __import__(m)
 
-def load_data(index_name):
+def load_data(zones):
     """from redis
     uniq in index
     """
@@ -20,12 +20,10 @@ def load_data(index_name):
     from redis import StrictRedis
     db = StrictRedis()
     pipe = db.pipeline()
-    raw = db.hgetall(index_name)
-    logging.debug("all: %d", len(raw))
-    uids = {}  # unique identifiers
-    for u, i in raw.items():
-        uids[u.decode()] = int(i)  # raise it if error
-    ids = list(uids.values())
+    ids = []
+    for z in zones:
+        ids.extend(map(int, db.hgetall("z%d" % z).values()))
+    logging.debug("all: %d", len(ids))
 
     from collections import Counter
     checker = Counter(ids)
