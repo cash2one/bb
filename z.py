@@ -28,11 +28,15 @@ class SonHandler(tornado.web.RequestHandler):
                     "ports": tuple(self.get_arguments("ports")),
                 }
                 self.write(group[i])
+            else:
+                raise tornado.web.HTTPError(402)
         # quit
         else:
             quit = self.get_argument("quit", None)
             if quit in (group[i]["run"], "force"):
                 self.write(group.pop(i))
+            else:
+                raise tornado.web.HTTPError(409)
 
 application = tornado.web.Application([
     (r"/", MainHandler),
