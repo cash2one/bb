@@ -7,7 +7,7 @@ r"""
 
 
 # {1: func_1, 2: func_2, ...}
-processes = {}
+processes = [None] * 2**16
 
 instructions_list = [
     "ping",
@@ -22,7 +22,7 @@ def handle(func):
     alias = func.__name__
     assert alias in instructions, alias
     signal = instructions[alias]
-    assert signal not in processes, "%s:%d" % (alias, signal)
+    assert processes[signal] is None, "%s:%d" % (alias, signal)
     processes[signal] = func
     return func
 

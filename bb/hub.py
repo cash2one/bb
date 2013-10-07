@@ -89,7 +89,10 @@ def hub(Q_in, Q_out, Q_err, zones):
                 i, cmd, data = v
                 producer = processes[cmd]
                 try:
-                    outs = producer(P[i], loads(data))
+                    if producer:
+                        outs = producer(P[i], loads(data))
+                    else:
+                        raise NotImplementedError(cmd)
                 except Exception as e:
                     err = e.__class__.__name__
                     Q_out.put([i, 0, dump1(exc_map.get(err, 0))])
