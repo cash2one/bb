@@ -35,7 +35,6 @@ def load_data():
     for i in ids:
         pipe.hgetall(i)
     properties = pipe.execute(True)  # DO NOT allow error occurs in redis
-    print(properties)
 
     raw = {}
     for i, p in zip(ids, properties):
