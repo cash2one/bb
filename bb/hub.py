@@ -19,7 +19,7 @@ True
 
 """
 
-def hub(Q_in, Q_out, Q_err, zones):
+def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
     import io
@@ -49,7 +49,7 @@ def hub(Q_in, Q_out, Q_err, zones):
     instructions = inst.instructions
 
     try:
-        build_all(load_data(zones))
+        build_all(load_data())
         check_all()
         import_others()
         logging.info(len(P))

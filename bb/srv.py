@@ -12,16 +12,17 @@ def import_others():
         logging.debug(m)
         __import__(m)
 
-def load_data(zones):
+def load_data():
     """from redis
     uniq in index
     """
     from json import loads
     from redis import StrictRedis
-    db = StrictRedis()
-    pipe = db.pipeline()
+    from tornado.options import options
+
+    db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
     ids = []
-    for z in zones:
+    for z in options.zones:
         ids.extend(map(int, db.hgetall("z%d" % z).values()))
     logging.debug("all: %d", len(ids))
 
@@ -30,13 +31,15 @@ def load_data(zones):
     if len(checker) != len(ids):  # not unique
         raise ValueError(checker.most_common(3))
 
+    pipe = db.pipeline()
     for i in ids:
         pipe.hgetall(i)
     properties = pipe.execute(True)  # DO NOT allow error occurs in redis
+    print(properties)
 
     raw = {}
     for i, p in zip(ids, properties):
-        raw[i] = {k.decode(): loads(v.decode()) for k, v in p.items()}
+        raw[i] = {k: loads(v) for k, v in p.items()}
     return raw
 
 def build_all(data):

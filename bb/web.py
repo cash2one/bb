@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, zones, web_debug=False):
+def main(port, backstage, backdoor, web_debug=False):
     import gc
     gc.disable()
 
@@ -29,7 +29,7 @@ def main(port, backstage, backdoor, zones, web_debug=False):
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
             return
-        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2, zones))
+        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2))
         sub_procs["log"] = Process(target=bb.log.log, args=(Q2,))
         for name, proc in sub_procs.items():
             proc.start()
@@ -238,8 +238,10 @@ if __name__ == "__main__":
     define("backstage", default=8100, type=int, help="backstage port(HTTP)")
     define("backdoor", default=8200, type=int, help="backdoor port(TCP)")
     define("debug", default=False, type=bool)
-    define("zones", default=[1, 2], type=int, multiple=True)
     define("leader", default="localhost:8888", type=str)
+    define("db_host", default="localhost", type=str)
+    define("db_port", default=6379, type=int)
+    define("zones", default=[1, 2], type=int, multiple=True)
     parse_command_line()
 
     zones = options.zones
@@ -254,8 +256,7 @@ if __name__ == "__main__":
         with urlopen(url) as f:
             print("run", z, f.read().decode())
 
-    main(options.port, options.backstage, options.backdoor,
-         zones, options.debug)
+    main(options.port, options.backstage, options.backdoor, options.debug)
 
     for z in zones:
         url = "http://%s/%d?quit=%s" % (options.leader, z, start_time)
