@@ -46,9 +46,7 @@ textarea {
 input[type="submit"] {
     padding: 4px 14px;
     cursor: pointer;
-    color: #eeeeee;
-    background-color: #d9348c;
-    border-radius: 14px;
+    border-radius: 6px;
 }
 
 select:hover,
