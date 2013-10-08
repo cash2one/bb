@@ -111,6 +111,9 @@ def main(port, backstage, backdoor, web_debug=False):
             else:
                 self.finish()
 
+        def get(self):
+            """dummy"""
+
     import collections
     HC = collections.defaultdict(collections.deque)  # http commands
 
@@ -209,6 +212,7 @@ def main(port, backstage, backdoor, web_debug=False):
     conn.backdoor(wheels, Q0.put)().listen(backdoor)
 
     Application([
+        (r"/dummy", BaseHandler),
         (r"/", MainHandler),
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
