@@ -234,8 +234,11 @@ def main(port, backstage, backdoor, web_debug=False):
 
 
 if __name__ == "__main__":
-    from time import strftime
-    from urllib.request import urlopen
+    import collections
+    import itertools
+    import time
+    import urllib.parse
+    import urllib.request
 
     from tornado.options import define, options, parse_command_line
     define("port", default=8000, type=int, help="main port(TCP)")
@@ -252,17 +255,19 @@ if __name__ == "__main__":
     if len(set(zones)) != len(zones):
         raise ValueError(zones)
 
-    start_time = strftime("%y%m%d-%H%M%S")
-    for z in zones:
-        url = "http://%s/%d?run=%s&ports=%d&ports=%d&ports=%d" % (
-            options.leader, z, start_time,
-            options.port, options.backstage, options.backdoor)
-        with urlopen(url) as f:
-            print("run", z, f.read().decode())
+    start_time = time.strftime("%y%m%d-%H%M%S")
+    ports = (options.port, options.backstage, options.backdoor)
+    args = [("start", start_time)]
+    args.extend(zip(itertools.repeat("ports"), ports))
+    args.extend(zip(itertools.repeat("zones"), zones))
+    args = urllib.parse.urlencode(args)
 
-    main(options.port, options.backstage, options.backdoor, options.debug)
+    url = "http://%s/reg?%s" % (options.leader, args)
+    with urllib.request.urlopen(url) as f:
+        print(f.read().decode())
 
-    for z in zones:
-        url = "http://%s/%d?quit=%s" % (options.leader, z, start_time)
-        with urlopen(url) as f:
-            print("quit", z, f.read().decode())
+    main(*ports)
+
+    url = "http://%s/quit?%s" % (options.leader, args)
+    with urllib.request.urlopen(url) as f:
+        print("quit", f.read().decode())
