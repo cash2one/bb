@@ -15,7 +15,7 @@ from tornado.httpclient import AsyncHTTPClient
 
 hosts = {
     "127.0.0.1": "f1",
-    "192.168.25.252": "f2",
+    "192.168.25.250": "f2",
 }
 
 all_zones = {}
@@ -55,14 +55,14 @@ tornado.ioloop.PeriodicCallback(poll, 2000).start()
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write(str(servers))
+        self.render("index.html", servers=servers)
 
 class RegHandler(tornado.web.RequestHandler):
     def get(self):
         logging.debug(self.request.remote_ip)
         logging.debug(self.request.arguments)
         zones = frozenset(map(int, self.get_arguments("zones")))
-        if zones not in servers and not zones & frozenset(all_zones):
+        if zones not in servers and not zones & frozenset(all_zones):  # :)
             ip = self.request.remote_ip
             ports = tuple(map(int, self.get_arguments("ports")))
             for i in zones:

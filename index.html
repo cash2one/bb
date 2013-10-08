@@ -1,0 +1,13 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+
+<title>servers</title>
+
+<table>
+    {% for k, v in servers.items() %}
+    <tr>
+        <td>{{ " ".join(map(str, k)) }}</td>
+        <td>{{ v }}</td>
+    </tr>
+    {% end %}
+</table>
