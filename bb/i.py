@@ -232,7 +232,7 @@ class I(dict):
             del c[:]
         return f
 
-    def reward(self, rc, cause=None):
+    def give(self, rc, cause=None):
         self.apply(self.render(rc), cause)
 
     def render(self, rc):
@@ -412,7 +412,7 @@ if __name__ == "__main__":
     i.apply([["gold", 2], ["gold", 3]], 'haha')
     #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
     #i.bag.exchange(1, 2)
-    i.reward((("gold", "lv*100"),), "reward")
+    i.give((("gold", "lv*100"),), "give")
     i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], "test")
     i.apply([["item", 2, -5]], "test")
     i.apply_item(2, -5, custom=3)
