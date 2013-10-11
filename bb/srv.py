@@ -52,9 +52,6 @@ def build_all(data):
     from bb.i import I, P
     for i, v in data.items():
         P[i] = I(i, v)
-    from tornado.options import options
-    P[0]._i = "_".join(map(str, options.zones))
-
 
 def check(i, types=None, limits=None):
     if types is None:

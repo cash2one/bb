@@ -38,7 +38,9 @@ def worker(name, Q, task):
 
 
 def log(Q_err):
+    import collections
     import logging
+    import gc
     import signal
 
     def terminate(signal_number, stack_frame):
@@ -47,16 +49,26 @@ def log(Q_err):
         loop = False
     signal.signal(signal.SIGTERM, terminate)
 
-    from redis import StrictRedis
-    db = StrictRedis()
-
     from threading import Thread
     from queue import Queue
 
+    from tornado.options import options
+    z = "_".join(map(str, options.zones))
+
+    from redis import StrictRedis
+    db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
+    hset = db.hset
+
+    from bb.oc import record, recorder
     from bb.js import dump2
 
+    def _save(i, k, v):
+        if i == 0:
+            i = z
+        hset(i, k, dump2(v))
+
     tasks = {
-        "save": (Queue(), lambda i, k, v: db.hset(i, k, dump2(v))),
+        "save": (Queue(), _save),
         "log": (Queue(), lambda *args: logging.info(args)),
         "battle": (Queue(), lambda *args: logging.info(args)),
         "buy": (Queue(), lambda *args: logging.info(args)),
