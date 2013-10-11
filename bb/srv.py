@@ -26,10 +26,15 @@ def load_data():
         ids.extend(map(int, db.hgetall("z%d" % z).values()))
     logging.debug("all: %d", len(ids))
 
+    if 0 in ids:
+        raise KeyError(0)
+
     from collections import Counter
     checker = Counter(ids)
     if len(checker) != len(ids):  # not unique
         raise ValueError(checker.most_common(3))
+
+    ids.append(0)
 
     pipe = db.pipeline()
     for i in ids:
@@ -42,11 +47,13 @@ def load_data():
     return raw
 
 def build_all(data):
-    """
+    """root is in earth, everywhere
     """
     from bb.i import I, P
     for i, v in data.items():
         P[i] = I(i, v)
+    from tornado.options import options
+    P[0]._i = "_".join(map(str, options.zones))
 
 
 def check(i, types=None, limits=None):
