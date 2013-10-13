@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, web_debug=False):
+def main(port, backstage, backdoor, debug):
     import gc
     gc.disable()
 
@@ -23,8 +23,6 @@ def main(port, backstage, backdoor, web_debug=False):
     sub_procs = {}
 
     def start():
-        if web_debug:
-            return
         logging.info("starting sub processes...")
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
@@ -69,8 +67,7 @@ def main(port, backstage, backdoor, web_debug=False):
         logging.info("will exit")
         io_loop.stop()
         stop()
-    if not web_debug:
-        signal.signal(signal.SIGTERM, term)
+    signal.signal(signal.SIGTERM, term)
 
 
     commands = {
@@ -211,6 +208,9 @@ def main(port, backstage, backdoor, web_debug=False):
     conn.tcp(staffs, Q0.put, )().listen(port)
     conn.backdoor(wheels, Q0.put)().listen(backdoor)
 
+    from tornado import autoreload
+    autoreload.start = lambda: None  # monkey patch, i don't like autoreload
+
     Application([
         (r"/dummy", BaseHandler),
         (r"/", MainHandler),
@@ -218,7 +218,7 @@ def main(port, backstage, backdoor, web_debug=False):
         (r"/hub", HubHandler),
         (r"/(.*)_status", StatusHandler),
         (r"/ws", conn.websocket(staffs, Q0.put, )),
-    ], static_path="_", template_path="tpl", debug=web_debug).listen(backstage)
+    ], static_path="_", template_path="tpl", debug=debug).listen(backstage)
 
 
     import os
@@ -266,7 +266,7 @@ if __name__ == "__main__":
     with urllib.request.urlopen(url) as f:
         print(f.read().decode())
 
-    main(*ports)
+    main(*ports, debug=options.debug)
 
     url = "http://%s/quit?%s" % (options.leader, args)
     with urllib.request.urlopen(url) as f:
