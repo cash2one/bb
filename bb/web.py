@@ -15,6 +15,9 @@ def main(port, backstage, backdoor, debug):
     import logging
     from multiprocessing import Process
     from multiprocessing.queues import Queue, SimpleQueue
+    if debug:
+        from threading import Thread as Process
+
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
     import bb.hub
@@ -31,7 +34,7 @@ def main(port, backstage, backdoor, debug):
         sub_procs["log"] = Process(target=bb.log.log, args=(Q2,))
         for name, proc in sub_procs.items():
             proc.start()
-            logging.info("%s started, pid:%d", name, proc.pid)
+            logging.info("%s started, pid:%d", name, getattr(proc, "pid", 0))
         logging.info("start sub processes success!")
 
     def stop():
@@ -42,7 +45,7 @@ def main(port, backstage, backdoor, debug):
             logging.warning("sub processes are not running, failed to stop")
         for name, proc in sub_procs.items():
             proc.join()
-            logging.info("%s stopped, pid:%s", name, proc.pid)
+            logging.info("%s stopped, pid:%d", name, getattr(proc, "pid", 0))
         logging.info("stop sub processes success!")
 
     start()

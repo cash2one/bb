@@ -39,8 +39,11 @@ def hub(Q_in, Q_out, Q_err):
         logging.warning("received SIGTERM")
         nonlocal loop
         loop = False
-    signal.signal(signal.SIGTERM, terminate)
 
+    try:
+        signal.signal(signal.SIGTERM, terminate)
+    except ValueError as e:
+        logging.info(e)
 
     _filter = functools.partial(filter, None)
 
