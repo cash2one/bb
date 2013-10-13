@@ -21,6 +21,7 @@ hosts = {
 all_zones = {}
 servers = {}
 broken = collections.Counter()
+errors = {}
 LIMIT_BROKEN = 1
 
 tornado.options.parse_command_line()
@@ -34,7 +35,7 @@ def check(zones, response):
         logging.warning(error)
         broken[zones] += 1
         if broken[zones] > LIMIT_BROKEN:
-            broken[zones] = [
+            errors[zones] = [
                 error,
                 servers.pop(zones),
                 [all_zones.pop(i) and i for i in zones],
@@ -46,6 +47,7 @@ def poll():
     logging.debug(all_zones)
     logging.debug(servers)
     logging.debug(broken)
+    logging.debug(errors)
     for k, v in servers.items():
         AsyncHTTPClient().fetch("http://%s:%d/dummy" % (v.ip, v.ports[1]),
                                 functools.partial(check, k),
