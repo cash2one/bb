@@ -66,11 +66,30 @@ def hub(Q_in, Q_out, Q_err, options=opt):
 
     import gc
     gc.collect()
+
+    _in = Q_in.get
+    _out = Q_out.put
+    _err = Q_err.put
+
+    if options.debug:
+        import redis
+        debug = redis.StrictRedis(options.db_host, options.db_port)
+        def _in():
+            v = Q_in.get()
+            debug.rpush("debug_in", v)
+            return v
+        def _out(v):
+            debug.rpush("debug_out", v)
+            Q_out.put(v)
+        def _err(v):
+            debug.rpush("debug_err", v)
+            Q_err.put(v)
+
     loop = True
 
     while loop:
         try:
-            v = Q_in.get()
+            v = _in()
         except Exception as e:
             logging.error(e)
             continue
@@ -90,7 +109,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
                     traceback.print_exc(file=_output)
                     output = _output.getvalue()
                     logging.exception(v)
-                Q_out.put([cmd, output])   # echo cmd and result(or error)
+                _out([cmd, output])   # echo cmd and result(or error)
             else:
                 i, cmd, data = v
                 producer = processes[cmd]
@@ -101,16 +120,16 @@ def hub(Q_in, Q_out, Q_err, options=opt):
                         raise NotImplementedError(cmd)
                 except Exception as e:
                     err = e.__class__.__name__
-                    Q_out.put([i, 0, dump1(exc_map.get(err, 0))])
+                    _out([i, 0, dump1(exc_map.get(err, 0))])
                     exc_recorder[i][err] += 1
                     raise e
                 if outs:
                     for x in _filter(outs):   # is _filter neccessary?
                         if isinstance(x[0], int):
                             i, cmd, data = x
-                            Q_out.put([i, instructions[cmd], dump1(data)])
+                            _out([i, instructions[cmd], dump1(data)])
                         else:
-                            Q_err.put(x)
+                            _err(x)
         except Exception:
             logging.exception(v)
 
