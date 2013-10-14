@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<meta charset="utf-8">
+<link rel="stylesheet" href="/static/bb.css">
+
+<title>io history</title>
+
+<p>
+<a href="/io/clean">clean</a>
+</p>
+
+<table>
+    {% for x in history %}
+    {% set time, method, data = x.split(None, 2) %}
+    <tr>
+        <td>{{ time }}</td>
+        <td class="{{ method }}">{{ method }}</td>
+        <td>{{ data[1:-1] }}</td>
+    </tr>
+    {% end %}
+</table>
+
+<p>
+{% for i in range(1, pages + 1) %}
+<a href="/io/{{ i }}">{{ i }}</a>
+{% end %}
+</p>

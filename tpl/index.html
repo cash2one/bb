@@ -1,15 +1,19 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
-<link rel="stylesheet" href="static/bb.css">
+<link rel="stylesheet" href="/static/bb.css">
 
 <title>bb</title>
 
 {% for x in ["web", "hub", "log"] %}
-<a href="{{ x }}_status" target="_blank" class="tagbtn">{{ x }}</a>
+<a href="{{ x }}_status" target="_blank">{{ x }}</a>
 {% end %}
 
 <p>
-<a href="hub" target="_blank" class="tagbtn">HUB</a>
+<a href="hub" target="_blank">HUB</a>
+</p>
+
+<p>
+<a href="io" target="_blank">IO</a>
 </p>
 
 <form action="t">

@@ -6,7 +6,7 @@
 body {
     margin: 5% 5% 5% 5%;
     padding: 2% 5% 5% 5%;
-    background-color: #eeeeee;
+    background-color: #f4f4f4;
 }
 
 code {
@@ -31,8 +31,18 @@ table th {
 
 table td {
     border-width: 1px;
-    padding: 6px;
+    padding: 3px;
     border-style: solid;
+}
+
+table td.in {
+    background-color: #00dd00;
+}
+table td.out {
+    background-color: #dd0000;
+}
+table td.err {
+    background-color: #6E6E6E;
 }
 
 select,
