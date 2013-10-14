@@ -212,7 +212,8 @@ def main(port, backstage, backdoor, debug):
     conn.backdoor(wheels, Q0.put)().listen(backdoor)
 
     from tornado import autoreload
-    autoreload.start = lambda: None  # monkey patch, i don't like autoreload
+    #autoreload.start = lambda: None  # monkey patch, i don't like autoreload
+    autoreload.add_reload_hook(stop)  # i like autoreload now :)
 
     Application([
         (r"/dummy", BaseHandler),
@@ -265,12 +266,14 @@ if __name__ == "__main__":
     args.extend(zip(itertools.repeat("zones"), zones))
     args = urllib.parse.urlencode(args)
 
-    url = "http://%s/reg?%s" % (options.leader, args)
-    with urllib.request.urlopen(url) as f:
-        print(f.read().decode())
+    def to_leader(key):
+        if not options.debug:
+            url = "http://%s/%s?%s" % (options.leader, key, args)
+            with urllib.request.urlopen(url) as f:
+                print(f.read().decode())
+
+    to_leader("reg")
 
     main(*ports, debug=options.debug)
 
-    url = "http://%s/quit?%s" % (options.leader, args)
-    with urllib.request.urlopen(url) as f:
-        print("quit", f.read().decode())
+    to_leader("quit")
