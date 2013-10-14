@@ -13,6 +13,7 @@
 0
 """
 
+
 def worker(name, Q, task):
     import logging
     import time
@@ -37,7 +38,9 @@ def worker(name, Q, task):
     Q.task_done()
 
 
-def log(Q_err):
+from bb import opt
+
+def log(Q_err, options=opt):
     import collections
     import logging
     import gc
@@ -56,7 +59,6 @@ def log(Q_err):
     from threading import Thread
     from queue import Queue
 
-    from tornado.options import options
     z = "_".join(map(str, options.zones))
 
     from redis import StrictRedis

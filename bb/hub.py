@@ -19,7 +19,10 @@ True
 
 """
 
-def hub(Q_in, Q_out, Q_err):
+
+from bb import opt
+
+def hub(Q_in, Q_out, Q_err, options=opt):
     import functools
     import logging
     import io
@@ -52,7 +55,7 @@ def hub(Q_in, Q_out, Q_err):
     instructions = inst.instructions
 
     try:
-        build_all(load_data())
+        build_all(load_data(options))
         check_all()
         import_others()
         logging.info(len(P))

@@ -12,13 +12,12 @@ def import_others():
         logging.debug(m)
         __import__(m)
 
-def load_data():
+def load_data(options):
     """from redis
     uniq in index
     """
     from json import loads
     from redis import StrictRedis
-    from tornado.options import options
 
     db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
     ids = []
