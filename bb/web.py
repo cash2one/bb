@@ -18,6 +18,8 @@ def main(port, backstage, backdoor, debug, options):
 
     if debug:
         from threading import Thread as Process
+        from redis import StrictRedis
+        debug_db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
 
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
@@ -191,6 +193,19 @@ def main(port, backstage, backdoor, debug, options):
                 self.back()
 
 
+    class IOHistoryHandler(BaseHandler):
+        def get(self, idx=1):
+            idx = int(idx)
+            step = 50
+            pages = int(debug_db.llen("io") / step) + 1
+            history = debug_db.lrange("io", step * (idx - 1), step * idx)
+            self.render("io_history.html", pages=pages, history=history)
+
+    class CleanIOHistoryHandler(BaseHandler):
+        def get(self):
+            debug_db.delete("io")
+            self.redirect("/io")
+
     class StatusHandler(BaseHandler):
         recorders = {"web": recorder, "hub": {}, "log": {}}
         def get(self, key):
@@ -221,6 +236,9 @@ def main(port, backstage, backdoor, debug, options):
         (r"/", MainHandler),
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
+        (r"/io", IOHistoryHandler),
+        (r"/io/clean", CleanIOHistoryHandler),
+        (r"/io/(\d+)", IOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
         (r"/ws", conn.websocket(staffs, Q0.put, )),
     ], static_path="_", template_path="tpl", debug=debug).listen(backstage)
