@@ -10,7 +10,7 @@
     {% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
     <tr>
         <td>{{ obj }}</td>
-        <td>{{ str(list(history))[1:-1] }}</td>
+        <td>{{ str(list(history)).strip("[]") }}</td>
     </tr>
     {% end %}
 </table>

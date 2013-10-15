@@ -108,6 +108,8 @@ def main(port, backstage, backdoor, debug, options):
         ), 2000).start()
 
     class BaseHandler(RequestHandler):
+        IO = "io"
+        STEP = 10
         def back(self):
             if self.request.host[0].isalpha():
                 self.redirect("")
@@ -194,17 +196,27 @@ def main(port, backstage, backdoor, debug, options):
 
 
     class IOHistoryHandler(BaseHandler):
-        def get(self, idx=1):
-            idx = int(idx)
-            step = 50
-            pages = int(debug_db.llen("io") / step) + 1
-            history = debug_db.lrange("io", step * (idx - 1), step * idx)
-            self.render("io_history.html", pages=pages, history=history)
+        def get(self, page=1):
+            page = int(page)
+            s = self.STEP
+            io = self.IO
+            pages = int((debug_db.llen(io) - 1) / s) + 1
+            history = debug_db.lrange(io, s * (page - 1), s * page - 1)
+            self.render("io_history.html",
+                        page=page,
+                        pages=pages,
+                        history=history)
 
     class CleanIOHistoryHandler(BaseHandler):
-        def get(self):
-            debug_db.delete("io")
-            self.redirect("/io")
+        def get(self, page=None):
+            s = self.STEP
+            io = self.IO
+            if page is None:
+                debug_db.delete(io)
+            else:
+                page = int(page)
+                debug_db.ltrim(io, s * (page - 1), -1)
+            self.redirect("/%s" % io)
 
     class StatusHandler(BaseHandler):
         recorders = {"web": recorder, "hub": {}, "log": {}}
@@ -237,8 +249,9 @@ def main(port, backstage, backdoor, debug, options):
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
         (r"/io", IOHistoryHandler),
-        (r"/io/clean", CleanIOHistoryHandler),
         (r"/io/(\d+)", IOHistoryHandler),
+        (r"/io/clean", CleanIOHistoryHandler),
+        (r"/io/clean/(\d+)", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
         (r"/ws", conn.websocket(staffs, Q0.put, )),
     ], static_path="_", template_path="tpl", debug=debug).listen(backstage)
