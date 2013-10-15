@@ -16,12 +16,24 @@
 
 <table>
     {% for x in history %}
+
     {% set time, method, data = x.split(None, 2) %}
+    {% set data = (data[1:-1] if data[0] == "[" else data).split(", ", 2) %}
+
+    {% if data[0].isdigit() and data[1].isdigit() %}
+        {% set data[2] = data[2].strip("'") %}
+    {% else %}
+        {% set data[0] = data[0].strip("'") %}
+    {% end %}
+
     <tr>
         <td>{{ time }}</td>
         <td class="{{ method }}">{{ method }}</td>
-        <td>{{ data.strip("[]") }}</td>
+        {% for i, x in enumerate(data, 1) %}
+        <td class="f{{ i }}">{{ x }}</td>
+        {% end %}
     </tr>
+
     {% end %}
 </table>
 

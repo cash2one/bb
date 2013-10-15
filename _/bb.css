@@ -44,6 +44,15 @@ table td.out {
 table td.err {
     background-color: #6E6E6E;
 }
+table td.f1 {
+    width: 50px;
+}
+table td.f2 {
+    width: 22px;
+}
+table td.f3 {
+    width: 2000px;
+}
 
 select,
 input,

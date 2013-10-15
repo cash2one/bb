@@ -109,7 +109,7 @@ def main(port, backstage, backdoor, debug, options):
 
     class BaseHandler(RequestHandler):
         IO = "io"
-        STEP = 10
+        STEP = 25
         def back(self):
             if self.request.host[0].isalpha():
                 self.redirect("")
