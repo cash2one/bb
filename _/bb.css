@@ -20,12 +20,14 @@ a {
 table {
     font-size: 12px;
     border-width: 1px;
+    border-color: #808080;
     border-collapse: collapse;
 }
 
 table th {
     border-width: 1px;
     border-style: solid;
+    border-color: #808080;
     background-color: #dedede;
 }
 
@@ -33,6 +35,7 @@ table td {
     border-width: 1px;
     padding: 3px;
     border-style: solid;
+    border-color: #808080;
 }
 
 table td.in {

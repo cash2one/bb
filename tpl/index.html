@@ -1,20 +1,27 @@
 <!DOCTYPE HTML>
 <meta charset="utf-8">
 <link rel="stylesheet" href="/static/bb.css">
+<base href="/" target="_blank">
 
 <title>bb</title>
 
 {% for x in ["web", "hub", "log"] %}
-<a href="{{ x }}_status" target="_blank">{{ x }}</a>
+<a href="{{ x }}_status">{{ x }}</a>
 {% end %}
 
-<p>
-<a href="hub" target="_blank">HUB</a>
-</p>
+<hr>
 
 <p>
-<a href="io" target="_blank">IO</a>
+<a href="hub">HUB</a>
 </p>
+
+<hr>
+
+<p>
+<a href="io">IO</a>
+</p>
+
+<hr>
 
 <form action="t">
     <input name="_" value="1">
@@ -22,14 +29,18 @@
     <input type="submit" value="gen token">
 </form>
 
-<form method="post">
-    <select name="cmd" size="{{ len(options) }}">
-        {% for b in options %}
-        <option>{{ b }}</option>
-        {% end %}
-    </select>
+<hr>
+
+<form method="post" target="_self">
+    {% for b in options %}
+    <input type="radio" name="cmd" value="{{ b }}" id="{{ b }}">
+    <label for="{{ b }}">{{ b }}</label>
+    <br>
+    {% end %}
     <input type="submit" value="Go">
 </form>
+
+<hr>
 
 <p>{{ qsize }}</p>
 <p>{{ list(staffs.keys()) }}</p>
