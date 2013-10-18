@@ -21,10 +21,14 @@
     {% set time, method, data = x.split(None, 2) %}
     {% set data = (data[1:-1] if data[0] == "[" else data).split(", ", 2) %}
 
-    {% if data[0].isdigit() and data[1].isdigit() %}
-        {% set data[2] = data[2].strip("'") %}
-    {% else %}
-        {% set data[0] = data[0].strip("'") %}
+    {% if len(data) == 3 %}
+        {% if data[0].isdigit() %}
+            {% set data[2] = data[2].strip("'") %}
+        {% elif data[1].isdigit() %}
+            {% set data[0] = data[0].strip("'") %}
+        {% else %}
+            {% set data[1] += ", " + data.pop() %}
+        {% end %}
     {% end %}
 
     <tr>
