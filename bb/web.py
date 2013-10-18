@@ -286,6 +286,8 @@ if __name__ == "__main__":
             else:
                 define(k, default=v, type=type(v))
 
+    define("debug", type=bool)
+
     parse_command_line()
 
     debug = options.debug = options.logging == "debug"
