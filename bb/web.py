@@ -281,7 +281,10 @@ if __name__ == "__main__":
     for k in dir(opt):
         if k[0].isalpha():
             v = getattr(opt, k)
-            define(k, default=v, type=type(v), multiple=isinstance(v, list))
+            if isinstance(v, list):
+                define(k, default=v, type=type(v[0]), multiple=True)
+            else:
+                define(k, default=v, type=type(v))
 
     parse_command_line()
 
