@@ -9,13 +9,13 @@ r"""
 # {1: func_1, 2: func_2, ...}
 processes = [None] * 2**16
 
-instructions_list = [
+_instructions_list = [
     "ping",
     "online",
 ]
 
 # {"ping": 1, "pong": 2, ...}
-instructions = dict(zip(instructions_list, range(2**8)))  # 0-255
+instructions = dict(zip(_instructions_list, range(2**8)))  # 0-255
 
 def handle(func):
     assert callable(func), func
@@ -26,20 +26,25 @@ def handle(func):
     processes[signal] = func
     return func
 
-def pre(types, value_checker=None):
-    assert isinstance(types, (type, tuple))
+def pre(types=None, value_checker=None):
+    if types is not None:
+        assert isinstance(types, (type, tuple))
     if value_checker is not None:
         assert callable(value_checker)
-    def _(func):
-        def type_and_value(i, x):
-            if not isinstance(x, types):
+    def decorator(func):
+        alias = func.__name__
+        idx = instructions[alias]
+        def _(i, x):
+            if types and not isinstance(x, types):
                 raise TypeError(x)
             if value_checker and not value_checker(x):
                 raise ValueError(x)
+            if idx not in i["features"]:
+                raise IndexError(idx)
             return func(i, x)
-        type_and_value.__name__ = func.__name__
-        return type_and_value
-    return _
+        _.__name__ = alias
+        return _
+    return decorator
 
 
 runners = {}  # launch certain function in runners by web
