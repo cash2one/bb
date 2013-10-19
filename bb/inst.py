@@ -6,16 +6,12 @@ r"""
 """
 
 
-# {1: func_1, 2: func_2, ...}
 processes = [None] * 2**16
 
-_instructions_list = [
-    "ping",
-    "online",
-]
+# {"ping": 0, "online": 1, ...}
+from bb.const import instructions_list
+instructions = dict(zip(instructions_list, range(2**8)))  # 0-255
 
-# {"ping": 1, "pong": 2, ...}
-instructions = dict(zip(_instructions_list, range(2**8)))  # 0-255
 
 def handle(func):
     assert callable(func), func
