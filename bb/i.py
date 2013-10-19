@@ -113,7 +113,7 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
-    MAX_LOGS_DEQUE_LENGTH = 100
+    additives = {"gold"}
 
     eval_cache = EvalCache()
 
@@ -149,7 +149,7 @@ class I(dict):
             raise ValueError("is not int: %r" % n)
         self._i = n
         self._cache = []
-        self._logs = collections.deque(maxlen=self.MAX_LOGS_DEQUE_LENGTH)
+        self._logs = collections.deque(maxlen=50)
         self._listeners = collections.defaultdict(set)
         self.online = False
         if source:
@@ -266,11 +266,16 @@ class I(dict):
             else:
                 raise Warning("unsupported rc: %s" % (r,))
 
+        ad = self.additives
         for i in booty:
+            k = i[0]
             n = i[-1]
             if not isinstance(n, int):
                 n = self.eval(n)
-            i[-1] = int(n * discount)
+            if k in ad:
+                n *= discount
+                # ...
+            i[-1] = int(n)
 
         return booty
 
