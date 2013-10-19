@@ -23,6 +23,9 @@ def main(port, backstage, backdoor, debug, options):
 
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
+    put = Q0.put
+    get = Q1.get
+
     import bb.hub
     import bb.log
 
@@ -43,7 +46,7 @@ def main(port, backstage, backdoor, debug, options):
     def stop():
         logging.info("stopping sub processes...")
         if all(proc.is_alive() for proc in sub_procs.values()):
-            Q0.put(None)
+            put(None)
         else:
             logging.warning("sub processes are not running, failed to stop")
         for name, proc in sub_procs.items():
@@ -81,7 +84,7 @@ def main(port, backstage, backdoor, debug, options):
     }
 
     def msg(fd, event):
-        x = Q1.get()
+        x = get()
         logging.debug("msg from hub: %r", x)
         if len(x) == 2:
             cmd, data = x
@@ -179,7 +182,7 @@ def main(port, backstage, backdoor, debug, options):
                 logging.info("hub_commands: %s, %s", cmd, args)
                 t = time.strftime("%H:%M:%S")
                 self.history.appendleft([t, cmd, args, None])
-                Q0.put([cmd, args])
+                put([cmd, args])
                 HC[cmd].append(partial(self.deal_echoed, cmd))
             else:
                 self.back()
@@ -236,8 +239,8 @@ def main(port, backstage, backdoor, debug, options):
 
     from bb import conn
 
-    conn.tcp(staffs, Q0.put, )().listen(port)
-    conn.backdoor(wheels, Q0.put)().listen(backdoor)
+    conn.tcp(staffs, put, )().listen(port)
+    conn.backdoor(wheels, put)().listen(backdoor)
 
     from tornado import autoreload
     #autoreload.start = lambda: None  # monkey patch, i don't like autoreload
@@ -253,7 +256,7 @@ def main(port, backstage, backdoor, debug, options):
         (r"/io/clean", CleanIOHistoryHandler),
         (r"/io/clean/(\d+)", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
-        (r"/ws", conn.websocket(staffs, Q0.put, )),
+        (r"/ws", conn.websocket(staffs, put, )),
     ], static_path="_", template_path="tpl", debug=debug).listen(backstage)
 
 

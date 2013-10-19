@@ -126,7 +126,7 @@ class I(dict):
         "gold": 500,
         "level": 1,
         "bag": lambda _: [{"max": 8}] + [None] * 8,
-        "features": lambda _: set(range(0, 256)),
+        "features": lambda _: set(range(0, 8)),
     }
 
     _wrappers = {

@@ -20,8 +20,11 @@ def worker(name, Q, task):
 
     logging.info("log_worker %s start" % name)
 
+    get = Q.get
+    done = Q.task_done
+
     while True:
-        v = Q.get()
+        v = get()
         if v is None:
             break
         logging.info("%r: %r" % (name, v))
@@ -32,10 +35,10 @@ def worker(name, Q, task):
         except Exception as e:
             logging.error(e)
 
-        Q.task_done()
+        done()
 
     logging.info("log_worker %s exit" % name)
-    Q.task_done()
+    done()
 
 
 from bb import opt
@@ -80,13 +83,17 @@ def log(Q_err, options=opt):
         "buy": (Queue(), lambda *args: logging.info(args)),
     }
 
+    puts = {k: v[0].put for k, v in tasks.items()}
+
     for k, v in tasks.items():
         Thread(target=worker, args=(k, v[0], v[1])).start()
 
+    get = Q_err.get
     loop = True
+
     while loop:
         try:
-            v = Q_err.get()
+            v = get()
         except Exception as e:
             logging.error(e)
             continue
@@ -99,7 +106,7 @@ def log(Q_err, options=opt):
             break
 
         try:
-            tasks[v[0]][0].put(v[1:])
+            puts[v[0]](v[1:])
         except Exception as e:
             logging.error(e)
 
@@ -107,9 +114,11 @@ def log(Q_err, options=opt):
 
 def test(Q):
     i = 0
+    get = Q.get
+    done = Q.task_done
     while True:
-        v = Q.get()
-        Q.task_done()
+        v = get()
+        done()
         #print(v)
         if v is None:
             break
@@ -123,16 +132,17 @@ def main():
 
     n = 3
     Q = Queue()
+    put = Q.put
 
     for i in range(n):
         Thread(target=test, args=(Q,)).start()
 
     for i in range(100**2):
-        Q.put(i)
+        put(i)
     print(i)
 
     for i in range(n):
-        Q.put(None)
+        put(None)
     Q.join()
 
 
@@ -141,4 +151,4 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     doctest.testmod()
-    #main()
+    main()

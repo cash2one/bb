@@ -31,11 +31,10 @@ def hub(Q_in, Q_out, Q_err, options=opt):
 
     from json import loads
 
-    from bb import inst   # load all instructions
     from bb.i import P
     from bb.js import dump1
     from bb.exc import exc_map, exc_recorder
-    from bb.srv import load_data, build_all, check_all, import_others
+    from bb.inst import processes, commands, instructions
 
 
     def terminate(signal_number, stack_frame):
@@ -48,28 +47,26 @@ def hub(Q_in, Q_out, Q_err, options=opt):
     except ValueError as e:
         logging.info(e)
 
+
     _filter = functools.partial(filter, None)
 
-    processes = inst.processes
-    commands = inst.commands
-    instructions = inst.instructions
+    _in = Q_in.get
+    _out = Q_out.put
+    _err = Q_err.put
 
     try:
+        from bb.srv import load_data, build_all, check_all, import_others
         build_all(load_data(options))
         check_all()
         import_others()
         logging.info(len(P))
     except Exception:
         logging.exception("init error")
-        Q_err.put(None)
+        _err(None)
         return
 
     import gc
     gc.collect()
-
-    _in = Q_in.get
-    _out = Q_out.put
-    _err = Q_err.put
 
     if options.debug:
         from time import strftime
@@ -97,7 +94,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
 
         if v is None:
             logging.info("hub exit")
-            Q_err.put(None)
+            _err(None)
             break
 
         try:
