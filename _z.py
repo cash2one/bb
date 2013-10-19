@@ -63,10 +63,10 @@ class RegHandler(tornado.web.RequestHandler):
     def get(self):
         logging.debug(self.request.remote_ip)
         logging.debug(self.request.arguments)
-        zones = frozenset(map(int, self.get_arguments("zones")))
-        if zones not in servers and not zones & frozenset(all_zones):  # :)
+        zones = tuple(int(i) for i in self.get_arguments("zones"))
+        ports = tuple(int(i) for i in self.get_arguments("ports"))
+        if zones not in servers and not set(zones) & set(all_zones):  # :)
             ip = self.request.remote_ip
-            ports = tuple(map(int, self.get_arguments("ports")))
             for i in zones:
                 all_zones[i] = (hosts[ip], ports[0])
             s = ObjectDict(
@@ -81,7 +81,7 @@ class RegHandler(tornado.web.RequestHandler):
 
 class QuitHandler(tornado.web.RequestHandler):
     def get(self):
-        zones = frozenset(map(int, self.get_arguments("zones")))
+        zones = tuple(int(i) for i in self.get_arguments("zones"))
         if zones in servers:
             servers.pop(zones)
             for i in zones:

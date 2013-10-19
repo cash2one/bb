@@ -296,7 +296,7 @@ if __name__ == "__main__":
     debug = options.debug = options.logging == "debug"
 
     zones = options.zones
-    if len(set(zones)) != len(zones):
+    if len(set(zones)) != len(zones) or sorted(zones) != zones:
         raise ValueError(zones)
 
     ports = (options.port, options.backstage, options.backdoor)
