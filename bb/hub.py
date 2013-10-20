@@ -25,8 +25,8 @@ from bb import opt
 def hub(Q_in, Q_out, Q_err, options=opt):
     import functools
     import logging
-    import io
     import signal
+    import sys
     import traceback
 
     from json import loads
@@ -103,9 +103,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
                 try:
                     output = commands[cmd](data)
                 except Exception:
-                    _output = io.StringIO()
-                    traceback.print_exc(file=_output)
-                    output = _output.getvalue()
+                    output = traceback.format_exc()
                     logging.exception(v)
                 _out([cmd, output])   # echo cmd and result(or error)
             else:
@@ -116,11 +114,11 @@ def hub(Q_in, Q_out, Q_err, options=opt):
                         outs = producer(P[i], loads(data))
                     else:
                         raise NotImplementedError(cmd)
-                except Exception as e:
-                    err = e.__class__.__name__
+                except Exception:
+                    err = sys.exc_info()[0].__name__
                     _out([i, 0, dump1(exc_map.get(err, 0))])
                     exc_recorder[i][err] += 1
-                    raise e
+                    raise
                 if outs:
                     for x in _filter(outs):   # is _filter neccessary?
                         if isinstance(x[0], int):
