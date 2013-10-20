@@ -132,6 +132,7 @@ class I(dict):
     _wrappers = {
         "foobar": lambda raw: collections.Counter(
             {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
+        "features": lambda raw: set(raw),
     }
 
     _cbs = {}
