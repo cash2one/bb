@@ -29,14 +29,11 @@ def pre(types=None, value_checker=None):
         assert callable(value_checker)
     def decorator(func):
         alias = func.__name__
-        idx = instructions[alias]
         def _(i, x):
             if types and not isinstance(x, types):
                 raise TypeError(x)
             if value_checker and not value_checker(x):
                 raise ValueError(x)
-            if idx not in i["features"]:
-                raise IndexError(idx)
             return func(i, x)
         _.__name__ = alias
         return _
