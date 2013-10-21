@@ -126,13 +126,17 @@ class I(dict):
         "gold": 500,
         "level": 1,
         "bag": lambda _: [{"max": 8}] + [None] * 8,
-        "features": lambda _: set(range(0, 8)),
+        "story": 0,
+        "story_task": 0,
+        "storittes": lambda _: {},  # {id: count, ...}
+        "storittes_done": lambda _: set(),
     }
 
     _wrappers = {
         "foobar": lambda raw: collections.Counter(
             {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
-        "features": lambda raw: set(raw),
+        "storittes": lambda raw: {int(k): v for k, v in raw.items()},
+        "storittes_done": lambda raw: set(raw),
     }
 
     _cbs = {}

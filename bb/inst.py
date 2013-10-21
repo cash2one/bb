@@ -6,6 +6,8 @@ r"""
 """
 
 
+features = {}
+
 processes = [None] * 2**16
 
 # {"ping": 0, "online": 1, ...}
@@ -29,11 +31,16 @@ def pre(types=None, value_checker=None):
         assert callable(value_checker)
     def decorator(func):
         alias = func.__name__
+        limit = features.get(alias, 0)
+        assert isinstance(limit, int)
         def _(i, x):
             if types and not isinstance(x, types):
                 raise TypeError(x)
             if value_checker and not value_checker(x):
                 raise ValueError(x)
+            story = i["story"]
+            if story < limit:
+                raise ReferenceError(alias, limit, story)
             return func(i, x)
         _.__name__ = alias
         return _
