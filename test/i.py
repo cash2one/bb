@@ -26,7 +26,6 @@ class TestI(unittest.TestCase):
         self.assertEqual(i.i, self.i_flag)
         self.assertIsInstance(i.cache, list)
         self.assertIsInstance(i.logs, collections.deque)
-        self.assertEqual(i.logs.maxlen, I.MAX_LOGS_DEQUE_LENGTH)
         self.assertIsInstance(i.listeners, collections.defaultdict)
         self.assertIs(i.listeners.default_factory, set)
 
