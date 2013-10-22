@@ -113,7 +113,7 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
-    additives = {"gold"}
+    mess_fixed = {"gold"}
 
     eval_cache = EvalCache()
 
@@ -272,13 +272,13 @@ class I(dict):
             else:
                 raise Warning("unsupported rc: %s" % (r,))
 
-        ad = self.additives
+        fixed = self.mess_fixed
         for i in booty:
             k = i[0]
             n = i[-1]
             if not isinstance(n, int):
                 n = self.eval(n)
-            if k in ad:
+            if k not in fixed:
                 n *= discount
                 # ...
             i[-1] = int(n)
