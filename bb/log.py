@@ -31,7 +31,7 @@ def worker(name, Q, task):
 
         try:
             task(*v)
-            time.sleep(1)  # test blocking
+            time.sleep(0.01)  # test blocking
         except Exception as e:
             logging.error(e)
 
