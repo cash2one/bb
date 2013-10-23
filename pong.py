@@ -2,14 +2,23 @@
 
 import time
 
+from bb.const import public_attrs
 from bb.inst import instructions, processes, handle, pre, run
 from bb.i import I, P
 
 assert len(I._defaults) < 256
 
 def _echo_attr(key):
-    """1-99 echo only"""
-    return lambda i, _: [[i.i, key, i[key]]]
+    """echo only"""
+    def _(i, idx):
+        if idx:
+            if key not in public_attrs:
+                raise KeyError(key)
+            v = P[idx][key]
+        else:
+            v = i[key]
+        return [[i.i, key, v]]
+    return _
 
 for idx, key in enumerate(sorted(I._defaults), 2**8):  # 256-511
     instructions[key] = idx

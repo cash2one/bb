@@ -8,3 +8,8 @@ instructions_list = [
     "ping",
     "online",
 ]
+
+public_attrs = {
+    "bag",
+    "level",
+}
