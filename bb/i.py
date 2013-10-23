@@ -128,15 +128,15 @@ class I(dict):
         "bag": lambda _: [{"max": 8}] + [None] * 8,
         "story": 0,
         "story_task": 0,
-        "storittes": lambda _: {},  # {id: count, ...}
-        "storittes_done": lambda _: set(),
+        "stories": lambda _: {},  # {id: count, ...}
+        "stories_done": lambda _: set(),
     }
 
     _wrappers = {
         "foobar": lambda raw: collections.Counter(
             {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
-        "storittes": lambda raw: {int(k): v for k, v in raw.items()},
-        "storittes_done": lambda raw: set(raw),
+        "stories": lambda raw: {int(k): v for k, v in raw.items()},
+        "stories_done": lambda raw: set(raw),
     }
 
     _cbs = {}
