@@ -6,7 +6,7 @@ from bb.const import public_attrs
 from bb.inst import instructions, processes, handle, pre, run
 from bb.i import I, P
 
-assert len(I._defaults) < 256
+assert len(I._defaults) < 2**8  # 0-255
 
 def _echo_attr(key):
     """echo only"""
@@ -20,7 +20,7 @@ def _echo_attr(key):
         return [[i.i, key, v]]
     return _
 
-for idx, key in enumerate(sorted(I._defaults), 2**8):  # 256-511
+for idx, key in enumerate(sorted(I._defaults)):
     instructions[key] = idx
     processes[idx] = _echo_attr(key)
 
@@ -33,13 +33,16 @@ def ping(i, n):
 
 @I.register_log_callback
 def _test(_, i, log, infos, n):
+    return
     print(_, i, log, infos, n, i.listeners, i.logs, sep="\n")
 
 @handle
+@pre()
 #@pre(bool, lambda x: x is True)
 def online(i, b):
     i.online = b
     t = time.time()
+    i.save("bag")
     if b:
         i.bind("online", "_test", "on")
         i.bind("offline", "_test", "off")
@@ -54,7 +57,7 @@ def online(i, b):
 @run
 def plus():
     for i in P.values():
-        i["gold"] += 1
+        i.apply_gold(1, "plus")
 
 #print(instructions)
 #print(processes)
