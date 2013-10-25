@@ -8,4 +8,5 @@ leader = "localhost:8888"
 db_host = "localhost"
 db_port = 6379
 zones = [1, 2]
+delay = 500
 

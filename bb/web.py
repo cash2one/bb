@@ -20,6 +20,8 @@ def main(port, backstage, backdoor, debug, options):
         from threading import Thread as Process
         from redis import StrictRedis
         debug_db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
+        from datetime import timedelta
+        delay = timedelta(milliseconds=options.delay)
 
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
@@ -95,7 +97,7 @@ def main(port, backstage, backdoor, debug, options):
             i, cmd, data = x
             s = staffs.get(i)
             if s:
-                s.send(cmd, data)
+                s.send(cmd, data) if not debug else io_loop.add_timeout(delay, partial(s.send, cmd, data))
             else:
                 logging.warning("%s is not online, failed to send %s %s",
                                 i, cmd, data)
