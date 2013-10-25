@@ -63,7 +63,7 @@ def tcp(staffs, send=dummy_send, tokens=None):
 
     from tornado.tcpserver import TCPServer
 
-    from bb.const import FMT, NULL, ONLINE
+    from bb.const import FMT, LEN, NULL, ONLINE
 
     class Connection(object):
         def __init__(self, stream, address):
@@ -88,7 +88,7 @@ def tcp(staffs, send=dummy_send, tokens=None):
                     staffs.pop(i).logout()
                 self.i = i
                 stream.set_close_callback(self.logout)
-                stream.read_bytes(4, self.msg_head)
+                stream.read_bytes(LEN, self.msg_head)
                 staffs[i] = self
                 logging.info("%s %s login", self.address, i)
             except Exception as e:
@@ -96,7 +96,9 @@ def tcp(staffs, send=dummy_send, tokens=None):
                 logging.error("failed to auth: %s: %s", type(e).__name__, e)
 
         def send(self, cmd, data):
-            self.stream.write(pack(FMT, cmd, len(data)) + data.encode())
+            stream = self.stream
+            if not stream.closed():
+                stream.write(pack(FMT, cmd, len(data)) + data.encode())
 
         def logout(self):
             stream = self.stream
@@ -108,18 +110,20 @@ def tcp(staffs, send=dummy_send, tokens=None):
                 stream.close()
 
         def msg_head(self, chunk):
+            stream = self.stream
             logging.debug("head: %s", chunk)
             instruction, length_of_body = unpack(FMT, chunk)
             logging.debug("%d, %d", instruction, length_of_body)
             self.instruction = instruction
-            if not self.stream.closed():
-                self.stream.read_bytes(length_of_body, self.msg_body)
+            if not stream.closed():
+                stream.read_bytes(length_of_body, self.msg_body)
 
         def msg_body(self, chunk):
+            stream = self.stream
             logging.debug("body: %s", chunk)
             send([self.i, self.instruction, chunk.decode() or NULL])
-            if not self.stream.closed():
-                self.stream.read_bytes(4, self.msg_head)
+            if not stream.closed():
+                stream.read_bytes(LEN, self.msg_head)
 
     class Server(TCPServer):
         def handle_stream(self, stream, address):
