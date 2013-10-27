@@ -33,6 +33,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
 
     from bb.i import P
     from bb.js import dump1
+    from bb.const import PING
     from bb.exc import exc_map, exc_recorder
     from bb.inst import processes, commands, instructions
 
@@ -116,7 +117,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
                         raise NotImplementedError(cmd)
                 except Exception:
                     err = sys.exc_info()[0].__name__
-                    _out([i, 0, dump1(exc_map.get(err, 0))])
+                    _out([i, PING, dump1(exc_map.get(err, 0))])
                     exc_recorder[i][err] += 1
                     raise
                 if outs:

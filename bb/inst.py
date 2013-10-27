@@ -11,8 +11,8 @@ features = {}
 processes = [None] * 2**10
 
 # {"ping": 0, "online": 1, ...}
-from bb.const import instructions_list
-instructions = dict(zip(instructions_list, range(2**8, 2**9)))  # 256-511
+from bb.const import instructions_list, INST_LEN, PING
+instructions = dict(zip(instructions_list, range(PING, PING + INST_LEN)))
 
 
 def handle(func):
