@@ -33,7 +33,9 @@
 
     <tr>
         <td>{{ time }}</td>
-        <td class="{{ method }}">{{ method }}</td>
+        <td class="{{ method }}">
+            <abbr title="this is {{ method }}">{{ method }}</abbr>
+        </td>
         {% for i, x in enumerate(data, 1) %}
         <td class="f{{ i }}">{{ x }}</td>
         {% end %}
@@ -46,7 +48,7 @@
 {% for i in range(1, pages + 1) %}
 <a href="{{ i }}">
     {% if i == page %}
-    <h3><b><dfn><ins>{{ i }}</ins></dfn></b></h3>
+    <h3><strong><dfn><ins>{{ i }}</ins></dfn></strong></h3>
     {% else %}
     {{ i }}
     {% end %}
