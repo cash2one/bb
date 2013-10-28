@@ -6,47 +6,46 @@ import collections
 from bb.inst import handle, pre
 from bb.i import I, P
 
-room_idx = {}
-rooms = collections.defaultdict(dict)
+room_ids = {}
+rooms = collections.defaultdict(collections.OrderedDict)
+slots = {}
+deaf = set()
 
-completion = (0,) * 10
+MAX = 2  # max in a map
 
 @handle
-#@pre((list, dict))
+@pre((list, int, dict))
 def exist(i, data):
     id = i.i
     cmd = "exist"
     if isinstance(data, list):
-        if len(data) == 2:  # update x and y
-            room = rooms[room_idx[id]]
-            p = room[id]
-            p[2], p[3] = data
-            _ = {id: data}
-            i.cache.extend([k, cmd, _] for k in room if k != id)
-        else:  # enter, index0 is room_id
-            if id in room_idx:
-                room = rooms[room_idx.pop(id)]
-                room.pop(id)
-                _ = {id: None}
-                i.cache.extend([k, cmd, _] for k in room)
-            room_id = data[0]
-            room = rooms[room_id]
-            room[id] = data = [i["foo"], i["level"]] + data[1:]
-            room_idx[id] = room_id
-            i.send(cmd, room)
-            _ = {id: data}
-            i.cache.extend([k, cmd, _] for k in room if k != id)
-    elif isinstance(data, dict):  # only for update
-        room = rooms[room_idx[id]]
+        rid = room_ids[id]
+        room = rooms[rid]
         p = room[id]
-        for k, v in data.items():
-            p[int(k)] = v
-        _ = {id: data}
-        i.cache.extend([k, cmd, _] for k in room if k != id)
+        p[0], p[1] = data
+        if id in slots[rid]:
+            _ = {id: data}
+            i.cache.extend([k, cmd, _] for k in room if k not in deaf and k != id)
+    elif isinstance(data, int):
+        if id in room_ids or not data:
+            rid = room_ids.pop(id)
+            room = rooms[rid]
+            room.pop(id)
+            if id in slots[rid]:
+                slots[rid] = set(k for _, k in zip(range(MAX), room.keys()))
+                _ = {id: None}
+                i.cache.extend([k, cmd, _] for k in room if k not in deaf)
+        if data:
+            rid = data
+            room = rooms[rid]
+            i.send(cmd, dict(kv for _, kv in zip(range(MAX), room.items())))
+            room[id] = i["xy"]
+            room_ids[id] = rid
+            slots[rid] = set(k for _, k in zip(range(MAX), room.keys()))
+            if id in slots[rid]:
+                _ = {id: data}
+                i.cache.extend([k, cmd, _] for k in room if k not in deaf and k != id)
     else:
-        room = rooms[room_idx.pop(id)]
-        room.pop(id)
-        _ = {id: None}
-        i.cache.extend([k, cmd, _] for k in room if k != id)
+        pass
     return i.flush()
 

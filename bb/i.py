@@ -130,6 +130,7 @@ class I(dict):
         "story_task": 0,
         "stories": lambda _: {},  # {id: count, ...}
         "stories_done": lambda _: set(),
+        "xy": lambda _: [0, 0],
     }
 
     _wrappers = {
