@@ -7,7 +7,8 @@ NULL = "0"  # for json
 instructions_list = [
     "ping",
     "online",
-    "exist",
+    "enter",
+    "move",
 ]
 
 PING = 2**8
