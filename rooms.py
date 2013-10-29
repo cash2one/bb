@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
+"""
+>>> 1
+1
+"""
 
 import time
 import collections
 
 from bb.inst import handle, pre
-from bb.i import I, P
 
+MAX = 2  # max in a map
 room_ids = {}
 rooms = collections.defaultdict(collections.OrderedDict)
 slots = {}
 
-MAX = 2  # max in a map
 
 @handle
 @pre(list, lambda x: len(x) == 2 and all(isinstance(i, int) for i in x))
 def move(i, xy):
+    """x and y
+    """
     id = i.i
     cmd = "move"
     rid = room_ids[id]
@@ -29,6 +34,8 @@ def move(i, xy):
 @handle
 @pre(int)
 def enter(i, rid):
+    """exit when rid is 0
+    """
     id = i.i
     cmd = "enter"
     if id in room_ids or not rid:
@@ -37,7 +44,7 @@ def enter(i, rid):
         room.pop(id)
         slot = slots[rid]
         if id in slot:
-            _slot = set(k for _, k in zip(range(MAX), room.keys()))
+            slots[rid] = _slot = set(k for _, k in zip(range(MAX), room.keys()))
             _ = {id: None}
             for k in _slot - slot:  # supplement
                 _[k] = room[k]
@@ -45,7 +52,7 @@ def enter(i, rid):
         rid = _rid
     if rid:
         data = i["xy"][:]
-        data.append(time.time())  # todo: append more
+        data.append(id)  # todo: append more
         room = rooms[rid]
         room[id], room_ids[id], staff, slot = data, rid, {}, set()
         for _, kv in zip(range(MAX), room.items()):
