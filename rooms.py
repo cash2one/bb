@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-"""
->>> 1
-1
-"""
 
 import time
 import collections
 
 from bb.inst import handle, pre
 
-MAX = 2  # max in a map
+MAX = 64  # max in a map
 room_ids = {}
 rooms = collections.defaultdict(collections.OrderedDict)
 slots = {}
