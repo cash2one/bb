@@ -11,10 +11,11 @@ instructions_list = [
     "move",
 ]
 
-PING = 2**8
+PING = 0
 INST_LEN = len(instructions_list)
 ONLINE = PING + instructions_list.index("online")
 
+ATTR = 1001  # head id of all attributes
 
 # everyone could checkout my attributes(in the public_attrs)
 public_attrs = {

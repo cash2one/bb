@@ -2,11 +2,10 @@
 
 import time
 
-from bb.const import public_attrs
+from bb.const import ATTR, public_attrs
 from bb.inst import instructions, processes, handle, pre, run
 from bb.i import I, P
 
-assert len(I._defaults) < 2**8  # 0-255
 
 def _echo_attr(key):
     """echo only"""
@@ -20,7 +19,7 @@ def _echo_attr(key):
         return [[i.i, key, v]]
     return _
 
-for idx, key in enumerate(sorted(I._defaults)):
+for idx, key in enumerate(sorted(I._defaults), ATTR):
     instructions[key] = idx
     processes[idx] = _echo_attr(key)
 

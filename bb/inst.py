@@ -8,7 +8,7 @@ r"""
 
 features = {}
 
-processes = [None] * 2**10
+processes = [None] * 2**11  # all is 2048
 
 # {"ping": 0, "online": 1, ...}
 from bb.const import instructions_list, INST_LEN, PING
