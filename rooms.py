@@ -6,6 +6,8 @@ import collections
 from bb.inst import handle, pre
 
 MAX = 64  # max in a map
+all_rooms = set(range(10))  # dummy rooms
+
 room_ids = {}
 rooms = collections.defaultdict(collections.OrderedDict)
 slots = {}
@@ -27,14 +29,16 @@ def move(i, xy):
         i.cache.extend([k, cmd, _] for k in room if k != id)
     return i.flush()
 
+
+
 @handle
-@pre(int)
+@pre(int, lambda i: i in all_rooms)
 def enter(i, rid):
     """exit when rid is 0
     """
     id = i.i
     cmd = "enter"
-    if id in room_ids or not rid:
+    if id in room_ids or not rid:  # pop from this room
         rid, _rid = room_ids.pop(id), rid
         room = rooms[rid]
         room.pop(id)
@@ -48,14 +52,15 @@ def enter(i, rid):
         rid = _rid
     if rid:
         data = i["xy"][:]
-        data.append(id)  # todo: append more
+        data.append(id)  # todo: append more infomations
         room = rooms[rid]
         room[id], room_ids[id], staff, slot = data, rid, {}, set()
-        for _, kv in zip(range(MAX), room.items()):
+        for _, kv in zip(range(MAX), room.items()):  # build staff
             k, v = kv
-            staff[k] = v
             slot.add(k)
-        slots[rid] = slot
+            if k != id:
+                staff[k] = v
+        slots[rid] = slot  # and rebuild slot
         i.send(cmd, staff)
         if id in slot:
             _ = {id: data}
