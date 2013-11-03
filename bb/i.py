@@ -338,7 +338,7 @@ class I(dict):
                     bag[i] = x
                     changes[i] = x
                 except ValueError:
-                    self.log("lost", {"item": item,
+                    self.log("lose", {"item": item,
                                       "count": count,
                                       "reason": "bag is full"})
             else:
@@ -349,7 +349,8 @@ class I(dict):
                         bag[i] = x
                         changes[i] = x
                     except ValueError:
-                        self.log("lost", {"item": item,
+                        self.log("lose", {"item": item,
+                                          "count": 1,
                                           "reason": "bag is full"})
         elif count < 0:
             if not multi:
@@ -371,10 +372,12 @@ class I(dict):
                     if not n:
                         break
             else:
-                self.log("lost", {"item": item,
-                                  "count": abs(count)-n,
-                                  "reason": "-item but not enough"})
-                raise Warning("-item faild")
+                lost = abs(count) - n
+                if lost:
+                    self.log("lose", {"item": item,
+                                      "count": lost,
+                                      "reason": "-item but not enough"})
+                raise Warning("failed to -item")
 
         if changes:
             self.send("bag", changes)  # dict is only for update
