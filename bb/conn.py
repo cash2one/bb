@@ -63,13 +63,13 @@ def tcp(staffs, send=dummy_send, tokens=None):
 
     from tornado.tcpserver import TCPServer
 
-    from bb.const import FMT, LEN, NULL, ONLINE
+    from bb.const import FMT, LEN, NULL, ONLINE, HEAD_IGNORE
 
     class Connection(object):
         def __init__(self, stream, address):
             self.stream = stream
             self.address = address
-            stream.read_until(b'', self._)
+            stream.read_until(HEAD_IGNORE, self._)
 
         def _(self, _):
             logging.debug(_)

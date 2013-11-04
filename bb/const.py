@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+HEAD_IGNORE = b''
 FMT = "!HH"
 LEN = 4
 NULL = "0"  # for json
