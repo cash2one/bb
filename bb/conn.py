@@ -69,8 +69,12 @@ def tcp(staffs, send=dummy_send, tokens=None):
         def __init__(self, stream, address):
             self.stream = stream
             self.address = address
-            stream.read_until(b'\n', self.login)
-            logging.info("%s try in", address)
+            stream.read_until(b'', self._)
+
+        def _(self, _):
+            logging.debug(_)
+            self.stream.read_until(b'\n', self.login)
+            logging.info("%s try in", self.address)
 
         def login(self, auth):
             """format: id token\n
