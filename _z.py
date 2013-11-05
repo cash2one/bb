@@ -15,7 +15,7 @@ from tornado.httpclient import AsyncHTTPClient
 
 hosts = {
     "127.0.0.1": "f1",
-    "192.168.25.250": "f2",
+    "10.207.143.213": "f2",
 }
 
 all_zones = {}
@@ -57,7 +57,11 @@ tornado.ioloop.PeriodicCallback(poll, 2000).start()
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html", servers=servers)
+        self.render("index.html",
+                    servers=servers,
+                    all_zones=all_zones,
+                    broken=broken,
+                    errors=errors)
 
 class RegHandler(tornado.web.RequestHandler):
     def get(self):

@@ -13,3 +13,30 @@
     </tr>
     {% end %}
 </table>
+
+<table>
+    {% for k, v in all_zones.items() %}
+    <tr>
+        <td>{{ k }}</td>
+        <td>{{ v }}</td>
+    </tr>
+    {% end %}
+</table>
+
+<table>
+    {% for k, v in broken.items() %}
+    <tr>
+        <td>{{ k }}</td>
+        <td>{{ v }}</td>
+    </tr>
+    {% end %}
+</table>
+
+<table>
+    {% for k, v in errors.items() %}
+    <tr>
+        <td>{{ k }}</td>
+        <td>{{ v }}</td>
+    </tr>
+    {% end %}
+</table>
