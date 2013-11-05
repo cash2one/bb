@@ -10,6 +10,10 @@
 # yes 1:2 | head -n 10000 | ./z.sh >out.bin
 #
 
+head=".HEAD"
+
+test -f $head && cat $head
+
 echo ${1:-0} token
 
 while read s
