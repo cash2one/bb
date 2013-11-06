@@ -255,8 +255,8 @@ def main(port, backstage, backdoor, debug, options):
         (r"/hub", HubHandler),
         (r"/io", IOHistoryHandler),
         (r"/io/(\d+)", IOHistoryHandler),
-        (r"/io/clean", CleanIOHistoryHandler),
-        (r"/io/clean/(\d+)", CleanIOHistoryHandler),
+        (r"/clean", CleanIOHistoryHandler),
+        (r"/clean/(\d+)", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
         (r"/ws", conn.websocket(staffs, put, )),
     ], static_path="_", template_path="tpl", debug=debug).listen(backstage)

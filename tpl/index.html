@@ -3,29 +3,28 @@
 
 <meta charset="utf-8">
 <link rel="stylesheet" href="/static/bb.css">
-<base href="/" target="_blank">
 
 <title>bb</title>
 
 {% for x in ["web", "hub", "log"] %}
-<a href="{{ x }}_status">{{ x }}</a>
+<a href="/{{ x }}_status" target="_blank">{{ x }}</a>
 {% end %}
 
 <hr>
 
 <p>
-<a href="hub">HUB</a>
+<a href="/hub" target="_blank">HUB</a>
 </p>
 
 <hr>
 
 <p>
-<a href="io">IO</a>
+<a href="/io" target="_blank">IO</a>
 </p>
 
 <hr>
 
-<form action="t">
+<form action="/t">
     <input name="_" value="1">
     <input name="_" value="token">
     <input type="submit" value="gen token">

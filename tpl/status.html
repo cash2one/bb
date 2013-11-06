@@ -2,13 +2,12 @@
 {# vim:se syntax=html.tornadotmpl: #}
 
 <meta charset="utf-8">
+<title>status</title>
 <link rel="stylesheet" href="/static/bb.css">
 
-<title>status</title>
-
-<p>
 <table>
-    <th>object</th> <th>history</th>
+    <th>object</th>
+    <th>history</th>
     {% for obj, history in sorted(recorder.items(), key=lambda x: x[1][-1], reverse=True) %}
     <tr>
         <td>{{ obj }}</td>
@@ -16,4 +15,3 @@
     </tr>
     {% end %}
 </table>
-</p>

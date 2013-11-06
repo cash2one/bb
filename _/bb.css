@@ -17,6 +17,10 @@ a {
     text-decoration: none;
 }
 
+strong {
+    background-color: #bbb;
+}
+
 table {
     font-size: 12px;
     border-width: 1px;

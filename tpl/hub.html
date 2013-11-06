@@ -3,7 +3,6 @@
 
 <meta charset="utf-8">
 <link rel="stylesheet" href="/static/bb.css">
-<script src=static/bb.js></script>
 <title>HUB</title>
 
 <p>
@@ -32,7 +31,7 @@
     <legend><h2>History</h2></legend>
     {% for t, c, a, e in history %}
     <p>
-    <b>{{ c }}</b> <i>{{ a }}</i> <small>{{ t }}</small> <br>
+    <strong>{{ c }}</strong> <em>{{ a }}</em> <small>{{ t }}</small> <br>
     <pre><code>{{ e }}</code></pre> <br>
     </p>
     {% end %}

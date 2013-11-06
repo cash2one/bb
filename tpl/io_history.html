@@ -3,19 +3,12 @@
 
 <meta charset="utf-8">
 <link rel="stylesheet" href="/static/bb.css">
-<base href="/io/">
 
 <title>io history</title>
 
-<!--
-<p>
-<a href="clean">clean all</a>
-</p>
--->
-
-<h2>
-<a href="clean/{{ page }}">clean old</a>
-</h2>
+<h1>
+<a href="/clean/{{ page }}">clean old</a>
+</h1>
 
 <table>
     {% for x in history %}
@@ -46,14 +39,12 @@
     {% end %}
 </table>
 
-<p>
 {% for i in range(1, pages + 1) %}
-<a href="{{ i }}">
+<a href="/io/{{ i }}">
     {% if i == page %}
-    <h3><strong><dfn><ins>{{ i }}</ins></dfn></strong></h3>
+    <strong>{{ i }}</strong>
     {% else %}
     {{ i }}
     {% end %}
 </a>
 {% end %}
-</p>
