@@ -125,7 +125,7 @@ class I(dict):
         "foobar": lambda _: collections.Counter({1: 1, 2: 1}),
         "gold": 500,
         "level": 1,
-        "bag": lambda _: [{"max": 8}] + [None] * 8,
+        "bag": lambda _: [None] * 8,
         "story": 0,
         "story_task": 0,
         "stories": lambda _: {},  # {id: count, ...}
@@ -322,9 +322,9 @@ class I(dict):
         self.log("gold", {"cause": cause, "before": before, "after": gold},
                  count)
 
-    def apply_item(self, item, count, cause=None, custom=1):
+    def apply_item(self, item, count, cause=None, custom=0):
         assert isinstance(count, int) and count, count
-        assert isinstance(custom, int) and custom > 0, custom
+        assert isinstance(custom, int) and custom >= 0, custom
         if count > 0 and not cause:
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
@@ -358,7 +358,7 @@ class I(dict):
                               "-item (count=%d) is not allowed"
                               % (item, count))
             n = abs(count)
-            for i in chain(range(custom, len(bag)), range(1, custom)):  # :)
+            for i in chain(range(custom, len(bag)), range(custom)):  # :)
                 t = bag[i]
                 if t and t[0] == item:
                     if t[1] > n:
