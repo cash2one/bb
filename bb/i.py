@@ -126,7 +126,7 @@ class I(dict):
         "foobar": lambda _: collections.Counter({1: 1, 2: 1}),
         "gains": lambda _: {},
         "gold": 500,
-        "level": 1,
+        "lv": 1,
         "bag": lambda _: [None] * 8,
         "story": 0,
         "story_task": 0,
@@ -252,7 +252,6 @@ class I(dict):
             (("c", 1001, 5), 0.5),
         )
         """
-        discount = self.foo  # just a example
         assert isinstance(rc, tuple), rc
         assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
@@ -275,24 +274,17 @@ class I(dict):
             else:
                 raise Warning("unsupported rc: %s" % (r,))
 
+        discount = 1 or 0.1 # todo
         gains_global, gains_local = gains, self.gains
+
         for i in booty:
-            k = i[0]
-            n = i[-1]
-            if not isinstance(n, int):
-                n = self.eval(n)
-            n *= gains_local.get(k, 1)
-            n *= gains_global.get(k, 1)
-            n *= discount
+            k, n = i[0], i[-1]
+            if isinstance(n, str):
+                n = eval(self.eval_cache[n], None, self)  # :)
+            n *= gains_local.get(k, 1) * gains_global.get(k, 1) * discount
             i[-1] = int(n)
 
         return booty
-
-    def eval(self, expr):
-        """depend on self.env"""
-        return eval(self.eval_cache[expr], None, {
-            "lv": self["level"],
-        })
 
     def apply(self, booty, cause):
         """
@@ -407,7 +399,7 @@ if __name__ == "__main__":
     import doctest
     doctest.testmod()
     i = I(9527)
-    i["level"] += 1
+    i["lv"] += 1
     rc = (
         ("a", "lv**5"),
         ((("a", 1), ("b", 1)), (9, 1)),
