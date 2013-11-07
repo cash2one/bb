@@ -115,11 +115,10 @@ def main(port, backstage, backdoor, debug, options):
     class BaseHandler(RequestHandler):
         IO = "io"
         STEP = 25
-        def back(self):
-            if self.request.host[0].isalpha():
-                self.redirect("")
-            else:
-                self.finish()
+
+        @property
+        def browser(self):
+            return self.request.host[0].isalpha()
 
         def get(self):
             """dummy"""
@@ -136,21 +135,19 @@ def main(port, backstage, backdoor, debug, options):
         }
 
         def get(self):
-            self.render("index.html",
-                        qsize=Q0.qsize(),
-                        options=self.commands,
-                        wheels=wheels,
-                        staffs=staffs)
-
-        def post(self):
-            """example:
-            wget -O - localhost:8100 --post-data="cmd=gc"
+            """
+            curl "localhost:8100/?cmd=gc"
             """
             cmd = self.get_argument("cmd", None)
             if cmd:
                 logging.info("main_commands: %s", cmd)
                 self.commands[cmd]()
-            self.back()
+            if self.browser:
+                self.render("index.html",
+                            qsize=Q0.qsize(),
+                            options=self.commands,
+                            wheels=wheels,
+                            staffs=staffs)
 
 
     class HubHandler(BaseHandler):
@@ -166,28 +163,30 @@ def main(port, backstage, backdoor, debug, options):
 
         history = collections.deque(maxlen=3)
 
-        def get(self):
-            self.render("hub.html", options=self.commands, history=self.history)
+        def _get(self):
+            if self.browser:
+                self.render("hub.html",
+                            options=self.commands,
+                            history=self.history)
+            else:
+                self.finish()
 
         @asynchronous
-        def post(self):
-            """example:
-            wget -O - localhost:8100/hub --post-data="cmd=gc"
-            wget -O - localhost:8100/hub --post-data="cmd=status"
-            wget -O - localhost:8100/hub --post-data="cmd=beginner&args=42"
-            wget -O - localhost:8100/hub --post-data='cmd=amend&args=1&args=foobar&args={"1":1,"2":2}'
-            wget -O - localhost:8100/hub --post-data="cmd=run&args=plus"
+        def get(self):
+            """
+            curl "localhost:8100/hub?cmd=gc"
+            curl "localhost:8100/hub?cmd=beginner&args=42"
             """
             cmd = self.get_argument("cmd", None)
-            args = self.get_arguments("args")
             if cmd:
+                args = self.get_arguments("args")
                 logging.info("hub_commands: %s, %s", cmd, args)
                 t = time.strftime("%H:%M:%S")
                 self.history.appendleft([t, cmd, args, None])
                 put([cmd, args])
                 HC[cmd].append(partial(self.deal_echoed, cmd))
             else:
-                self.back()
+                self._get()
 
         def deal_echoed(self, cmd, echo):
             self.history[0][-1] = echo
@@ -197,31 +196,33 @@ def main(port, backstage, backdoor, debug, options):
                 self.finish()
             else:
                 self.commands[cmd](echo)
-                self.back()
+                self._get()
 
 
     class IOHistoryHandler(BaseHandler):
         def get(self, page=1):
-            page = int(page)
-            s = self.STEP
-            io = self.IO
-            pages = int((debug_db.llen(io) - 1) / s) + 1
-            history = debug_db.lrange(io, s * (page - 1), s * page - 1)
-            self.render("io_history.html",
-                        page=page,
-                        pages=pages,
-                        history=history)
+            if debug:
+                page = int(page)
+                s = self.STEP
+                io = self.IO
+                pages = int((debug_db.llen(io) - 1) / s) + 1
+                history = debug_db.lrange(io, s * (page - 1), s * page - 1)
+                self.render("io_history.html",
+                            page=page,
+                            pages=pages,
+                            history=history)
 
     class CleanIOHistoryHandler(BaseHandler):
         def get(self, page=None):
-            s = self.STEP
-            io = self.IO
-            if page is None:
-                debug_db.delete(io)
-            else:
-                page = int(page)
-                debug_db.ltrim(io, s * (page - 1), -1)
-            self.redirect("/%s" % io)
+            if debug:
+                s = self.STEP
+                io = self.IO
+                if page is None:
+                    debug_db.delete(io)
+                else:
+                    page = int(page)
+                    debug_db.ltrim(io, s * (page - 1), -1)
+                self.redirect("/%s" % io)
 
     class StatusHandler(BaseHandler):
         recorders = {"web": recorder, "hub": {}, "log": {}}
@@ -231,8 +232,8 @@ def main(port, backstage, backdoor, debug, options):
 
     class TokenUpdateHandler(BaseHandler):
         def get(self):
-            """example:
-            wget -O - "localhost:8100/t?_=1&_=key"
+            """
+            curl "localhost:8100/t?_=1&_=key"
             """
             i, t = self.get_arguments("_")
             logging.info("token_generation: %s, %r", i, t)
@@ -253,8 +254,8 @@ def main(port, backstage, backdoor, debug, options):
         (r"/", MainHandler),
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
-        (r"/io", IOHistoryHandler),
-        (r"/io/(\d+)", IOHistoryHandler),
+        (r"/%s" % BaseHandler.IO, IOHistoryHandler),
+        (r"/%s/(\d+)" % BaseHandler.IO, IOHistoryHandler),
         (r"/clean", CleanIOHistoryHandler),
         (r"/clean/(\d+)", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
