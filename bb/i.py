@@ -70,6 +70,9 @@ def init_assets():
     # ...
 
 
+gains = {
+    "coin": 1.1,
+}
 
 class I(dict):
     """
@@ -113,8 +116,6 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
-    mess_fixed = {"gold"}
-
     eval_cache = EvalCache()
 
     assets = {}
@@ -123,6 +124,7 @@ class I(dict):
         "foo": 5,
         "bar": lambda _: [_["foo"]],
         "foobar": lambda _: collections.Counter({1: 1, 2: 1}),
+        "gains": lambda _: {},
         "gold": 500,
         "level": 1,
         "bag": lambda _: [None] * 8,
@@ -273,15 +275,15 @@ class I(dict):
             else:
                 raise Warning("unsupported rc: %s" % (r,))
 
-        fixed = self.mess_fixed
+        gains_global, gains_local = gains, self.gains
         for i in booty:
             k = i[0]
             n = i[-1]
             if not isinstance(n, int):
                 n = self.eval(n)
-            if k not in fixed:
-                n *= discount
-                # ...
+            n *= gains_local.get(k, 1)
+            n *= gains_global.get(k, 1)
+            n *= discount
             i[-1] = int(n)
 
         return booty
