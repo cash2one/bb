@@ -15,7 +15,5 @@ clean:
 	find * -name 'out' -delete
 
 # find bb -name "*.pyo" | cpio -p /usr/local/lib/python3.2/dist-packages
-# python -O -c "from bb.web import main; main(8000, 8100)"
-# python -O -m bb.web
 pack:
 	python3 -OO -m compileall -b -q bb
