@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+r"""
+>>> bd = BackdoorShell()
+>>> bd.push("1 + 6")
+'7\n>>> '
+>>> bd.push("list(range(5))")
+'[0, 1, 2, 3, 4]\n>>> '
+"""
 
 import sys
 
@@ -57,8 +64,10 @@ class Backdoor(TCPServer):
         Connection(stream, address)
 
 
-
 if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
+
     import gc
     gc.disable()
     server = Backdoor()

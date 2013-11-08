@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 r"""
->>> commands["shell_push"]("1 + 6")
+>>> commands["shell"]("1 + 6")
 '7\n>>> '
 """
 
