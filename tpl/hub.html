@@ -2,38 +2,30 @@
 {# vim:se syntax=html.tornadotmpl: #}
 
 <meta charset="utf-8">
-<link rel="stylesheet" href="/static/bb.css">
 <title>HUB</title>
 
-<p>
-<form>
-    <fieldset>
-        <legend><h2>To hub</h2></legend>
-        <p>
+<fieldset>
+    <legend><h2>To hub</h2></legend>
+    <form>
         {% for b in options %}
         <input type="radio" name="cmd" value="{{ b }}" id="{{ b }}">
         <label for="{{ b }}">{{ b }}</label>
-        <br>
+        <br />
         {% end %}
-        </p>
         <input name="args" id="txt1">
         <input name="args" id="txt2">
-        <br>
+        <br />
         <textarea name="args" id="txt3" rows=4></textarea>
         <input type="submit" value="Go">
-    </fieldset>
-</form>
-</p>
-<!--<input type="submit" value="Go" onclick="add('txt3')">-->
+    </form>
+</fieldset>
 
-<p>
 <fieldset>
     <legend><h2>History</h2></legend>
     {% for t, c, a, e in history %}
-    <p>
-    <strong>{{ c }}</strong> <em>{{ a }}</em> <small>{{ t }}</small> <br>
-    <pre><code>{{ e }}</code></pre> <br>
-    </p>
+    <strong>{{ c }}</strong>
+    <em>{{ a }}</em>
+    <small>{{ t }}</small>
+    <pre>{{ e }}</pre>
     {% end %}
 </fieldset>
-</p>

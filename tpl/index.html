@@ -2,7 +2,7 @@
 {# vim:se syntax=html.tornadotmpl: #}
 
 <meta charset="utf-8">
-<link rel="stylesheet" href="/static/bb.css">
+<!-- <link rel="stylesheet" href="/static/bb.css"> -->
 
 <title>bb</title>
 
@@ -10,27 +10,20 @@
 <a href="/{{ x }}_status" target="_blank">{{ x }}</a>
 {% end %}
 
-<hr>
+<hr />
 
-<p>
 <a href="/hub" target="_blank">HUB</a>
-</p>
-
-<hr>
-
-<p>
 <a href="/io" target="_blank">IO</a>
-</p>
 
-<hr>
+<hr />
 
 <form action="/t">
     <input name="_" value="1">
     <input name="_" value="token">
-    <input type="submit" value="gen token">
+    <input type="submit" value="gen">
 </form>
 
-<hr>
+<hr />
 
 <form>
     {% for b in options %}
@@ -40,8 +33,6 @@
     {% end %}
     <input type="submit" value="Go">
 </form>
-
-<hr>
 
 <p>{{ qsize }}</p>
 <p>{{ list(staffs.keys()) }}</p>

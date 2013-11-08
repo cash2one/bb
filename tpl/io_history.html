@@ -6,9 +6,7 @@
 
 <title>io history</title>
 
-<h1>
 <a href="/clean/{{ page }}">clean old</a>
-</h1>
 
 <table>
     {% for x in history %}
@@ -28,9 +26,7 @@
 
     <tr>
         <td>{{ time }}</td>
-        <td class="{{ method }}">
-            <abbr title="this is {{ method }}">{{ method }}</abbr>
-        </td>
+        <td class="{{ method }}">{{ method }}</td>
         {% for i, x in enumerate(data, 1) %}
         <td class="f{{ i }}">{{ x }}</td>
         {% end %}

@@ -1,7 +1,3 @@
-* {
-    /* Fantasy, Cursive, Monospace, Serif, Sans-serif; */
-    font-family: Monospace, Serif, Sans-serif;
-}
 
 body {
     margin: 5% 5% 5% 5%;
@@ -17,50 +13,38 @@ a {
     text-decoration: none;
 }
 
-strong {
-    background-color: #bbb;
-}
-
 table {
-    font-size: 12px;
-    border-width: 1px;
-    border-color: #808080;
-    border-collapse: collapse;
-}
-
-table th {
-    border-width: 1px;
-    border-style: solid;
-    border-color: #808080;
-    background-color: #dedede;
+    font-family: Monospace;
+    font-size: 11px;
+    border-collapse:collapse;
 }
 
 table td {
-    border-width: 1px;
-    padding: 3px;
-    border-style: solid;
-    border-color: #808080;
+    border: 1px solid gray;
 }
 
 table td.in {
-    background-color: #00dd00;
+    background-color: lime;
 }
 table td.out {
-    background-color: #dd0000;
+    background-color: red;
 }
 table td.err {
-    background-color: #6E6E6E;
+    background-color: gray;
 }
 table td.f1 {
-    width: 50px;
+    text-align: center;
 }
 table td.f2 {
-    width: 22px;
+    text-align: right;
 }
 table td.f3 {
+    font-family: Monaco, Monospace;
+    padding: 0% 2%;
     width: 2000px;
 }
 
+/*
 select,
 input,
 textarea {
@@ -84,3 +68,4 @@ textarea:focus {
 	border: 1px solid #00bce9;
 	box-shadow: 0 0 5px #2da1ec;
 }
+*/
