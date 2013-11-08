@@ -7,7 +7,7 @@
 <fieldset>
     <legend><h2>To hub</h2></legend>
     <form>
-        {% for b in options %}
+        {% for b in handler.commands %}
         <input type="radio" name="cmd" value="{{ b }}" id="{{ b }}">
         <label for="{{ b }}">{{ b }}</label>
         <br />
@@ -22,7 +22,7 @@
 
 <fieldset>
     <legend><h2>History</h2></legend>
-    {% for t, c, a, e in history %}
+    {% for t, c, a, e in handler.history %}
     <strong>{{ c }}</strong>
     <em>{{ a }}</em>
     <small>{{ t }}</small>

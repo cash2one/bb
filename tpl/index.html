@@ -26,7 +26,7 @@
 <hr />
 
 <form>
-    {% for b in options %}
+    {% for b in handler.commands %}
     <input type="radio" name="cmd" value="{{ b }}" id="{{ b }}">
     <label for="{{ b }}">{{ b }}</label>
     <br>
@@ -37,4 +37,3 @@
 <p>{{ qsize }}</p>
 <p>{{ list(staffs.keys()) }}</p>
 <p>{{ list(wheels.keys()) }}</p>
-

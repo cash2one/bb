@@ -145,7 +145,6 @@ def main(port, backstage, backdoor, debug, options):
             if self.browser:
                 self.render("index.html",
                             qsize=Q0.qsize(),
-                            options=self.commands,
                             wheels=wheels,
                             staffs=staffs)
 
@@ -165,9 +164,7 @@ def main(port, backstage, backdoor, debug, options):
 
         def _get(self):
             if self.browser:
-                self.render("hub.html",
-                            options=self.commands,
-                            history=self.history)
+                self.render("hub.html")
             else:
                 self.finish()
 
@@ -227,7 +224,7 @@ def main(port, backstage, backdoor, debug, options):
     class StatusHandler(BaseHandler):
         recorders = {"web": recorder, "hub": {}, "log": {}}
         def get(self, key):
-            self.render("status.html", recorder=self.recorders[key])
+            self.render("status.html")
 
 
     class TokenUpdateHandler(BaseHandler):
