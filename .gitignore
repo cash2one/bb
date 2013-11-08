@@ -4,6 +4,7 @@
 *.py[co]
 *.out
 *.err
+*.log
 *.pid
 *.egg-info
 build
