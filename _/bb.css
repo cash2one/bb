@@ -1,8 +1,7 @@
 
 body {
     margin: 5% 5% 5% 5%;
-    padding: 2% 5% 5% 5%;
-    background-color: #f4f4f4;
+    background-color: linen;
 }
 
 code {
@@ -20,7 +19,7 @@ table {
 }
 
 table td {
-    border: 1px solid gray;
+    border: 1px solid darkgray;
 }
 
 table td.in {
@@ -30,7 +29,7 @@ table td.out {
     background-color: red;
 }
 table td.err {
-    background-color: gray;
+    background-color: lightgray;
 }
 table td.f1 {
     text-align: center;
@@ -41,7 +40,7 @@ table td.f2 {
 table td.f3 {
     font-family: Monaco, Monospace;
     padding: 0% 2%;
-    width: 2000px;
+    width: 100%;
 }
 
 /*
