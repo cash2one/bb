@@ -221,6 +221,7 @@ def main(port, backstage, backdoor, debug, options):
                     debug_db.ltrim(io, s * (page - 1), -1)
                 self.redirect("/%s" % io)
 
+
     class StatusHandler(BaseHandler):
         recorders = {"web": recorder, "hub": {}, "log": {}}
         def get(self, key):
@@ -236,6 +237,25 @@ def main(port, backstage, backdoor, debug, options):
             logging.info("token_generation: %s, %r", i, t)
             tokens[int(i)] = t
 
+    class ViewHubHandler(BaseHandler):
+        @asynchronous
+        def get(self, path):
+            """
+            curl "localhost:8100/view"
+            """
+            path = list(filter(None, path.split("/")))
+            logging.debug(path)
+            self._path = path[-1] if path else "view"
+            put(["view_hub", path])
+            HC["view_hub"].append(self.deal_echoed)
+
+        def deal_echoed(self, echo):
+            if isinstance(echo, str) and echo.startswith("Traceback"):
+                self.set_header("Content-Type", "text/plain")
+                self.write(echo)
+                self.finish()
+            else:
+                self.render("view.html", data=echo)
 
     from bb import conn
 
@@ -256,6 +276,7 @@ def main(port, backstage, backdoor, debug, options):
         (r"/clean", CleanIOHistoryHandler),
         (r"/clean/(\d+)", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
+        (r"/view(.*)", ViewHubHandler),
         (r"/ws", conn.websocket(staffs, put, )),
     ], static_path="_", template_path="tpl", debug=debug).listen(backstage)
 

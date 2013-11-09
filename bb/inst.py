@@ -59,6 +59,7 @@ def run(func):
 
 import gc
 import json
+import sys
 import time
 
 from bb.i import I, P
@@ -95,6 +96,17 @@ def _view_data(i, k):
         i = i[k]
     return dump1(i)
 
+def _view_hub(path):
+    if path:
+        data = sys.modules[path[0]]
+        for k in path[1:]:
+            data = getattr(data, k)
+        data = [str(data), dir(data)]
+    else:
+        data = ["all modules", list(sys.modules.keys())]
+    return data
+
+
 commands = {
     "shell": lambda line: shell.push(line),
     "status": lambda _: record() or dict(recorder),
@@ -105,6 +117,7 @@ commands = {
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web"),
     "view_data": lambda args: _view_data(int(args[0]), args[1]),
     "view_logs": lambda args: list(P[int(args[0])].logs),
+    "view_hub": lambda args: _view_hub(args),
 }
 
 

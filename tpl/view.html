@@ -1,0 +1,18 @@
+{% include "_head.html" %}
+{# vim:se syntax=html.tornadotmpl: #}
+
+<title>view</title>
+
+{% set name, dirs = data %}
+{% set p = handler._path %}
+
+<h2><a href="/view">View</a></h2>
+
+<p><code>{{".".join(handler.request.path.split("/")[2:])}}</code></p>
+<pre>{{ name }}</pre>
+
+<ul>
+    {% for k in sorted(dirs) %}
+    <li><a href="{{ "%s/%s" % (p, k) }}">{{ k }}</a></li>
+    {% end %}
+</ul>
