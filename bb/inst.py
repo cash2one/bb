@@ -96,15 +96,20 @@ def _view_data(i, k):
         i = i[k]
     return dump1(i)
 
-def _view_hub(path):
+def _view(path, attr, call):
     if path:
-        data = sys.modules[path[0]]
+        x = sys.modules[path[0]]
         for k in path[1:]:
-            data = getattr(data, k)
-        data = [str(data), dir(data)]
+            x = getattr(x, k)
+        if attr is not None:
+            x = [str(eval("x[%s]" % (attr,))), []]
+        elif call is not None:
+            x = [str(eval("x(%s)" % (call,))), []]
+        else:
+            x = [str(x), dir(x)]
     else:
-        data = ["all modules", list(sys.modules.keys())]
-    return data
+        x = ["all modules", list(sys.modules.keys())]
+    return x
 
 
 commands = {
@@ -117,7 +122,7 @@ commands = {
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web"),
     "view_data": lambda args: _view_data(int(args[0]), args[1]),
     "view_logs": lambda args: list(P[int(args[0])].logs),
-    "view_hub": lambda args: _view_hub(args),
+    "view": lambda args: _view(*args),
 }
 
 

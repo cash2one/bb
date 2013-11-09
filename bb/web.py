@@ -242,12 +242,16 @@ def main(port, backstage, backdoor, debug, options):
         def get(self, path):
             """
             curl "localhost:8100/view"
+            curl "localhost:8100/view/bb.i/P?a=1"
+            curl "localhost:8100/view/gc/isenabled?c="
             """
             path = list(filter(None, path.split("/")))
             logging.debug(path)
+            attr = self.get_argument("a", None)
+            call = self.get_argument("c", None)
             self._path = path[-1] if path else "view"
-            put(["view_hub", path])
-            HC["view_hub"].append(self.deal_echoed)
+            put(["view", [path, attr, call]])
+            HC["view"].append(self.deal_echoed)
 
         def deal_echoed(self, echo):
             if isinstance(echo, str) and echo.startswith("Traceback"):
