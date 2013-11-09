@@ -197,9 +197,9 @@ def main(port, backstage, backdoor, debug, options):
 
 
     class IOHistoryHandler(BaseHandler):
-        def get(self, page=1):
+        def get(self):
             if debug:
-                page = int(page)
+                page = int(self.get_argument("page", 1))
                 s = self.STEP
                 io = self.IO
                 pages = int((debug_db.llen(io) - 1) / s) + 1
@@ -212,13 +212,13 @@ def main(port, backstage, backdoor, debug, options):
     class CleanIOHistoryHandler(BaseHandler):
         def get(self, page=None):
             if debug:
+                page = int(self.get_argument("page", 0))
                 s = self.STEP
                 io = self.IO
-                if page is None:
-                    debug_db.delete(io)
-                else:
-                    page = int(page)
+                if page:
                     debug_db.ltrim(io, s * (page - 1), -1)
+                else:
+                    debug_db.delete(io)
                 self.redirect("/%s" % io)
 
 
@@ -276,9 +276,7 @@ def main(port, backstage, backdoor, debug, options):
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
         (r"/%s" % BaseHandler.IO, IOHistoryHandler),
-        (r"/%s/(\d+)" % BaseHandler.IO, IOHistoryHandler),
         (r"/clean", CleanIOHistoryHandler),
-        (r"/clean/(\d+)", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
         (r"/view(.*)", ViewHubHandler),
         (r"/ws", conn.websocket(staffs, put, )),

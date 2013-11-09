@@ -3,7 +3,7 @@
 
 <title>io history</title>
 
-<a href="/clean/{{ page }}">clean old</a>
+<a href="/clean?page={{ page }}">clean old</a>
 
 <table>
     {% for x in history %}
@@ -33,7 +33,7 @@
 </table>
 
 {% for i in range(1, pages + 1) %}
-<a href="/io/{{ i }}">
+<a href="/io?page={{ i }}">
     {% if i == page %}
     <strong>{{ i }}</strong>
     {% else %}
