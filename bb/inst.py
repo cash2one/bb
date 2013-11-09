@@ -102,11 +102,11 @@ def _view(path, attr, call):
         for k in path[1:]:
             x = getattr(x, k)
         if attr is not None:
-            x = [str(eval("x[%s]" % (attr,))), []]
+            x = [repr(eval("x[%s]" % (attr,))), []]
         elif call is not None:
-            x = [str(eval("x(%s)" % (call,))), []]
+            x = [repr(eval("x(%s)" % (call,))), []]
         else:
-            x = [str(x), dir(x)]
+            x = [repr(x), dir(x)]
     else:
         x = ["all modules", list(sys.modules.keys())]
     return x
