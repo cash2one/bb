@@ -138,13 +138,21 @@ def tcp(staffs, send=dummy_send, tokens=None):
 
 def backdoor(staffs, send=dummy_send):
     from tornado.tcpserver import TCPServer
+    from bb.const import HEAD_IGNORE
+
     class Connection(object):
         def __init__(self, stream, address):
             self.stream = stream
             staffs[address] = stream
             stream.set_close_callback(stream.close)
-            stream.write(b"Backdoor\n>>> ")
-            stream.read_until(b'\n', self.handle_input)
+            if HEAD_IGNORE:
+                stream.read_until(HEAD_IGNORE, self._)
+            else:
+                self._(None)
+
+        def _(self, _):
+            self.stream.write(b"Backdoor\n>>> ")
+            self.stream.read_until(b'\n', self.handle_input)
 
         def handle_input(self, line):
             send(["shell", line.decode()])
