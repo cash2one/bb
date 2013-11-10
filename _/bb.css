@@ -22,13 +22,13 @@ table td {
     border: 1px solid darkgray;
 }
 
-table td.in {
+table td.I {
     background-color: lime;
 }
-table td.out {
+table td.O {
     background-color: red;
 }
-table td.err {
+table td.E {
     background-color: lightgray;
 }
 table td.f1 {

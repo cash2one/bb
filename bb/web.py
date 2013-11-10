@@ -113,7 +113,6 @@ def main(port, backstage, backdoor, debug, options):
         ), 2000).start()
 
     class BaseHandler(RequestHandler):
-        IO = "io"
         STEP = 25
 
         @property
@@ -201,10 +200,11 @@ def main(port, backstage, backdoor, debug, options):
             if debug:
                 page = int(self.get_argument("page", 1))
                 s = self.STEP
-                io = self.IO
+                io = self.request.path.lstrip("/")
                 pages = int((debug_db.llen(io) - 1) / s) + 1
                 history = debug_db.lrange(io, s * (page - 1), s * page - 1)
-                self.render("io_history.html",
+                self.render("history.html",
+                            io=io,
                             page=page,
                             pages=pages,
                             history=history)
@@ -214,7 +214,7 @@ def main(port, backstage, backdoor, debug, options):
             if debug:
                 page = int(self.get_argument("page", 0))
                 s = self.STEP
-                io = self.IO
+                io = self.request.path.partition("_")[2]
                 if page:
                     debug_db.ltrim(io, s * (page - 1), -1)
                 else:
@@ -275,8 +275,10 @@ def main(port, backstage, backdoor, debug, options):
         (r"/", MainHandler),
         (r"/t", TokenUpdateHandler),
         (r"/hub", HubHandler),
-        (r"/%s" % BaseHandler.IO, IOHistoryHandler),
-        (r"/clean", CleanIOHistoryHandler),
+        (r"/io", IOHistoryHandler),
+        (r"/lo", IOHistoryHandler),
+        (r"/clean_io", CleanIOHistoryHandler),
+        (r"/clean_lo", CleanIOHistoryHandler),
         (r"/(.*)_status", StatusHandler),
         (r"/view(.*)", ViewHubHandler),
         (r"/ws", conn.websocket(staffs, put, )),

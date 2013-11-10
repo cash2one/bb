@@ -75,13 +75,21 @@ def hub(Q_in, Q_out, Q_err, options=opt):
         debug = StrictRedis(options.db_host, options.db_port)
         def _in():
             v = Q_in.get()
-            debug.rpush("io", "%s in %s" % (strftime("%H:%M:%S"), v))
+            if v:
+                if len(v) == 3:
+                    debug.rpush("io", "%s I %s" % (strftime("%H:%M:%S"), v))
+                else:
+                    debug.rpush("lo", "%s I %s" % (strftime("%H:%M:%S"), v))
             return v
         def _out(v):
-            debug.rpush("io", "%s out %s" % (strftime("%H:%M:%S"), v))
+            if len(v) == 3:
+                debug.rpush("io", "%s O %s" % (strftime("%H:%M:%S"), v))
+            else:
+                debug.rpush("lo", "%s O %s" % (strftime("%H:%M:%S"), v))
             Q_out.put(v)
         def _err(v):
-            debug.rpush("io", "%s err %s" % (strftime("%H:%M:%S"), v))
+            if v:
+                debug.rpush("io", "%s E %s" % (strftime("%H:%M:%S"), v))
             Q_err.put(v)
 
     loop = True
