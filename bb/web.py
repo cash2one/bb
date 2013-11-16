@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, debug, options):
+def main(port, backstage, backdoor, options):
     import gc
     gc.disable()
 
@@ -16,6 +16,7 @@ def main(port, backstage, backdoor, debug, options):
     from multiprocessing import Process
     from multiprocessing.queues import Queue, SimpleQueue
 
+    debug = options.debug
     if debug:
         from threading import Thread as Process
         from redis import StrictRedis

@@ -20,11 +20,7 @@ if __name__ == "__main__":
             else:
                 define(k, default=v, type=type(v))
 
-    define("debug", type=bool)
-
     parse_command_line()
-
-    debug = options.debug = options.logging == "debug"
 
     zones = options.zones
     if len(set(zones)) != len(zones) or sorted(zones) != zones:
@@ -38,13 +34,13 @@ if __name__ == "__main__":
     args = urllib.parse.urlencode(args)
 
     def to_leader(key):
-        if not debug:
+        if not options.debug:
             url = "http://%s/%s?%s" % (options.leader, key, args)
             with urllib.request.urlopen(url) as f:
                 print(f.read().decode())
 
     to_leader("reg")
 
-    main(*ports, debug=debug, options=options)
+    main(*ports, options=options)
 
     to_leader("quit")
