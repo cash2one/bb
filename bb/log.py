@@ -41,9 +41,7 @@ def worker(name, Q, task):
     done()
 
 
-from bb import opt
-
-def log(Q_err, options=opt):
+def log(Q_err, debug=True):
     import collections
     import logging
     import gc
@@ -62,10 +60,9 @@ def log(Q_err, options=opt):
     from threading import Thread
     from queue import Queue
 
-    z = "_".join(map(str, options.zones))
-
     from redis import StrictRedis
-    db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
+    from bb.const import DB_HOST, DB_PORT, WORLD
+    db = StrictRedis(DB_HOST, DB_PORT)
     hset = db.hset
 
     from bb.oc import record, recorder
@@ -73,7 +70,7 @@ def log(Q_err, options=opt):
 
     def _save(i, k, v):
         if i == 0:
-            i = z
+            i = WORLD
         hset(i, k, dump2(v))
 
     tasks = {

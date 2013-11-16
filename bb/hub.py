@@ -20,9 +20,7 @@ True
 """
 
 
-from bb import opt
-
-def hub(Q_in, Q_out, Q_err, options=opt):
+def hub(Q_in, Q_out, Q_err, debug=True):
     import functools
     import logging
     import signal
@@ -33,7 +31,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
 
     from bb.i import P
     from bb.js import dump1
-    from bb.const import PING
+    from bb.const import PING, IDS, DB_HOST, DB_PORT
     from bb.exc import exc_map, exc_recorder
     from bb.inst import processes, commands, instructions
 
@@ -57,7 +55,7 @@ def hub(Q_in, Q_out, Q_err, options=opt):
 
     try:
         from bb.srv import load_data, build_all, check_all, import_others
-        build_all(load_data(options))
+        build_all(load_data(IDS, DB_HOST, DB_PORT))
         check_all()
         import_others()
         logging.info(len(P))
@@ -69,10 +67,10 @@ def hub(Q_in, Q_out, Q_err, options=opt):
     import gc
     gc.collect()
 
-    if options.debug:
+    if debug:
         from time import strftime
         from redis import StrictRedis
-        debug = StrictRedis(options.db_host, options.db_port)
+        debug = StrictRedis()  # local redis
         def _in():
             v = Q_in.get()
             if v:

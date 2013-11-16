@@ -12,17 +12,14 @@ def import_others():
         logging.debug(m)
         __import__(m)
 
-def load_data(options):
+def load_data(ids, host, port):
     """from redis
     uniq in index
     """
     from json import loads
     from redis import StrictRedis
 
-    db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
-    ids = []
-    for z in options.zones:
-        ids.extend(map(int, db.hgetall("z%d" % z).values()))
+    db = StrictRedis(host, port, decode_responses=True)
     logging.debug("all: %d", len(ids))
 
     if 0 in ids:
@@ -33,9 +30,8 @@ def load_data(options):
     if len(checker) != len(ids):  # not unique
         raise ValueError(checker.most_common(3))
 
-    ids.append(0)
-
     pipe = db.pipeline()
+    pipe.hgetall(0)  # this is our god
     for i in ids:
         pipe.hgetall(i)
     properties = pipe.execute(True)  # DO NOT allow error occurs in redis

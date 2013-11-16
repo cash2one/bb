@@ -20,7 +20,7 @@ def main(port, backstage, backdoor, options):
     if debug:
         from threading import Thread as Process
         from redis import StrictRedis
-        debug_db = StrictRedis(options.db_host, options.db_port, decode_responses=True)
+        debug_db = StrictRedis(decode_responses=True)  # local redis
         from datetime import timedelta
         delay = timedelta(milliseconds=options.delay)
 
@@ -39,8 +39,8 @@ def main(port, backstage, backdoor, options):
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
             return
-        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2, options))
-        sub_procs["log"] = Process(target=bb.log.log, args=(Q2, options))
+        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2, debug))
+        sub_procs["log"] = Process(target=bb.log.log, args=(Q2, debug))
         for name, proc in sub_procs.items():
             proc.start()
             logging.info("%s started, pid:%d", name, getattr(proc, "pid", 0))

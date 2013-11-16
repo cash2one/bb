@@ -9,6 +9,7 @@ if __name__ == "__main__":
 
     from tornado.options import define, options, parse_command_line
 
+    from bb import const
     from bb import opt
     from bb.web import main
 
@@ -22,22 +23,22 @@ if __name__ == "__main__":
 
     parse_command_line()
 
-    zones = options.zones
-    if len(set(zones)) != len(zones) or sorted(zones) != zones:
-        raise ValueError(zones)
-
     ports = (options.port, options.backstage, options.backdoor)
     start_time = time.strftime("%y%m%d-%H%M%S")
     args = [("start", start_time)]
     args.extend(zip(itertools.repeat("ports"), ports))
-    args.extend(zip(itertools.repeat("zones"), zones))
     args = urllib.parse.urlencode(args)
 
     def to_leader(key):
         if not options.debug:
             url = "http://%s/%s?%s" % (options.leader, key, args)
             with urllib.request.urlopen(url) as f:
-                print(f.read().decode())
+                s = f.read().decode()
+                if s:
+                    from json import loads
+                    for k, v in loads(s).items():
+                        print(k, v)
+                        setattr(const, k, v)
 
     to_leader("reg")
 
