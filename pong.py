@@ -2,10 +2,15 @@
 
 import time
 
-from bb.const import ATTR, public_attrs
+from bb.const import ATTR
 from bb.inst import instructions, processes, handle, pre, run
 from bb.i import I, P
 
+# everyone could checkout my attributes(in the PUBLIC_ATTRS)
+public_attrs = {
+    "bag",
+    "level",
+}
 
 def _echo_attr(key):
     """echo only"""
