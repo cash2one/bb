@@ -8,14 +8,14 @@ host = "http://openapi.tencentyun.com"
 
 
 import functools
-import urllib.parse
 
 from base64 import b64encode
 from hashlib import sha1
 from hmac import new
+from urllib.parse import quote, urlencode
 
 appkey = (appkey + "&").encode()
-quote = functools.partial(urllib.parse.quote, safe="")
+quote = functools.partial(quote, safe="")
 
 def mk_src(method, path, kw):
     return "%s&%s&%s" % (
@@ -32,5 +32,5 @@ def mk_sig(src):
 def mk_url(kw, api_name, method="GET"):
     kw["appid"] = appid
     kw["sig"] = mk_sig(mk_src(method, "/" + api_name, kw))
-    return "%s/%s?%s" % (host, api_name, urllib.parse.urlencode(kw))
+    return "%s/%s?%s" % (host, api_name, urlencode(kw))
 
