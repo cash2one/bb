@@ -1,0 +1,17 @@
+;
+; zoneid = host:ip(lan)
+[entries]
+1=127.0.0.1:8000
+2=127.0.0.1:8000
+3=192.168.1.1:8001
+4=192.168.1.1:8001
+5=192.168.1.1:8001
+
+; lan_host --> wan_host
+[lan_wan]
+192.168.1.1 = 1.xyz.org
+
+; serverid --> zoneid
+[serverid_zoneid]
+33 = 1
+35 = 2

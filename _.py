@@ -23,10 +23,12 @@ if __name__ == "__main__":
 
     parse_command_line()
 
-    ports = (options.port, options.backstage, options.backdoor)
-    start_time = time.strftime("%y%m%d-%H%M%S")
-    args = [("start", start_time)]
-    args.extend(zip(itertools.repeat("ports"), ports))
+    args = {
+        "start": time.strftime("%y%m%d-%H%M%S"),
+        "port": options.port,
+        "backstage": options.backstage,
+        "backdoor": options.backdoor,
+    }
     args = urllib.parse.urlencode(args)
 
     def to_leader(key):
@@ -42,6 +44,6 @@ if __name__ == "__main__":
 
     to_leader("reg")
 
-    main(*ports, options=options)
+    main(options)
 
     to_leader("quit")

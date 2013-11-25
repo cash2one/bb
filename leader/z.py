@@ -15,11 +15,6 @@ from tornado.httpclient import AsyncHTTPClient
 
 from bb import bd
 
-hosts = {
-    "127.0.0.1": "f1",
-    "10.207.143.213": "f2",
-}
-
 all_zones = {}
 servers = {}
 broken = collections.Counter()
@@ -28,6 +23,30 @@ LIMIT_BROKEN = 1
 
 tornado.options.parse_command_line()
 
+entries = {}
+domains = {}
+lan_wan = {}
+
+def init():
+    from configparser import ConfigParser
+    config = ConfigParser()
+    config.read("config")
+    entries.clear()
+    domains.clear()
+    lan_wan.clear()
+    lan_wan.update(config["lan_wan"])
+    for i, host_port in config["entries"].items():
+        i = int(i)
+        host, port = host_port.split(":")
+        port = int(port)
+        domains.setdefault((host, port), set()).add(i)
+
+    print(entries)
+    print(domains)
+    print(lan_wan)
+
+
+init()
 
 def check(zones, response):
     logging.debug(zones)
@@ -55,7 +74,7 @@ def poll():
                                 functools.partial(check, k),
                                 connect_timeout=0.5, request_timeout=0.5)
 
-tornado.ioloop.PeriodicCallback(poll, 2000).start()
+#tornado.ioloop.PeriodicCallback(poll, 2000).start()
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -69,31 +88,21 @@ class RegHandler(tornado.web.RequestHandler):
     def get(self):
         logging.debug(self.request.remote_ip)
         logging.debug(self.request.arguments)
-        zones = tuple(int(i) for i in self.get_arguments("zones"))
-        ports = tuple(int(i) for i in self.get_arguments("ports"))
-        if zones not in servers and not set(zones) & set(all_zones):  # :)
-            ip = self.request.remote_ip
-            for i in zones:
-                all_zones[i] = (hosts[ip], ports[0])
-            s = ObjectDict(
-                start=self.get_argument("start"),
-                ip=ip,
-                ports=ports,
-            )
-            servers[zones] = s
-            self.write(s)
-        else:
-            raise tornado.web.HTTPError(409)
+        host, port = (self.request.remote_ip, int(self.get_argument("port")))
+        domain = domains[(host, port)]
+        ids = []
+        for i in domain:
+            ids.extend([i])#dummy todo: read ids
+            entries[i] = (lan_wan.get(host, host), port)
+        self.write({
+            "WORLD": "_".join(map(str, sorted(domain))),
+            "IDS": ids,
+            "DB_HOST": "box",
+        })
 
 class QuitHandler(tornado.web.RequestHandler):
     def get(self):
-        zones = tuple(int(i) for i in self.get_arguments("zones"))
-        if zones in servers:
-            servers.pop(zones)
-            for i in zones:
-                all_zones.pop(i)
-        else:
-            raise tornado.web.HTTPError(410)
+        pass
 
 
 application = tornado.web.Application([

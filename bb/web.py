@@ -8,7 +8,7 @@ Web            Hub --->Q2---> Log
 """
 
 
-def main(port, backstage, backdoor, options):
+def main(options):
     import gc
     gc.disable()
 
@@ -264,26 +264,31 @@ def main(port, backstage, backdoor, options):
 
     from bb import conn
 
-    conn.tcp(staffs, put, )().listen(port)
-    conn.backdoor(wheels, put)().listen(backdoor)
+    conn.tcp(staffs, put, )().listen(options.port)
+    conn.backdoor(wheels, put)().listen(options.backdoor)
 
     from tornado import autoreload
     #autoreload.start = lambda: None  # monkey patch, i don't like autoreload
     autoreload.add_reload_hook(stop)  # i like autoreload now :)
 
-    Application([
-        (r"/dummy", BaseHandler),
-        (r"/", MainHandler),
-        (r"/t", TokenUpdateHandler),
-        (r"/hub", HubHandler),
-        (r"/io", IOHistoryHandler),
-        (r"/lo", IOHistoryHandler),
-        (r"/clean_io", CleanIOHistoryHandler),
-        (r"/clean_lo", CleanIOHistoryHandler),
-        (r"/(.*)_status", StatusHandler),
-        (r"/view(.*)", ViewHubHandler),
-        (r"/ws", conn.websocket(staffs, put, )),
-    ], static_path="_", template_path="tpl", debug=debug).listen(backstage)
+    Application(
+        [
+            (r"/dummy", BaseHandler),
+            (r"/", MainHandler),
+            (r"/t", TokenUpdateHandler),
+            (r"/hub", HubHandler),
+            (r"/io", IOHistoryHandler),
+            (r"/lo", IOHistoryHandler),
+            (r"/clean_io", CleanIOHistoryHandler),
+            (r"/clean_lo", CleanIOHistoryHandler),
+            (r"/(.*)_status", StatusHandler),
+            (r"/view(.*)", ViewHubHandler),
+            (r"/ws", conn.websocket(staffs, put, )),
+        ],
+        static_path="_",
+        template_path="tpl",
+        debug=debug,
+        ).listen(options.backstage)
 
 
     import os
