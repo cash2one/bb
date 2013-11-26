@@ -7,6 +7,7 @@ appid = 100673142
 appkey = "83c7c99e035c22c627b2cc7b5f25fd5b"
 
 host = "http://openapi.tencentyun.com"
+host = "http://119.147.19.43"
 
 
 import functools

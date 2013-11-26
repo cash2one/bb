@@ -7,6 +7,7 @@ import os
 import re
 import time
 
+import tornado.gen
 import tornado.ioloop
 import tornado.web
 
@@ -20,8 +21,8 @@ ROLES = frozenset(range(1, 7))
 
 IDX = {}
 FS = {}
-BEGINNERS = collections.defaultdict(set)
-NAMES = collections.defaultdict(set)
+BEGINNERS = {}
+NAMES = {}
 
 def load_idx(d):
     for i in os.listdir(d):
@@ -30,60 +31,56 @@ def load_idx(d):
             with open(fn) as f:
                 IDX[i] = {k: int(v) for k, v in (s.split() for s in f)}
             FS[i] = open(fn, "a", 1)
+            BEGINNERS[i] = set()
+            NAMES[i] = {} # todo: read all names
     IDX["i"] = max(max(i.values()) for i in IDX.values() if i) + 1
 
 
+a = AsyncHTTPClient()
 class MainHandler(tornado.web.RequestHandler):
-
-    @tornado.web.asynchronous
+    @tornado.gen.coroutine
     def get(self):
         _ = self.get_arguments("_")
         if len(_) != 4:
             kwargs = {k: v[0].decode()
                       for k, v in self.request.arguments.items()}
             if all(kwargs.get(k) for k in REQUIRED) and match(kwargs["openid"]):
-                self.kwargs = kwargs
-                url = mk_url(kwargs, "v3/user/get_info")
-                AsyncHTTPClient().fetch(url, self.on_response)
+                response = yield a.fetch(mk_url(kwargs, "v3/user/get_info"))
+                if response.error:
+                    logging.warning(response)
+                    raise tornado.web.HTTPError(500)
+                serverid, openid = int(kwargs["serverid"]), kwargs["openid"]
+                i = IDX[serverid].get(openid)
+                if i is not None:
+                    response = yield a.fetch("http://localhost:8000/t")
+                    if response.error:
+                        logging.warning(response)
+                        raise tornado.web.HTTPError(500)
+                    self.write(str(i))
+                else:
+                    BEGINNERS[serverid].add(openid)
+                    self.write("reg plz {} - {}".format(serverid, openid))
             else:
-                self.finish("url arguments error")
+                self.write("url arguments error")
         else:
             serverid, openid, role, name = int(_[0]), _[1], int(_[2]), _[3]
             if role in ROLES and 0 < len(name) < 8:
-                if name in NAMES[serverid]:
-                    self.new_one(serverid, openid, name)
+                names = NAMES[serverid]
+                if name in names:
+                    self.write("{} - {} {} exist".format(serverid, openid, name))
                 else:
                     BEGINNERS[serverid].remove(openid)
-                    NAMES[serverid].add(name)
+                    names[name] = openid
                     i = IDX["i"]
                     IDX["i"] += 1
                     IDX[serverid][openid] = i
                     FS[serverid].write("{} {}\n".format(openid, i))
-                    AsyncHTTPClient().fetch("http://localhost:8000/begin")
-                    self.login(i)
+                    responses = yield [a.fetch("http://localhost:8000/begin"),
+                                       a.fetch("http://localhost:8000/t")]
+                    print(responses)
+                    self.write(str(i))
             else:
-                self.finish("create error, try again")
-
-    def on_response(self, response):
-        if response.error:
-            logging.warning(response)
-            raise tornado.web.HTTPError(500)
-        print(json.loads(response.body.decode()))
-        print(self.kwargs)
-        serverid, openid = int(self.kwargs["serverid"]), self.kwargs["openid"]
-        i = IDX[serverid].get(openid)
-        if i:
-            self.login(i)
-        else:  # create new one
-            BEGINNERS[serverid].add(openid)
-            self.new_one(serverid, openid)
-
-    def new_one(self, serverid, openid, error=""):
-        self.finish("{} - {} {}".format(serverid, openid, error))
-
-    def login(self, i):
-        AsyncHTTPClient().fetch("http://localhost:8000/t")
-        self.finish(str(i))
+                self.write("create error, try again")
 
 
 
