@@ -3,30 +3,37 @@
 import collections
 import json
 import logging
+import os
 import re
 import time
 
 import tornado.ioloop
 import tornado.web
-import tornado.options
 
 from tornado.httpclient import AsyncHTTPClient
-from redis import StrictRedis
 from tencent import mk_url
 
-
 match = re.compile(r"^[0-9A-F]{32}$").match  # pattern of openid
-required = ["openid", "openkey", "pf", "pfkey"]
-roles = set(map(str, range(1, 7)))
 
-tornado.options.parse_command_line()
+REQUIRED = ("openid", "openkey", "pf", "pfkey")
+ROLES = frozenset(range(1, 7))
 
-beginners = collections.defaultdict(set)
-names = collections.defaultdict(set)
+IDX = {}
+FS = {}
+BEGINNERS = collections.defaultdict(set)
+NAMES = collections.defaultdict(set)
+
+def load_idx(d):
+    for i in os.listdir(d):
+        if i.isdigit():
+            i, fn = int(i), "{}/{}".format(d, i)
+            with open(fn) as f:
+                IDX[i] = {k: int(v) for k, v in (s.split() for s in f)}
+            FS[i] = open(fn, "a", 1)
+    IDX["i"] = max(max(i.values()) for i in IDX.values() if i) + 1
+
 
 class MainHandler(tornado.web.RequestHandler):
-
-    redis = StrictRedis(decode_responses=True)
 
     @tornado.web.asynchronous
     def get(self):
@@ -34,23 +41,24 @@ class MainHandler(tornado.web.RequestHandler):
         if len(_) != 4:
             kwargs = {k: v[0].decode()
                       for k, v in self.request.arguments.items()}
-            if all(kwargs.get(k) for k in required) and match(kwargs["openid"]):
+            if all(kwargs.get(k) for k in REQUIRED) and match(kwargs["openid"]):
                 self.kwargs = kwargs
                 url = mk_url(kwargs, "v3/user/get_info")
                 AsyncHTTPClient().fetch(url, self.on_response)
             else:
                 self.finish("url arguments error")
         else:
-            serverid, openid, role, name = _
-            if role in roles and 0 < len(name) < 8:
-                if name in names[serverid]:
+            serverid, openid, role, name = int(_[0]), _[1], int(_[2]), _[3]
+            if role in ROLES and 0 < len(name) < 8:
+                if name in NAMES[serverid]:
                     self.new_one(serverid, openid, name)
                 else:
-                    beginners[serverid].remove(openid)
-                    names[serverid].add(name)
-                    r = self.redis
-                    i = r.incr("i")
-                    r.hset(serverid, openid, i)
+                    BEGINNERS[serverid].remove(openid)
+                    NAMES[serverid].add(name)
+                    i = IDX["i"]
+                    IDX["i"] += 1
+                    IDX[serverid][openid] = i
+                    FS[serverid].write("{} {}\n".format(openid, i))
                     AsyncHTTPClient().fetch("http://localhost:8000/begin")
                     self.login(i)
             else:
@@ -62,17 +70,16 @@ class MainHandler(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(500)
         print(json.loads(response.body.decode()))
         print(self.kwargs)
-        serverid, openid = self.kwargs["serverid"], self.kwargs["openid"]
-        r = self.redis
-        i = r.hget(serverid, openid)
+        serverid, openid = int(self.kwargs["serverid"]), self.kwargs["openid"]
+        i = IDX[serverid].get(openid)
         if i:
             self.login(i)
         else:  # create new one
-            beginners[serverid].add(openid)
+            BEGINNERS[serverid].add(openid)
             self.new_one(serverid, openid)
 
     def new_one(self, serverid, openid, error=""):
-        self.finish("%s - %s %s" % (serverid, openid, error))
+        self.finish("{} - {} {}".format(serverid, openid, error))
 
     def login(self, i):
         AsyncHTTPClient().fetch("http://localhost:8000/t")
@@ -85,5 +92,9 @@ application = tornado.web.Application([
 ])
 
 if __name__ == "__main__":
+    import tornado.options
+    tornado.options.parse_command_line()
+    logging.error(__name__)
+    load_idx("idx")
     application.listen(1024)
     tornado.ioloop.IOLoop.instance().start()
