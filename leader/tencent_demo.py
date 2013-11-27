@@ -43,7 +43,27 @@ class MainHandler(tornado.web.RequestHandler):
     @tornado.gen.coroutine
     def get(self):
         _ = self.get_arguments("_")
-        if len(_) != 4:
+        if len(_) == 4:
+            serverid, openid, role, name = int(_[0]), _[1], int(_[2]), _[3]
+            if role in ROLES and 0 < len(name) < 8:
+                if name in NAMES[serverid]:
+                    self.write("{} - {} {} exist".format(serverid, openid, name))
+                else:
+                    BEGINNERS[serverid].remove(openid)
+                    global ID
+                    ID += 1
+                    responses = yield [a.fetch("http://localhost:8000/begin"),
+                                       a.fetch("http://localhost:8000/t")]
+                    if any(i.error for i in responses):
+                        logging.warning(responses)
+                        raise tornado.web.HTTPError(500)
+                    FS[serverid].write("{} {}\n".format(openid, ID))
+                    IDX[serverid][openid] = ID
+                    NAMES[serverid][name] = openid
+                    self.write(str(ID))
+            else:
+                self.write("create error, try again")
+        else:
             kwargs = {k: v[0].decode()
                       for k, v in self.request.arguments.items()}
             if all(kwargs.get(k) for k in REQUIRED) and match(kwargs["openid"]):
@@ -65,28 +85,6 @@ class MainHandler(tornado.web.RequestHandler):
                     self.write("reg plz {} - {}".format(serverid, openid))
             else:
                 self.write("url arguments error")
-        else:
-            serverid, openid, role, name = int(_[0]), _[1], int(_[2]), _[3]
-            if role in ROLES and 0 < len(name) < 8:
-                names = NAMES[serverid]
-                if name in names:
-                    self.write("{} - {} {} exist".format(serverid, openid, name))
-                else:
-                    global ID
-                    ID += 1
-                    responses = yield [a.fetch("http://localhost:8000/begin"),
-                                       a.fetch("http://localhost:8000/t")]
-                    if any(i.error for i in responses):
-                        logging.warning(responses)
-                        raise tornado.web.HTTPError(500)
-                    BEGINNERS[serverid].remove(openid)
-                    names[name] = openid
-                    IDX[serverid][openid] = ID
-                    FS[serverid].write("{} {}\n".format(openid, ID))
-                    self.write(str(ID))
-            else:
-                self.write("create error, try again")
-
 
 
 application = tornado.web.Application([
