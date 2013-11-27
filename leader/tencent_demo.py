@@ -45,10 +45,11 @@ class MainHandler(tornado.web.RequestHandler):
             kwargs = {k: v[0].decode()
                       for k, v in self.request.arguments.items()}
             if all(kwargs.get(k) for k in REQUIRED) and match(kwargs["openid"]):
-                response = yield a.fetch(mk_url(kwargs, "v3/user/get_info"))
+                response = yield a.fetch(mk_url(kwargs, "/v3/user/get_info"))
                 if response.error:
                     logging.warning(response)
                     raise tornado.web.HTTPError(500)
+                self.write(response.body)
                 serverid, openid = int(kwargs["serverid"]), kwargs["openid"]
                 i = IDX[serverid].get(openid)
                 if i is not None:

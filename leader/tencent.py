@@ -7,7 +7,7 @@ appid = 100673142
 appkey = "83c7c99e035c22c627b2cc7b5f25fd5b"
 
 host = "http://openapi.tencentyun.com"
-host = "http://119.147.19.43"
+#host = "http://119.147.19.43"
 
 
 import functools
@@ -21,10 +21,10 @@ appkey = (appkey + "&").encode()
 quote = functools.partial(quote, safe="")
 
 def mk_src(method, path, kw):
-    return "%s&%s&%s" % (
+    return "{}&{}&{}".format(
         method,
         quote(path),
-        quote("&".join("%s=%s" % kv for kv in sorted(kw.items()))),
+        quote("&".join("{}={}".format(k, v)  for k, v in sorted(kw.items()))),
     )
 
 def mk_sig(src):
@@ -35,6 +35,6 @@ def mk_sig(src):
 def mk_url(kw, api_name, method="GET", keys=None):
     kw = {k: kw[k] for k in keys} if keys else kw.copy()
     kw["appid"] = appid
-    kw["sig"] = mk_sig(mk_src(method, "/" + api_name, kw))
-    return "%s/%s?%s" % (host, api_name, urlencode(kw))
+    kw["sig"] = mk_sig(mk_src(method, api_name, kw))
+    return "{}{}?{}".format(host, api_name, urlencode(kw))
 
