@@ -19,6 +19,7 @@ match = re.compile(r"^[0-9A-F]{32}$").match  # pattern of openid
 REQUIRED = ("openid", "openkey", "pf", "pfkey")
 ROLES = frozenset(range(1, 7))
 
+ID = 0
 IDX = {}
 FS = {}
 BEGINNERS = {}
@@ -33,7 +34,8 @@ def load_idx(d):
             FS[i] = open(fn, "a", 1)
             BEGINNERS[i] = set()
             NAMES[i] = {} # todo: read all names
-    IDX["i"] = max(max(i.values()) for i in IDX.values() if i) + 1
+    global ID
+    ID = max(max(i.values()) for i in IDX.values() if i) + 1
 
 
 a = AsyncHTTPClient()
@@ -70,16 +72,18 @@ class MainHandler(tornado.web.RequestHandler):
                 if name in names:
                     self.write("{} - {} {} exist".format(serverid, openid, name))
                 else:
-                    BEGINNERS[serverid].remove(openid)
-                    names[name] = openid
-                    i = IDX["i"]
-                    IDX["i"] += 1
-                    IDX[serverid][openid] = i
-                    FS[serverid].write("{} {}\n".format(openid, i))
+                    global ID
+                    ID += 1
                     responses = yield [a.fetch("http://localhost:8000/begin"),
                                        a.fetch("http://localhost:8000/t")]
-                    print(responses)
-                    self.write(str(i))
+                    if any(i.error for i in responses):
+                        logging.warning(responses)
+                        raise tornado.web.HTTPError(500)
+                    BEGINNERS[serverid].remove(openid)
+                    names[name] = openid
+                    IDX[serverid][openid] = ID
+                    FS[serverid].write("{} {}\n".format(openid, ID))
+                    self.write(str(ID))
             else:
                 self.write("create error, try again")
 
