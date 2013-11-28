@@ -15,17 +15,16 @@ import functools
 from base64 import b64encode
 from hashlib import sha1
 from hmac import new
-from urllib.parse import quote, urlencode
+from urllib.parse import quote_plus, urlencode
 
 appkey = (appkey + "&").encode()
-quote = functools.partial(quote, safe="")
 
 def mk_src(method, path, kw):
-    return "{}&{}&{}".format(
+    return "&".join([
         method,
-        quote(path),
-        quote("&".join("{}={}".format(k, v)  for k, v in sorted(kw.items()))),
-    )
+        quote_plus(path),
+        quote_plus(urlencode(sorted(kw.items()))),
+    ])
 
 def mk_sig(src):
     return b64encode(
