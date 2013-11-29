@@ -105,16 +105,15 @@ def hub(Q_in, Q_out, Q_err, debug=True):
             break
 
         try:
-            if len(v) == 2:
-                cmd, data = v
+            i, cmd, data = v
+            if i is None:
                 try:
                     output = commands[cmd](data)
                 except Exception:
                     output = traceback.format_exc()
                     logging.exception(v)
-                _out([cmd, output])   # echo cmd and result(or error)
+                _out([None, cmd, output])   # echo cmd and result(or error)
             else:
-                i, cmd, data = v
                 producer = processes[cmd]
                 try:
                     if producer:

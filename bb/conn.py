@@ -65,6 +65,9 @@ def tcp(staffs, send=dummy_send, tokens=None):
 
     from bb.const import FMT, LEN, NULL, ONLINE, HEAD_IGNORE
 
+    if isinstance(HEAD_IGNORE, str):
+        HEAD_IGNORE = HEAD_IGNORE.encode()
+
     class Connection(object):
         def __init__(self, stream, address):
             self.stream = stream
@@ -140,6 +143,9 @@ def backdoor(staffs, send=dummy_send):
     from tornado.tcpserver import TCPServer
     from bb.const import HEAD_IGNORE
 
+    if isinstance(HEAD_IGNORE, str):
+        HEAD_IGNORE = HEAD_IGNORE.encode()
+
     class Connection(object):
         def __init__(self, stream, address):
             self.stream = stream
@@ -148,14 +154,14 @@ def backdoor(staffs, send=dummy_send):
             if HEAD_IGNORE:
                 stream.read_until(HEAD_IGNORE, self._)
             else:
-                self._(None)
+                self._()
 
-        def _(self, _):
+        def _(self, _=None):
             self.stream.write(b"Backdoor\n>>> ")
             self.stream.read_until(b'\n', self.handle_input)
 
         def handle_input(self, line):
-            send(["shell", line.decode()])
+            send([None, "shell", line.decode()])
             self.stream.read_until(b'\n', self.handle_input)
 
     class Server(TCPServer):

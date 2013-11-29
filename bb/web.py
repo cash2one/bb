@@ -82,26 +82,24 @@ def main(options):
     signal.signal(signal.SIGTERM, term)
 
 
-    commands = {
-        "shell": lambda s: [i.write(s.encode()) for i in wheels.values()],
-    }
-
     def msg(fd, event):
         x = get()
         logging.debug("msg from hub: %r", x)
-        if len(x) == 2:
-            cmd, data = x
-            cb = commands.get(cmd) or (HC[cmd].popleft() if HC[cmd] else None)
-            #print(cmd, data, cb)
-            cb(data) if cb else None
+        i, cmd, data = x
+        if i is None:
+            if cmd == "shell":
+                s = data.encode()
+                for i in wheels.values():
+                    i.write(s)
+            else:
+                http_callbacks[cmd].popleft()(data)
         else:
-            i, cmd, data = x
             s = staffs.get(i)
             if s:
                 s.send(cmd, data) if not debug else io_loop.add_timeout(delay, partial(s.send, cmd, data))
             else:
-                logging.warning("%s is not online, failed to send %s %s",
-                                i, cmd, data)
+                logging.warning("{} is not online failed to send {}-{}".format(i, cmd, data))
+
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
 
@@ -124,7 +122,7 @@ def main(options):
             """dummy"""
 
     import collections
-    HC = collections.defaultdict(collections.deque)  # http commands
+    http_callbacks = collections.defaultdict(collections.deque)
 
 
     class MainHandler(BaseHandler):
@@ -180,8 +178,8 @@ def main(options):
                 logging.info("hub_commands: %s, %s", cmd, args)
                 t = time.strftime("%H:%M:%S")
                 self.history.appendleft([t, cmd, args, None])
-                put([cmd, args])
-                HC[cmd].append(partial(self.deal_echoed, cmd))
+                put([None, cmd, args])
+                http_callbacks[cmd].append(partial(self.deal_echoed, cmd))
             else:
                 self._get()
 
@@ -238,7 +236,7 @@ def main(options):
             i, t = self.get_argument("").split(".", 1)  # "" is token
             tokens[int(i)] = t
             for k in filter(None, self.request.arguments):  # others are patches
-                put(["amend", [i, k, self.get_argument(k)]])
+                put([None, "amend", [i, k, self.get_argument(k)]])
             logging.info("token_generation: %s, %r", i, t)
 
     class ViewHubHandler(BaseHandler):
@@ -254,8 +252,8 @@ def main(options):
             attr = self.get_argument("a", None)
             call = self.get_argument("c", None)
             self._path = path[-1] if path else "view"
-            put(["view", [path, attr, call]])
-            HC["view"].append(self.deal_echoed)
+            put([None, "view", [path, attr, call]])
+            http_callbacks["view"].append(self.deal_echoed)
 
         def deal_echoed(self, echo):
             if isinstance(echo, str) and echo.startswith("Traceback"):
