@@ -116,9 +116,9 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
-    eval_cache = EvalCache()
-
     assets = {}
+
+    _eval_cache = EvalCache()
 
     _defaults = {
         "foo": 5,
@@ -280,7 +280,7 @@ class I(dict):
         for i in booty:
             k, n = i[0], i[-1]
             if isinstance(n, str):
-                n = eval(self.eval_cache[n], None, self)  # :)
+                n = eval(self._eval_cache[n], None, self)  # :)
             n *= gains_local.get(k, 1) * gains_global.get(k, 1) * discount
             i[-1] = int(n)
 
