@@ -27,7 +27,6 @@ if __name__ == "__main__":
         "start": time.strftime("%y%m%d-%H%M%S"),
         "port": options.port,
         "backstage": options.backstage,
-        "backdoor": options.backdoor,
     }
     args = urllib.parse.urlencode(args)
 

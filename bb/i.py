@@ -297,7 +297,7 @@ class I(dict):
         assert all(isinstance(b[0], str) for b in booty), booty
         assert all(isinstance(b[-1], int) for b in booty), booty
         for b in booty:
-            method = self.__getattribute__("apply_%s" % b[0])
+            method = self.__getattribute__("apply_" + b[0])
             method(*b[1:], cause=cause)
 
     def apply_null(self, count, cause):

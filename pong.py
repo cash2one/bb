@@ -53,14 +53,18 @@ def online(i, b):
         i["login_time"] = t
         i.log("online", {"time": t})
         # blabla...
+        #i.give((("item", 2, -3), ("gold", 1)), "cost")
+        i.apply_item(2, -3, custom=2)
     else:
         i["logout_time"] = t
         i.log("offline", {"time": t})
+        i.give((("item", 2, 10), ("gold", -1)), "give")
     return i.flush()
 
 @run
 def plus():
     for i in P.values():
+        i.apply_gold(1, "plus")
         i.apply_gold(1, "plus")
 
 #print(instructions)

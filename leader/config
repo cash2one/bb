@@ -9,6 +9,7 @@
 
 ; lan_host --> wan_host
 [lan_wan]
+127.0.0.1 = z
 192.168.1.1 = 1.xyz.org
 
 ; serverid --> zoneid

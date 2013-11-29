@@ -232,11 +232,14 @@ def main(options):
     class TokenUpdateHandler(BaseHandler):
         def get(self):
             """
-            curl "localhost:8100/t?_=1&_=key"
+            curl "localhost:8100/t?=1.key"
+            curl "localhost:8100/t?=2.key&name=%22%E5%90%8D%22"
             """
-            i, t = self.get_arguments("_")
-            logging.info("token_generation: %s, %r", i, t)
+            i, t = self.get_argument("").split(".", 1)  # "" is token
             tokens[int(i)] = t
+            for k in filter(None, self.request.arguments):  # others are patches
+                put(["amend", [i, k, self.get_argument(k)]])
+            logging.info("token_generation: %s, %r", i, t)
 
     class ViewHubHandler(BaseHandler):
         @asynchronous
