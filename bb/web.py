@@ -107,9 +107,10 @@ def main(options):
     from tornado.web import RequestHandler, Application, asynchronous
 
     ioloop.PeriodicCallback(record, 3000).start()
-    ioloop.PeriodicCallback(lambda: tokens.update(
-        {1: "token", 2: "token", 3: "token"}
-        ), 2000).start()
+    ioloop.PeriodicCallback(
+        lambda: tokens.update(dict.fromkeys(range(100), "token")),
+        1000,
+        ).start()
 
     class BaseHandler(RequestHandler):
         STEP = 25
@@ -265,7 +266,7 @@ def main(options):
 
     from bb import conn
 
-    conn.tcp(staffs, put, )().listen(options.port)
+    conn.tcp(staffs, tokens, put)().listen(options.port)
     conn.backdoor(wheels, put)().listen(options.backdoor)
 
     from tornado import autoreload
@@ -284,7 +285,7 @@ def main(options):
             (r"/clean_lo", CleanIOHistoryHandler),
             (r"/(.*)_status", StatusHandler),
             (r"/view(.*)", ViewHubHandler),
-            (r"/ws", conn.websocket(staffs, put, )),
+            (r"/ws", conn.websocket(staffs, tokens, put)),
         ],
         static_path="_",
         template_path="tpl",
