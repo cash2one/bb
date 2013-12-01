@@ -242,27 +242,27 @@ def main(options):
 
     class ViewHubHandler(BaseHandler):
         @asynchronous
-        def get(self, path):
+        def get(self):
             """
             curl "localhost:8100/view"
-            curl "localhost:8100/view/bb.i/P?a=1"
-            curl "localhost:8100/view/gc/isenabled?c="
+            curl "localhost:8100/view?m=bb"
+            curl "localhost:8100/view?m=bb.i.P&k=2"
+            curl "localhost:8100/view?m=gc.isenabled&c="
+            curl "localhost:8100/view?m=random.randrange&c=0,2"
             """
-            path = list(filter(None, path.split("/")))
-            logging.debug(path)
-            attr = self.get_argument("a", None)
+            mod = self.get_argument("m", "")
+            key = self.get_argument("k", None)
             call = self.get_argument("c", None)
-            self._path = path[-1] if path else "view"
-            put([None, "view", [path, attr, call]])
-            http_callbacks["view"].append(self.deal_echoed)
+            put([None, "view", [mod, key, call]])
+            http_callbacks["view"].append(partial(self.deal_echoed, mod))
 
-        def deal_echoed(self, echo):
+        def deal_echoed(self, mod, echo):
             if isinstance(echo, str) and echo.startswith("Traceback"):
                 self.set_header("Content-Type", "text/plain")
                 self.write(echo)
                 self.finish()
             else:
-                self.render("view.html", data=echo)
+                self.render("view.html", mod=mod, mod_attrs=echo)
 
     from bb import conn
 
@@ -283,9 +283,9 @@ def main(options):
             (r"/lo", IOHistoryHandler),
             (r"/clean_io", CleanIOHistoryHandler),
             (r"/clean_lo", CleanIOHistoryHandler),
-            (r"/(.*)_status", StatusHandler),
-            (r"/view(.*)", ViewHubHandler),
+            (r"/view", ViewHubHandler),
             (r"/ws", conn.websocket(staffs, tokens, put)),
+            (r"/(.*)_status", StatusHandler),
         ],
         static_path="_",
         template_path="tpl",

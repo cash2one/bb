@@ -96,19 +96,20 @@ def _view_data(i, k):
         i = i[k]
     return dump1(i)
 
-def _view(path, attr, call):
-    if path:
-        x = sys.modules[path[0]]
-        for k in path[1:]:
+def _view(mod, key, call):
+    if mod:
+        mod = mod.split(".")
+        x = sys.modules[mod[0]]
+        for k in mod[1:]:
             x = getattr(x, k)
-        if attr is not None:
-            x = [repr(eval("x[%s]" % (attr,))), []]
+        if key is not None:
+            x = [repr(eval("x[{}]".format(key))), []]
         elif call is not None:
-            x = [repr(eval("x(%s)" % (call,))), []]
+            x = [repr(eval("x({})".format(call))), []]
         else:
             x = [repr(x), dir(x)]
     else:
-        x = ["all modules", list(sys.modules.keys())]
+        x = ["All Modules", list(sys.modules.keys())]
     return x
 
 

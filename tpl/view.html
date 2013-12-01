@@ -3,16 +3,16 @@
 
 <title>view</title>
 
-{% set name, dirs = data %}
-{% set p = handler._path %}
+{% set name, dirs = mod_attrs %}
+{% set fmt = ("?m=" + (mod + ".{}" if mod else "{}")).format %}
 
 <h2><a href="/view">View</a></h2>
 
-<p><code>{{".".join(handler.request.path.split("/")[2:])}}</code></p>
+<p><code>{{ mod or "---" }}</code></p>
 <pre>{{ name }}</pre>
 
 <ul>
     {% for k in sorted(dirs) %}
-    <li><a href="{{ "%s/%s" % (p, k) }}">{{ k }}</a></li>
+    <li><a href="{{ fmt(k) }}">{{ k }}</a></li>
     {% end %}
 </ul>
