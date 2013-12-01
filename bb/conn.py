@@ -72,7 +72,10 @@ def tcp(staffs, tokens, send=dummy_send):
         def __init__(self, stream, address):
             self.stream = stream
             self.address = address
-            stream.read_until(HEAD_IGNORE, self._)
+            if HEAD_IGNORE:
+                stream.read_until(HEAD_IGNORE, self._)
+            else:
+                self._(None)
 
         def _(self, _):
             logging.debug(_)
@@ -153,9 +156,9 @@ def backdoor(staffs, send=dummy_send):
             if HEAD_IGNORE:
                 stream.read_until(HEAD_IGNORE, self._)
             else:
-                self._()
+                self._(None)
 
-        def _(self, _=None):
+        def _(self, _):
             self.stream.write(b"Backdoor\n>>> ")
             self.stream.read_until(b'\n', self.handle_input)
 
