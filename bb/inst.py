@@ -96,7 +96,7 @@ def _view_data(i, k):
         i = i[k]
     return dump1(i)
 
-def _view(mod, key, call):
+def _view(mod, key, call, eval_):
     if mod:
         mod = mod.split(".")
         x = sys.modules[mod[0]]
@@ -106,6 +106,8 @@ def _view(mod, key, call):
             x = [repr(eval("x[{}]".format(key))), []]
         elif call is not None:
             x = [repr(eval("x({})".format(call))), []]
+        elif eval_ is not None:
+            x = [repr(eval("x{}".format(eval_))), []]
         else:
             x = [repr(x), dir(x)]
     else:

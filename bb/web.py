@@ -249,11 +249,13 @@ def main(options):
             curl "localhost:8100/view?m=bb.i.P&k=2"
             curl "localhost:8100/view?m=gc.isenabled&c="
             curl "localhost:8100/view?m=random.randrange&c=0,2"
+            curl "localhost:8100/view?m=collections.defaultdict&e=(set)[2].copy()"
             """
             mod = self.get_argument("m", "")
             key = self.get_argument("k", None)
             call = self.get_argument("c", None)
-            put([None, "view", [mod, key, call]])
+            eval = self.get_argument("e", None)
+            put([None, "view", [mod, key, call, eval]])
             http_callbacks["view"].append(partial(self.deal_echoed, mod))
 
         def deal_echoed(self, mod, echo):
