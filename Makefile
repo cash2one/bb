@@ -5,6 +5,7 @@
 .PHONY: test clean pack
 
 test:
+	(find . -name "*.py" | xargs pyflakes; true)
 	python3 -m unittest discover -s bb/test -p "*.py"
 	python3 -m unittest discover -s test
 
