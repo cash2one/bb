@@ -126,6 +126,7 @@ commands = {
     "view_data": lambda args: _view_data(int(args[0]), args[1]),
     "view_logs": lambda args: list(P[int(args[0])].logs),
     "view": lambda args: _view(*args),
+    "show": lambda attr: dump1(eval(attr, None, sys.modules)),
 }
 
 

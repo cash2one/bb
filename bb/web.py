@@ -105,6 +105,7 @@ def main(options):
 
     from bb.oc import record, recorder
     from tornado.web import RequestHandler, Application, asynchronous
+    from urllib.parse import unquote
 
     ioloop.PeriodicCallback(record, 3000).start()
     ioloop.PeriodicCallback(
@@ -240,6 +241,16 @@ def main(options):
                 put([None, "amend", [i, k, self.get_argument(k)]])
             logging.info("token_generation: %s, %r", i, t)
 
+    class ShowHubHandler(BaseHandler):
+        @asynchronous
+        def get(self):
+            print(self.request.query)
+            """
+            curl "localhost:8100/show?sys.argv"
+            """
+            put([None, "show", unquote(self.request.query)])
+            http_callbacks["show"].append(self.finish)
+
     class ViewHubHandler(BaseHandler):
         @asynchronous
         def get(self):
@@ -285,6 +296,7 @@ def main(options):
             (r"/lo", IOHistoryHandler),
             (r"/clean_io", CleanIOHistoryHandler),
             (r"/clean_lo", CleanIOHistoryHandler),
+            (r"/show", ShowHubHandler),
             (r"/view", ViewHubHandler),
             (r"/ws", conn.websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),
