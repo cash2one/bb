@@ -96,23 +96,14 @@ def _view_data(i, k):
         i = i[k]
     return dump1(i)
 
-def _view(mod, key, call, eval_):
-    if mod:
-        mod = mod.split(".")
-        x = sys.modules[mod[0]]
-        for k in mod[1:]:
-            x = getattr(x, k)
-        if key is not None:
-            x = [repr(eval("x[{}]".format(key))), []]
-        elif call is not None:
-            x = [repr(eval("x({})".format(call))), []]
-        elif eval_ is not None:
-            x = [repr(eval("x{}".format(eval_))), []]
-        else:
-            x = [repr(x), dir(x)]
+def _view(e):
+    if e:
+        v = eval(e, None, sys.modules)
+        s = dir(v)
     else:
-        x = ["All Modules", list(sys.modules.keys())]
-    return x
+        v = None
+        s = list(sys.modules.keys())
+    return [repr(v), s]
 
 
 commands = {
@@ -125,7 +116,7 @@ commands = {
     "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web"),
     "view_data": lambda args: _view_data(int(args[0]), args[1]),
     "view_logs": lambda args: list(P[int(args[0])].logs),
-    "view": lambda args: _view(*args),
+    "view": lambda e: _view(e),
     "show": lambda attr: dump1(eval(attr, None, sys.modules)),
 }
 

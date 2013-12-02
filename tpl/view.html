@@ -4,15 +4,15 @@
 <title>view</title>
 
 {% set name, dirs = mod_attrs %}
-{% set fmt = ("?m=" + (mod + ".{}" if mod else "{}")).format %}
+{% set fmt = (e + ".{}" if e else "{}").format %}
 
 <h2><a href="/view">View</a></h2>
 
-<p><code>{{ mod or "---" }}</code></p>
+<p><code>{{ e or "---" }}</code></p>
 <pre>{{ name }}</pre>
 
 <ul>
     {% for k in sorted(dirs) %}
-    <li><a href="{{ fmt(k) }}">{{ k }}</a></li>
+    <li><a href="?{{ fmt(k) }}">{{ k }}</a></li>
     {% end %}
 </ul>

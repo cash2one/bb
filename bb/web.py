@@ -262,20 +262,17 @@ def main(options):
             curl "localhost:8100/view?m=random.randrange&c=0,2"
             curl "localhost:8100/view?m=collections.defaultdict&e=(set)[2].copy()"
             """
-            mod = self.get_argument("m", "")
-            key = self.get_argument("k", None)
-            call = self.get_argument("c", None)
-            eval = self.get_argument("e", None)
-            put([None, "view", [mod, key, call, eval]])
-            http_callbacks["view"].append(partial(self.deal_echoed, mod))
+            e = unquote(self.request.query)
+            put([None, "view", e])
+            http_callbacks["view"].append(partial(self.deal_echoed, e))
 
-        def deal_echoed(self, mod, echo):
+        def deal_echoed(self, e, echo):
             if isinstance(echo, str) and echo.startswith("Traceback"):
                 self.set_header("Content-Type", "text/plain")
                 self.write(echo)
                 self.finish()
             else:
-                self.render("view.html", mod=mod, mod_attrs=echo)
+                self.render("view.html", e=e, mod_attrs=echo)
 
     from bb import conn
 
