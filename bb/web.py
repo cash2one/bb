@@ -136,7 +136,7 @@ def main(options):
 
         def get(self):
             """
-            curl "localhost:8100/?cmd=gc"
+            /?cmd=gc
             """
             cmd = self.get_argument("cmd", None)
             if cmd:
@@ -171,8 +171,8 @@ def main(options):
         @asynchronous
         def get(self):
             """
-            curl "localhost:8100/hub?cmd=gc"
-            curl "localhost:8100/hub?cmd=beginner&args=42"
+            /hub?cmd=gc
+            /hub?cmd=beginner&args=42
             """
             cmd = self.get_argument("cmd", None)
             if cmd:
@@ -232,8 +232,8 @@ def main(options):
     class TokenUpdateHandler(BaseHandler):
         def get(self):
             """
-            curl "localhost:8100/t?=1.key"
-            curl "localhost:8100/t?=2.key&name=%22%E5%90%8D%22"
+            /t?=1.key
+            /t?=2.key&name=%22%E5%90%8D%22
             """
             i, t = self.get_argument("").split(".", 1)  # "" is token
             tokens[int(i)] = t
@@ -246,7 +246,7 @@ def main(options):
         def get(self):
             print(self.request.query)
             """
-            curl "localhost:8100/show?sys.argv"
+            /show?sys.argv
             """
             put([None, "show", unquote(self.request.query)])
             http_callbacks["show"].append(self.finish)
@@ -255,12 +255,9 @@ def main(options):
         @asynchronous
         def get(self):
             """
-            curl "localhost:8100/view"
-            curl "localhost:8100/view?m=bb"
-            curl "localhost:8100/view?m=bb.i.P&k=2"
-            curl "localhost:8100/view?m=gc.isenabled&c="
-            curl "localhost:8100/view?m=random.randrange&c=0,2"
-            curl "localhost:8100/view?m=collections.defaultdict&e=(set)[2].copy()"
+            /view
+            /view?sys.argv[0].upper()
+            /view?random.randrange(0, 2)
             """
             e = unquote(self.request.query)
             put([None, "view", e])
