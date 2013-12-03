@@ -103,9 +103,10 @@ def main(options):
     io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
 
 
-    from bb.oc import record, recorder
-    from tornado.web import RequestHandler, Application, asynchronous
     from urllib.parse import unquote
+    from tornado.web import RequestHandler, Application, asynchronous
+    from bb.const import PING, NULL
+    from bb.oc import record, recorder
 
     ioloop.PeriodicCallback(record, 3000).start()
     ioloop.PeriodicCallback(
@@ -251,6 +252,14 @@ def main(options):
             put([None, "show", unquote(self.request.query)])
             http_callbacks["show"].append(self.finish)
 
+    class FlushHubHandler(BaseHandler):
+        def get(self):
+            print(self.request.query)
+            """flush all in P, proxy via P[0]
+            /flush
+            """
+            put([0, PING, NULL])
+
     class ViewHubHandler(BaseHandler):
         @asynchronous
         def get(self):
@@ -292,6 +301,7 @@ def main(options):
             (r"/clean_lo", CleanIOHistoryHandler),
             (r"/show", ShowHubHandler),
             (r"/view", ViewHubHandler),
+            (r"/flush", FlushHubHandler),
             (r"/ws", conn.websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),
         ],

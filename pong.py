@@ -32,8 +32,16 @@ for idx, key in enumerate(sorted(I._defaults), ATTR):
 @handle
 @pre((int, float, str, list, dict, bool))
 def ping(i, n):
-    i.send("ping", n)
-    return i.flush()
+    if i.i:
+        i.send("ping", n)
+        return i.flush()
+    else:
+        caches = []
+        for o in P.values():
+            c = o.cache
+            caches.extend(c)
+            del c[:]
+        return caches
 
 @I.register_log_callback
 def _test(_, i, log, infos, n):
@@ -64,7 +72,6 @@ def online(i, b):
 @run
 def plus():
     for i in P.values():
-        i.apply_gold(1, "plus")
         i.apply_gold(1, "plus")
 
 #print(instructions)
