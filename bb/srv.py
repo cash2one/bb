@@ -31,7 +31,7 @@ def load_data(ids, host, port):
         raise ValueError(checker.most_common(3))
 
     pipe = db.pipeline()
-    pipe.hgetall(0)  # this is our god
+    ids.insert(0, 0)
     for i in ids:
         pipe.hgetall(i)
     properties = pipe.execute(True)  # DO NOT allow error occurs in redis
