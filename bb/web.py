@@ -245,16 +245,15 @@ def main(options):
     class ShowHubHandler(BaseHandler):
         @asynchronous
         def get(self):
-            print(self.request.query)
             """
             /show?sys.argv
             """
+            self.set_header("Content-Type", "application/json")
             put([None, "show", unquote(self.request.query)])
             http_callbacks["show"].append(self.finish)
 
     class FlushHubHandler(BaseHandler):
         def get(self):
-            print(self.request.query)
             """flush all in P, proxy via P[0]
             /flush
             """

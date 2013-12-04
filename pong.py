@@ -39,8 +39,9 @@ def ping(i, n):
         caches = []
         for o in P.values():
             c = o.cache
-            caches.extend(c)
-            del c[:]
+            if c:
+                caches.extend(c)
+                del c[:]
         return caches
 
 @I.register_log_callback

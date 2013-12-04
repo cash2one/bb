@@ -66,7 +66,7 @@ from bb.i import I, P
 from bb.bd import BackdoorShell
 from bb.oc import record, recorder
 from bb.util import list_to_tuple
-from bb.js import dump1
+from bb.js import dump1, dump2
 
 recorder.clear()
 shell = BackdoorShell()
@@ -117,7 +117,7 @@ commands = {
     "view_data": lambda args: _view_data(int(args[0]), args[1]),
     "view_logs": lambda args: list(P[int(args[0])].logs),
     "view": lambda e: _view(e),
-    "show": lambda attr: dump1(eval(attr, None, sys.modules)),
+    "show": lambda attr: dump2(eval(attr, None, sys.modules)),
 }
 
 
