@@ -118,6 +118,7 @@ commands = {
     "view_logs": lambda args: list(P[int(args[0])].logs),
     "view": lambda e: _view(e),
     "show": lambda attr: dump2(eval(attr, None, sys.modules)),
+    "update": lambda args: P[args[0]].update(json.loads(args[1]))
 }
 
 

@@ -92,7 +92,9 @@ def main(options):
                 for i in wheels.values():
                     i.write(s)
             else:
-                http_callbacks[cmd].popleft()(data)
+                tasks = http_callbacks[cmd]
+                if tasks:
+                    tasks.popleft()(data)
         else:
             s = staffs.get(i)
             if s:
@@ -233,14 +235,16 @@ def main(options):
     class TokenUpdateHandler(BaseHandler):
         def get(self):
             """
-            /t?=1.key
-            /t?=2.key&name=%22%E5%90%8D%22
+            /token?1.key
             """
-            i, t = self.get_argument("").split(".", 1)  # "" is token
+            i, t = self.request.query.split(".", 1)
             tokens[int(i)] = t
-            for k in filter(None, self.request.arguments):  # others are patches
-                put([None, "amend", [i, k, self.get_argument(k)]])
             logging.info("token_generation: %s, %r", i, t)
+
+        def post(self):
+            _ = int(self.request.query), self.request.body.decode()
+            put([None, "update", _])
+
 
     class ShowHubHandler(BaseHandler):
         @asynchronous
@@ -294,7 +298,7 @@ def main(options):
         [
             (r"/dummy", BaseHandler),
             (r"/", MainHandler),
-            (r"/t", TokenUpdateHandler),
+            (r"/token", TokenUpdateHandler),
             (r"/hub", HubHandler),
             (r"/io", IOHistoryHandler),
             (r"/lo", IOHistoryHandler),

@@ -36,7 +36,7 @@ NAMES = {}
 
 match = re.compile(r"^[0-9A-F]{32}$").match  # pattern of openid
 token_fmt = "{}.{}".format
-token_url_fmt = "http://{}/t?{}".format
+token_url_fmt = "http://{}/token?{}".format
 http = tornado.httpclient.AsyncHTTPClient()
 
 def init():
@@ -83,7 +83,10 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         _ = self.get_arguments("_")
         if len(_) == 4:
-            serverid, openid, role, name = int(_[0]), _[1], int(_[2]), _[3]
+            serverid = int(_[0])
+            openid = _[1]
+            role = int(_[2])
+            name = _[3].strip()
             zoneid = ALIASES[serverid]
             if role in ROLES and 0 < len(name) < 8:
                 if name in NAMES[zoneid]:
@@ -92,17 +95,33 @@ class MainHandler(tornado.web.RequestHandler):
                     BEGINNERS[zoneid].remove(openid)
                     global ID
                     ID += 1
-                    token = random.randrange(1000)
                     response = yield http.fetch(
-                        token_url_fmt(
-                            BACKSTAGES[zoneid],
-                            urlencode({"": token_fmt(ID, token), "name": name}),
-                            )
+                        token_url_fmt(BACKSTAGES[zoneid], ID),
+                        "POST",
+                        json.dumps({
+                            "name": name,
+                            "role": role,
+                        }),
                         )
                     if response.error:
                         logging.warning(response)
                         raise tornado.web.HTTPError(500)
-                    FS[zoneid].write("{} {}\n".format(openid, ID))
+                    token = random.randrange(1000)
+                    response = yield http.fetch(
+                        token_url_fmt(BACKSTAGES[zoneid], token_fmt(ID, token))
+                        )
+                    if response.error:
+                        logging.warning(response)
+                        raise tornado.web.HTTPError(500)
+                    FS[zoneid].write(
+                        "{} {} {} {} {}\n".format(
+                            openid,
+                            ID,
+                            time.strftime("%Y-%m-%d %H:%M:%S"),
+                            name,
+                            role,
+                            )
+                        )
                     IDX[zoneid][openid] = ID
                     NAMES[zoneid][name] = openid
                     self.write(token_fmt(ID, token))
@@ -120,11 +139,9 @@ class MainHandler(tornado.web.RequestHandler):
                 zoneid = ALIASES[serverid]
                 i = IDX[zoneid].get(openid)
                 if i is not None:
+                    token = random.randrange(1000)
                     response = yield http.fetch(
-                        token_url_fmt(
-                            BACKSTAGES[zoneid],
-                            urlencode({"": token_fmt(ID, token)})
-                            )
+                        token_url_fmt(BACKSTAGES[zoneid], token_fmt(ID, token))
                         )
                     if response.error:
                         logging.warning(response)
@@ -153,7 +170,8 @@ class RegHandler(tornado.web.RequestHandler):
         self.write({
             "WORLD": "z_" + "_".join(map(str, sorted(zs))),
             "IDS": ids_in_world,
-            "DB_HOST": "box",
+            "HEAD_IGNORE": "",
+            #"DB_HOST": "box",
         })
 
 class QuitHandler(tornado.web.RequestHandler):
@@ -180,7 +198,9 @@ application = tornado.web.Application([
 if __name__ == "__main__":
     import tornado.options
     tornado.options.parse_command_line()
-    logging.error(__name__)
+    from bb import bd
+    bd.Connection.shell.push("import __main__ as m")
+    bd.Backdoor().listen(65534)
     init()
     print("ALIASES", ALIASES)
     print("DOMAINS", DOMAINS)
