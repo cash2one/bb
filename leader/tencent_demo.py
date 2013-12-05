@@ -69,7 +69,7 @@ def init():
         if i.isdigit():
             i, fn = int(i), os.path.join(idx_dir, i)
             with open(fn) as f:
-                IDX[i] = {k: int(v) for k, v in (s.split() for s in f)}
+                IDX[i] = {k: int(v) for k, v in (s.split()[:2] for s in f)}
             FS[i] = open(fn, "a", 1)
             BEGINNERS[i] = set()
             NAMES[i] = {} # todo: read all names
