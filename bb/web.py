@@ -256,8 +256,10 @@ def main(options):
         def get(self):
             """flush all in P, proxy via P[0]
             /flush
+            /flush?3
             """
-            put([0, PING, NULL])
+            i = self.request.query
+            put([int(i) if i.isdigit() else 0, PING, NULL])
 
     class ViewHubHandler(BaseHandler):
         @asynchronous

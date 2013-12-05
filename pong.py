@@ -30,19 +30,14 @@ for idx, key in enumerate(sorted(I._defaults), ATTR):
 
 
 @handle
-@pre((int, float, str, list, dict, bool))
+#@pre((int, float, str, list, dict, bool))
 def ping(i, n):
-    if i.i:
-        i.send("ping", n)
+    if i.i:  # normal
+        if n is not None:  # if n is None, flush only
+            i.send("ping", n)
         return i.flush()
-    else:
-        caches = []
-        for o in P.values():
-            c = o.cache
-            if c:
-                caches.extend(c)
-                del c[:]
-        return caches
+    else:  # root
+        return i.flush(*P.values())
 
 @I.register_log_callback
 def _test(_, i, log, infos, n):
