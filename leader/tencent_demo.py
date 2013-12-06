@@ -83,11 +83,10 @@ class MainHandler(tornado.web.RequestHandler):
     def get(self):
         _ = self.get_arguments("_")
         if len(_) == 4:
-            serverid = int(_[0])
+            zoneid = int(_[0])
             openid = _[1]
             role = int(_[2])
             name = _[3].strip()
-            zoneid = ALIASES[serverid]
             if role in ROLES and 0 < len(name) < 8:
                 if name in NAMES[zoneid]:
                     self.write("{} - {} {} exist".format(zoneid, openid, name))
@@ -132,9 +131,10 @@ class MainHandler(tornado.web.RequestHandler):
             if all(kwargs.get(k) for k in REQUIRED) and match(kwargs["openid"]):
                 response = yield http.fetch(mk_url(kwargs, "/v3/user/get_info"))
                 if response.error:
-                    logging.warning(response)
                     raise tornado.web.HTTPError(500)
-                self.write(response.body)
+                response = json.loads(response.body.decode())
+                if response["ret"]:
+                    raise tornado.web.HTTPError(400, reason=response["msg"])
                 serverid, openid = int(kwargs["serverid"]), kwargs["openid"]
                 zoneid = ALIASES[serverid]
                 i = IDX[zoneid].get(openid)
