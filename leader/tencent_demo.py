@@ -40,6 +40,8 @@ token_url_fmt = "http://{}/token?{}".format
 http = tornado.httpclient.AsyncHTTPClient()
 
 def init():
+    """TODO: check config
+    """
     ALIASES.clear()
     DOMAINS.clear()
     LAN_WAN.clear()
@@ -64,15 +66,14 @@ def init():
         DOMAINS.setdefault(host_port, set()).add(i)
 
     ###########################################################
-    idx_dir = "idx"
-    for i in os.listdir(idx_dir):
-        if i.isdigit():
-            i, fn = int(i), os.path.join(idx_dir, i)
-            with open(fn) as f:
-                IDX[i] = {k: int(v) for k, v in (s.split()[:2] for s in f)}
-            FS[i] = open(fn, "a", 1)
-            BEGINNERS[i] = set()
-            NAMES[i] = {} # todo: read all names
+    for i in config["entries"]:
+        i, fn = int(i), os.path.join("idx", i)
+        with open(fn) as f:
+            IDX[i] = {k: int(v) for k, v in (s.split()[:2] for s in f)}
+        FS[i] = open(fn, "a", 1)
+        BEGINNERS[i] = set()
+        NAMES[i] = {} # todo: read all real names
+
     global ID
     ID = max(max(i.values()) for i in IDX.values() if i)
 
