@@ -95,20 +95,14 @@ class MainHandler(tornado.web.RequestHandler):
                     BEGINNERS[zoneid].remove(openid)
                     global ID
                     ID += 1
+                    token = random.randrange(1000)
                     response = yield http.fetch(
-                        token_url_fmt(BACKSTAGES[zoneid], ID),
+                        token_url_fmt(BACKSTAGES[zoneid], token_fmt(ID, token)),
                         "POST",
                         json.dumps({
                             "name": name,
                             "role": role,
                         }),
-                        )
-                    if response.error:
-                        logging.warning(response)
-                        raise tornado.web.HTTPError(500)
-                    token = random.randrange(1000)
-                    response = yield http.fetch(
-                        token_url_fmt(BACKSTAGES[zoneid], token_fmt(ID, token))
                         )
                     if response.error:
                         logging.warning(response)

@@ -239,11 +239,13 @@ def main(options):
             """
             i, t = self.request.query.split(".", 1)
             tokens[int(i)] = t
-            logging.info("token_generation: %s, %r", i, t)
+            logging.info("token_generation_1: %s, %r", i, t)
 
         def post(self):
-            _ = int(self.request.query), self.request.body.decode()
-            put([None, "update", _])
+            i, t = self.request.query.split(".", 1)
+            tokens[int(i)] = t
+            put([None, "update", [int(i), self.request.body.decode()]])
+            logging.info("token_generation_2: %s, %r", i, t)
 
 
     class ShowHubHandler(BaseHandler):
