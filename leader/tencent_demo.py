@@ -163,7 +163,7 @@ class RegHandler(tornado.web.RequestHandler):
             BACKSTAGES[i] = hp(remote_ip, kwargs["backstage"])
             ids_in_world.extend(IDX[i].values())
         self.write({
-            "WORLD": "z_" + "_".join(map(str, sorted(zs))),
+            "WORLD": "_" + "_".join(map(str, sorted(zs))),
             "IDS": ids_in_world,
             "HEAD_IGNORE": "",
             #"DB_HOST": "box",
