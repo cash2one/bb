@@ -59,6 +59,7 @@ def run(func):
 
 import gc
 import json
+import pprint
 import sys
 import time
 
@@ -103,7 +104,7 @@ def _view(e):
     else:
         v = None
         s = list(sys.modules.keys())
-    return [repr(v), s]
+    return ["{}\n\n{}".format(str(type(v)), pprint.pformat(v)), s]
 
 
 commands = {
