@@ -35,6 +35,7 @@ BEGINNERS = {}
 NAMES = {}
 
 match = re.compile(r"^[0-9A-F]{32}$").match  # pattern of openid
+host_port_fmt = "{}:{}".format
 token_fmt = "{}.{}".format
 token_url_fmt = "http://{}/token?{}".format
 http = tornado.httpclient.AsyncHTTPClient()
@@ -62,7 +63,7 @@ def init():
         i = int(i)
         host, port = host_port.split(":")
         port = int(port)
-        ENTRIES[i] = "{}:{}".format(LAN_WAN[host], port)
+        ENTRIES[i] = host_port_fmt(LAN_WAN[host], port)
         DOMAINS.setdefault(host_port, set()).add(i)
 
     ###########################################################
@@ -155,12 +156,11 @@ class RegHandler(tornado.web.RequestHandler):
         logging.debug(self.request.arguments)
         remote_ip = self.request.remote_ip
         kwargs = {k: self.get_argument(k) for k in self.request.arguments}
-        hp = "{}:{}".format
-        domain = hp(remote_ip, kwargs["port"])
+        domain = host_port_fmt(remote_ip, kwargs["port"])
         zs = DOMAINS[domain]
         ids_in_world = []
         for i in zs:
-            BACKSTAGES[i] = hp(remote_ip, kwargs["backstage"])
+            BACKSTAGES[i] = host_port_fmt(remote_ip, kwargs["backstage"])
             ids_in_world.extend(IDX[i].values())
         self.write({
             "WORLD": "_" + "_".join(map(str, sorted(zs))),
@@ -168,20 +168,11 @@ class RegHandler(tornado.web.RequestHandler):
             "HEAD_IGNORE": "",
             #"DB_HOST": "box",
         })
+        _view()
 
 class QuitHandler(tornado.web.RequestHandler):
     def get(self):
-        print("ALIASES", ALIASES)
-        print("DOMAINS", DOMAINS)
-        print("LAN_WAN", LAN_WAN)
-        print("WAN_LAN", WAN_LAN)
-        print("ENTRIES", ENTRIES)
-        print("BACKSTAGES", BACKSTAGES)
-        print("ID", ID)
-        print("IDX", IDX)
-        print("FS", FS)
-        print("BEGINNERS", BEGINNERS)
-        print("NAMES", NAMES)
+        _view()
 
 
 application = tornado.web.Application([
@@ -190,6 +181,11 @@ application = tornado.web.Application([
     (r"/quit", QuitHandler),
 ])
 
+def _view():
+    for k, v in sorted(globals().items()):
+        if k.isupper():
+            print(k, v)
+
 if __name__ == "__main__":
     import tornado.options
     tornado.options.parse_command_line()
@@ -197,16 +193,6 @@ if __name__ == "__main__":
     bd.Connection.shell.push("import __main__ as m")
     bd.Backdoor().listen(65534)
     init()
-    print("ALIASES", ALIASES)
-    print("DOMAINS", DOMAINS)
-    print("LAN_WAN", LAN_WAN)
-    print("WAN_LAN", WAN_LAN)
-    print("ENTRIES", ENTRIES)
-    print("BACKSTAGES", BACKSTAGES)
-    print("ID", ID)
-    print("IDX", IDX)
-    print("FS", FS)
-    print("BEGINNERS", BEGINNERS)
-    print("NAMES", NAMES)
+    _view()
     application.listen(65535)
     tornado.ioloop.IOLoop.instance().start()
