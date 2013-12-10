@@ -98,7 +98,7 @@ def _view_data(i, k):
     return dump1(i)
 
 
-_VIEW_MAX = 100 * 1024  # could be changed via backdoor
+MAXLEN = 100 * 1024  # could be changed via backdoor or web
 
 def _view(e):
     if e:
@@ -107,7 +107,7 @@ def _view(e):
     else:
         v = None
         s = list(sys.modules.keys())
-    return ["{}\n\n{}".format(str(type(v)), pprint.pformat(v)[:_VIEW_MAX]), s]
+    return ["{}\n\n{}".format(str(type(v)), pprint.pformat(v)[:MAXLEN]), s]
 
 
 commands = {

@@ -17,6 +17,7 @@ from tornado.tcpserver import TCPServer
 
 class BackdoorShell(InteractiveInterpreter):
     """backdoor"""
+    MAXLEN = 80 * 25 * 3
     def __init__(self):
         InteractiveInterpreter.__init__(self)
         self.buf = []
@@ -40,7 +41,7 @@ class BackdoorShell(InteractiveInterpreter):
             del buf[:]
             prompt = ">>> " 
 
-        return io.getvalue() + prompt
+        return io.getvalue()[:self.MAXLEN] + prompt
 
 
 class Connection(object):
