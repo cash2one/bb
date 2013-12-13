@@ -101,6 +101,14 @@ class EvalCache(dict):
         self[k] = code
         return code
 
+class MirrorDict(dict):
+    """
+    >>> env = MirrorDict()
+    >>> eval("{a:b,c:1}", None, env)
+    {'a': 'b', 'c': 1}
+    """
+    def __missing__(self, k):
+        return k
 
 class Object(object):
     """
