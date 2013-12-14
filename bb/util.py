@@ -101,9 +101,9 @@ class EvalCache(dict):
         self[k] = code
         return code
 
-class MirrorDict(dict):
+class Default(dict):
     """
-    >>> env = MirrorDict()
+    >>> env = Default()
     >>> eval("{a:b,c:1}", None, env)
     {'a': 'b', 'c': 1}
     """
