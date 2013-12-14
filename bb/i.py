@@ -121,36 +121,40 @@ class I(dict):
     _eval_cache = EvalCache()
 
     _defaults = {
-        "foo": 5,
-        "bar": lambda _: [_["foo"]],
-        "foobar": lambda _: collections.Counter({1: 1, 2: 1}),
-        "gains": lambda _: {},
-        "gold": 500,
-        "lv": 1,
-        "bag": lambda _: [None] * 8,
-        "story": 0,
-        "story_task": 0,
-        "stories": lambda _: {},  # {id: count, ...}
-        "stories_done": lambda _: set(),
-        "xy": lambda _: [0, 0],
+        #"foo": 5,
+        #"bar": lambda _: [_["foo"]],
     }
 
     _wrappers = {
-        "foobar": lambda raw: collections.Counter(
-            {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
-        "stories": lambda raw: {int(k): v for k, v in raw.items()},
-        "stories_done": lambda raw: set(raw),
+#        "foobar": lambda raw: collections.Counter(
+#            {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
+#        "stories": lambda raw: {int(k): v for k, v in raw.items()},
+#        "stories_done": lambda raw: set(raw),
     }
 
     _cbs = {}
 
     @classmethod
-    def register_log_callback(cls, callback):
-        _cbs = cls._cbs
-        name = callback.__name__
-        assert name not in _cbs, name
-        _cbs[name] = callback
+    def _register(cls, attr, callback, name):
+        dct = getattr(cls, attr)
+        if not name:
+            name = callback.__name__
+        assert isinstance(name, str), name
+        assert name not in dct, name
+        dct[name] = callback
         return callback
+
+    @classmethod
+    def register_log_callback(cls, callback, name=None):
+        return cls._register("_cbs", callback, name)
+
+    @classmethod
+    def register_default(cls, callback, name=None):
+        return cls._register("_defaults", callback, name)
+
+    @classmethod
+    def register_wrapper(cls, callback, name=None):
+        return cls._register("_wrappers", callback, name)
 
 
     def __init__(self, n, source=None):
@@ -378,6 +382,21 @@ class I(dict):
             self.save("bag")
 
 init_assets()
+
+I.register_default(5, "foo")
+I.register_default(lambda _: [_["foo"]], "bar")
+@I.register_default
+def foobar(_):
+    return collections.Counter({1: 1, 2: 1})
+I.register_default(lambda _: {},"gains")
+I.register_default(500, "gold")
+I.register_default(1, "lv")
+I.register_default(lambda _: [None] * 8, "bag")
+I.register_default(1, "story")
+I.register_default(0, "story_task")
+I.register_default(lambda _: {}, "stories")
+I.register_default(lambda _: set(),"stories_done")
+I.register_default(lambda _: [0, 0], "xy")
 
 # examples here:
 @I.register_log_callback
