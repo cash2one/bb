@@ -3,7 +3,7 @@
 import time
 
 from bb.const import ATTR
-from bb.inst import instructions, processes, handle, pre, run
+from bb.inst import instructions, processes, handle, pre
 from bb.i import I, P
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
@@ -65,7 +65,6 @@ def online(i, b):
         i.give((("item", 2, 10), ("gold", -1)), "give")
     return i.flush()
 
-@run
 def plus():
     for i in P.values():
         i.apply_gold(1, "plus")

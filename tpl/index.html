@@ -3,28 +3,11 @@
 
 <title>bb</title>
 
-{% for x in ["web", "hub", "log"] %}
-<a href="/{{ x }}_status" target="_blank">{{ x }}</a>
-{% end %}
-
-<hr />
-
-<a href="/hub" target="_blank">HUB</a>
 <a href="/io" target="_blank">IO</a>
 <a href="/lo" target="_blank">LO</a>
-<a href="/view" target="_blank">View</a>
+<a href="/hub_eval" target="_blank">Eval</a>
+<a href="/hub_show" target="_blank">Show</a>
 
-<hr />
+<p>{{ cmd }}</p>
+<p>{{ result }}</p>
 
-<form>
-    {% for b in handler.commands %}
-    <input type="radio" name="cmd" value="{{ b }}" id="{{ b }}">
-    <label for="{{ b }}">{{ b }}</label>
-    <br>
-    {% end %}
-    <input type="submit" value="Go">
-</form>
-
-<p>{{ qsize }}</p>
-<p>{{ list(staffs.keys()) }}</p>
-<p>{{ list(wheels.keys()) }}</p>

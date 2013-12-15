@@ -60,6 +60,7 @@ def main(options):
     start()
 
     # main from here
+    import sys
     import time
     import weakref
     from functools import partial
@@ -92,9 +93,7 @@ def main(options):
                 for i in wheels.values():
                     i.write(s)
             else:
-                tasks = http_callbacks[cmd]
-                if tasks:
-                    tasks.popleft()(data)
+                http_callbacks.popleft()(data)
         else:
             s = staffs.get(i)
             if s:
@@ -106,7 +105,7 @@ def main(options):
 
 
     from urllib.parse import unquote
-    from tornado.web import RequestHandler, Application, asynchronous
+    from tornado.web import RequestHandler, Application, HTTPError, asynchronous
     from bb.const import PING, NULL
     from bb.oc import record, recorder
 
@@ -127,76 +126,20 @@ def main(options):
             """dummy"""
 
     import collections
-    http_callbacks = collections.defaultdict(collections.deque)
+    http_callbacks = collections.deque()
 
 
     class MainHandler(BaseHandler):
-        commands = {
-            "gc": lambda: gc.collect(),
-            "HUB-RST": lambda: [gc.collect(), stop(), start()],
-            "door-close": lambda: [i.close() for i in wheels.values()],
-        }
-
         def get(self):
             """
-            /?cmd=gc
+            /?gc.collect()
             """
-            cmd = self.get_argument("cmd", None)
-            if cmd:
-                logging.info("main_commands: %s", cmd)
-                self.commands[cmd]()
+            cmd = unquote(self.request.query)
+            result = repr(eval(cmd, None, sys.modules)) if cmd else ""
             if self.browser:
-                self.render("index.html",
-                            qsize=Q0.qsize(),
-                            wheels=wheels,
-                            staffs=staffs)
-
-
-    class HubHandler(BaseHandler):
-        commands = {
-            "status": lambda d: StatusHandler.recorders["hub"].update(d),
-            "gc": lambda n: logging.info("hub gc collect return: %d", n),
-            "beginner": lambda i: logging.info("begin %d", i),
-            "amend": lambda args: logging.info("amend %d %s %r %r", *args),
-            "run": lambda f: logging.info("run %s succeed" % f),
-            "view_data": lambda x: logging.info("%r " % x),
-            "view_logs": lambda x: logging.info("%r " % x),
-        }
-
-        history = collections.deque(maxlen=3)
-
-        def _get(self):
-            if self.browser:
-                self.render("hub.html")
+                self.render("index.html", cmd=cmd, result=result)
             else:
-                self.finish()
-
-        @asynchronous
-        def get(self):
-            """
-            /hub?cmd=gc
-            /hub?cmd=beginner&args=42
-            """
-            cmd = self.get_argument("cmd", None)
-            if cmd:
-                args = self.get_arguments("args")
-                logging.info("hub_commands: %s, %s", cmd, args)
-                t = time.strftime("%H:%M:%S")
-                self.history.appendleft([t, cmd, args, None])
-                put([None, cmd, args])
-                http_callbacks[cmd].append(partial(self.deal_echoed, cmd))
-            else:
-                self._get()
-
-        def deal_echoed(self, cmd, echo):
-            self.history[0][-1] = echo
-            if isinstance(echo, str) and echo.startswith("Traceback"):
-                self.set_header("Content-Type", "text/plain")
-                self.write(echo)
-                self.finish()
-            else:
-                self.commands[cmd](echo)
-                self._get()
+                self.write(result)
 
 
     class IOHistoryHandler(BaseHandler):
@@ -248,15 +191,31 @@ def main(options):
             logging.info("token_generation_2: %s, %r", i, t)
 
 
-    class ShowHubHandler(BaseHandler):
+    class HubHandler(BaseHandler):
         @asynchronous
-        def get(self):
+        def get(self, cmd):
             """
-            /show?sys.argv
+            /hub_eval?
+            /hub_show?
             """
-            self.set_header("Content-Type", "application/json")
-            put([None, "show", unquote(self.request.query)])
-            http_callbacks["show"].append(self.finish)
+            expr = unquote(self.request.query)
+            if cmd == "eval":
+                self.set_header("Content-Type", "application/json")
+                http_callbacks.append(self.finish)
+            elif cmd == "show":
+                http_callbacks.append(self.deal_echoed)
+            else:
+                raise HTTPError(404)
+            put([None, cmd, expr])
+            self.expr = expr
+
+        def deal_echoed(self, echo):
+            if isinstance(echo, str) and echo.startswith("Traceback"):
+                self.set_header("Content-Type", "text/plain")
+                self.write(echo)
+                self.finish()
+            else:
+                self.render("show.html", mod_attrs=echo)
 
     class FlushHubHandler(BaseHandler):
         def get(self):
@@ -267,25 +226,6 @@ def main(options):
             i = self.request.query
             put([int(i) if i.isdigit() else 0, PING, NULL])
 
-    class ViewHubHandler(BaseHandler):
-        @asynchronous
-        def get(self):
-            """
-            /view
-            /view?sys.argv[0].upper()
-            /view?random.randrange(0, 2)
-            """
-            e = unquote(self.request.query)
-            put([None, "view", e])
-            http_callbacks["view"].append(partial(self.deal_echoed, e))
-
-        def deal_echoed(self, e, echo):
-            if isinstance(echo, str) and echo.startswith("Traceback"):
-                self.set_header("Content-Type", "text/plain")
-                self.write(echo)
-                self.finish()
-            else:
-                self.render("view.html", e=e, mod_attrs=echo)
 
     from bb import conn
 
@@ -301,13 +241,11 @@ def main(options):
             (r"/dummy", BaseHandler),
             (r"/", MainHandler),
             (r"/token", TokenUpdateHandler),
-            (r"/hub", HubHandler),
+            (r"/hub_(.*)", HubHandler),
             (r"/io", IOHistoryHandler),
             (r"/lo", IOHistoryHandler),
             (r"/clean_io", CleanIOHistoryHandler),
             (r"/clean_lo", CleanIOHistoryHandler),
-            (r"/show", ShowHubHandler),
-            (r"/view", ViewHubHandler),
             (r"/flush", FlushHubHandler),
             (r"/ws", conn.websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),

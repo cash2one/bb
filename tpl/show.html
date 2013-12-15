@@ -1,12 +1,12 @@
 {% include "_head.html" %}
 {# vim:se syntax=html.tornadotmpl: #}
 
-<title>view</title>
-
 {% set name, dirs = mod_attrs %}
+{% set e = handler.expr %}
 {% set fmt = (e + ".{}" if e else "{}").format %}
 
-<h2><a href="/view">View</a></h2>
+<title>show</title>
+<h2><a href="/hub_show">Show</a></h2>
 
 <p><code>{{ e or "---" }}</code></p>
 <pre>{{ name }}</pre>

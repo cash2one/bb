@@ -47,14 +47,6 @@ def pre(types=None, value_checker=None):
     return decorator
 
 
-runners = {}  # launch certain function in runners by web
-
-def run(func):
-    assert callable(func), func
-    alias = func.__name__
-    assert alias not in runners, alias
-    runners[alias] = func
-    return func
 
 
 import gc
@@ -65,11 +57,8 @@ import time
 
 from bb.i import I, P
 from bb.bd import BackdoorShell
-from bb.oc import record, recorder
-from bb.util import list_to_tuple
 from bb.js import dump1, dump2
 
-recorder.clear()
 shell = BackdoorShell()
 
 def _beginner(i, name):
@@ -91,18 +80,12 @@ def _amend(i, k, v):
     _i[k] = v_new
     return i, k, v_old, v_new
 
-def _view_data(i, k):
-    i = P[i]
-    if k:
-        i = i[k]
-    return dump1(i)
-
 
 MAXLEN = 100 * 1024  # could be changed via backdoor or web
 
-def _view(e):
-    if e:
-        v = eval(e, None, sys.modules)
+def _show(expression):
+    if expression:
+        v = eval(expression, None, sys.modules)
         s = dir(v)
     else:
         v = None
@@ -112,17 +95,8 @@ def _view(e):
 
 commands = {
     "shell": lambda line: shell.push(line),
-    "status": lambda _: record() or dict(recorder),
-    "gc": lambda _: gc.collect(),
-    "beginner": lambda args: _beginner(int(args[0]), args[1]),
-    "amend": lambda args: _amend(int(args[0]), args[1], json.loads(args[2])),
-    "run": lambda args: [runners[i]() or i for i in args if i],
-    "render": lambda r: P[1].apply(P[1].render(list_to_tuple(r)), "from web"),
-    "view_data": lambda args: _view_data(int(args[0]), args[1]),
-    "view_logs": lambda args: list(P[int(args[0])].logs),
-    "view": lambda e: _view(e),
-    "show": lambda attr: dump2(eval(attr, None, sys.modules)),
-    "update": lambda args: P[args[0]].update(json.loads(args[1]))
+    "show": lambda exp: _show(exp),
+    "eval": lambda exp: dump2(eval(exp, None, sys.modules) if exp else None),
 }
 
 
