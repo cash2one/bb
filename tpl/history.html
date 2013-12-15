@@ -3,7 +3,9 @@
 
 <title>{{ io }} history</title>
 
-<a href="/clean_{{ io }}?page={{ page }}">clean old</a>
+{#
+<a href="/{{ io }}?clean">clean</a>
+#}
 
 <table>
     {% for x in history %}
@@ -29,7 +31,7 @@
 </table>
 
 {% for i in range(1, pages + 1) %}
-<a href="/{{ io }}?page={{ i }}">
+<a href="/{{ io }}?{{ i }}">
     {% if i == page %}
     <strong><em>{{ i }}</em></strong>
     {% else %}

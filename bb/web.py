@@ -116,8 +116,6 @@ def main(options):
         ).start()
 
     class BaseHandler(RequestHandler):
-        STEP = 25
-
         @property
         def browser(self):
             return self.request.host[0].isalpha()
@@ -144,29 +142,19 @@ def main(options):
 
     class IOHistoryHandler(BaseHandler):
         def get(self):
-            if debug:
-                page = int(self.get_argument("page", 1))
-                s = self.STEP
-                io = self.request.path.lstrip("/")
-                pages = int((debug_db.llen(io) - 1) / s) + 1
-                history = debug_db.lrange(io, s * (page - 1), s * page - 1)
-                self.render("history.html",
-                            io=io,
-                            page=page,
-                            pages=pages,
-                            history=history)
-
-    class CleanIOHistoryHandler(BaseHandler):
-        def get(self, page=None):
-            if debug:
-                page = int(self.get_argument("page", 0))
-                s = self.STEP
-                io = self.request.path.partition("_")[2]
-                if page:
-                    debug_db.ltrim(io, s * (page - 1), -1)
-                else:
-                    debug_db.delete(io)
-                self.redirect("/%s" % io)
+            if not debug:
+                return
+            step = 25
+            io = self.request.path.lstrip("/")
+            x = self.request.query
+            if x == "clean":
+                debug_db.delete(io)
+                #debug_db.ltrim(io, s * (page - 1), -1)
+            page = int(x) if x.isdigit() else 1
+            pages = int((debug_db.llen(io) - 1) / step) + 1
+            history = debug_db.lrange(io, step * (page - 1), step * page - 1)
+            self.render("history.html",
+                        io=io, page=page, pages=pages, history=history)
 
 
     class StatusHandler(BaseHandler):
@@ -242,10 +230,7 @@ def main(options):
             (r"/", MainHandler),
             (r"/token", TokenUpdateHandler),
             (r"/hub_(.*)", HubHandler),
-            (r"/io", IOHistoryHandler),
-            (r"/lo", IOHistoryHandler),
-            (r"/clean_io", CleanIOHistoryHandler),
-            (r"/clean_lo", CleanIOHistoryHandler),
+            (r"/.o", IOHistoryHandler),
             (r"/flush", FlushHubHandler),
             (r"/ws", conn.websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),
