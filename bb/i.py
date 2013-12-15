@@ -70,10 +70,6 @@ def init_assets():
     # ...
 
 
-gains = {
-    "coin": 1.1,
-}
-
 class I(dict):
     """
     >>> i = I(42, {"a": 1, "b": 3})
@@ -116,8 +112,6 @@ class I(dict):
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
-    assets = {}
-
     _eval_cache = EvalCache()
 
     _defaults = {
@@ -133,6 +127,9 @@ class I(dict):
     }
 
     _cbs = {}
+
+    assets = {"items": {}}
+    gains_global = {}
 
     @classmethod
     def _register(cls, attr, callback, name):
@@ -279,13 +276,13 @@ class I(dict):
                 raise Warning("unsupported rc: %s" % (r,))
 
         discount = 1 or 0.1 # todo
-        gains_global, gains_local = gains, self.gains
+        gg, gl = self.gains_global, self.gains_local
 
         for i in booty:
             k, n = i[0], i[-1]
             if isinstance(n, str):
                 n = eval(self._eval_cache[n], None, self)  # :)
-            n *= gains_local.get(k, 1) * gains_global.get(k, 1) * discount
+            n *= gl.get(k, 1) * gg.get(k, 1) * discount
             i[-1] = int(n)
 
         return booty
@@ -388,7 +385,7 @@ I.register_default(lambda _: [_["foo"]], "bar")
 @I.register_default
 def foobar(_):
     return collections.Counter({1: 1, 2: 1})
-I.register_default(lambda _: {},"gains")
+I.register_default(lambda _: {}, "gains_local")
 I.register_default(500, "gold")
 I.register_default(1, "lv")
 I.register_default(lambda _: [None] * 8, "bag")
