@@ -276,7 +276,7 @@ class I(dict):
                 raise Warning("unsupported rc: %s" % (r,))
 
         discount = 1 or 0.1 # todo
-        gg, gl = self.gains_global, self.gains_local
+        gg, gl = self.gains_global, self["gains_local"]
 
         for i in booty:
             k, n = i[0], i[-1]
