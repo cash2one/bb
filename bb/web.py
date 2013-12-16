@@ -214,6 +214,10 @@ def main(options):
             i = self.request.query
             put([int(i) if i.isdigit() else 0, PING, NULL])
 
+    class DummyIHandler(BaseHandler):
+        def get(self, i):
+            cmd, msg = unquote(self.request.query).split(".", 1)
+            put([int(i), int(cmd), msg])
 
     from bb import conn
 
@@ -234,6 +238,7 @@ def main(options):
             (r"/flush", FlushHubHandler),
             (r"/ws", conn.websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),
+            (r"/(\d+)", DummyIHandler),
         ],
         static_path="_",
         template_path="tpl",
