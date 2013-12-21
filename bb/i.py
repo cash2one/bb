@@ -70,6 +70,24 @@ def init_assets():
     # ...
 
 
+def _register(attr, callback, name):
+    dct = getattr(I, attr)
+    if not name:
+        name = callback.__name__
+    assert isinstance(name, str), name
+    assert name not in dct, name
+    dct[name] = callback
+    return callback
+
+def register_log_callback(callback, name=None):
+    return _register("_cbs", callback, name)
+
+def register_default(callback, name=None):
+    return _register("_defaults", callback, name)
+
+def register_wrapper(callback, name=None):
+    return _register("_wrappers", callback, name)
+
 class I(dict):
     """
     >>> i = I(42, {"a": 1, "b": 3})
@@ -130,28 +148,6 @@ class I(dict):
 
     assets = {"items": {}}
     gains_global = {}
-
-    @classmethod
-    def _register(cls, attr, callback, name):
-        dct = getattr(cls, attr)
-        if not name:
-            name = callback.__name__
-        assert isinstance(name, str), name
-        assert name not in dct, name
-        dct[name] = callback
-        return callback
-
-    @classmethod
-    def register_log_callback(cls, callback, name=None):
-        return cls._register("_cbs", callback, name)
-
-    @classmethod
-    def register_default(cls, callback, name=None):
-        return cls._register("_defaults", callback, name)
-
-    @classmethod
-    def register_wrapper(cls, callback, name=None):
-        return cls._register("_wrappers", callback, name)
 
 
     def __init__(self, n, source=None):
@@ -375,30 +371,30 @@ class I(dict):
 
 init_assets()
 
-I.register_default(5, "foo")
-I.register_default(lambda _: [_["foo"]], "bar")
-@I.register_default
+register_default(5, "foo")
+register_default(lambda _: [_["foo"]], "bar")
+register_default
 def foobar(_):
     return collections.Counter({1: 1, 2: 1})
-I.register_default(lambda _: {}, "gains_local")
-I.register_default(500, "gold")
-I.register_default(1, "lv")
-I.register_default(lambda _: [None] * 8, "bag")
-I.register_default(1, "story")
-I.register_default(0, "story_task")
-I.register_default(lambda _: {}, "stories")
-I.register_default(lambda _: set(),"stories_done")
-I.register_default(lambda _: [0, 0], "xy")
+register_default(lambda _: {}, "gains_local")
+register_default(500, "gold")
+register_default(1, "lv")
+register_default(lambda _: [None] * 8, "bag")
+register_default(1, "story")
+register_default(0, "story_task")
+register_default(lambda _: {}, "stories")
+register_default(lambda _: set(),"stories_done")
+register_default(lambda _: [0, 0], "xy")
 
 # examples here:
-@I.register_log_callback
+@register_log_callback
 def callback_example(extra, i, log, infos, n):
     assert i.logs[-1] == [log, infos, n]
     i.unbind(log, callback_example, extra)
     i.save("foo")
     i.send("msg", "haha")
 
-@I.register_log_callback
+@register_log_callback
 def callback_example2(extra, i, log, infos, n):
     i.save("foobar")
     i.save("a")

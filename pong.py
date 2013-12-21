@@ -4,7 +4,7 @@ import time
 
 from bb.const import ATTR
 from bb.inst import instructions, processes, handle, pre
-from bb.i import I, P
+from bb.i import I, P, register_log_callback
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
 public_attrs = {
@@ -39,7 +39,7 @@ def ping(i, n):
     else:  # root
         return i.flush(*P.values())
 
-@I.register_log_callback
+@register_log_callback
 def _test(_, i, log, infos, n):
     return
     print(_, i, log, infos, n, i.listeners, i.logs, sep="\n")

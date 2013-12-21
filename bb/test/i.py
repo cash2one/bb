@@ -5,10 +5,10 @@ import json
 import random
 import unittest
 
-from bb.i import I
+from bb.i import I, register_log_callback
 from bb.js import dump1
 
-@I.register_log_callback
+@register_log_callback
 def cb_test(extra, i, k, infos, n):
     #print(i.i, k, infos, n, *args)
     i["foo"] += 1
