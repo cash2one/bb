@@ -249,8 +249,8 @@ class I(dict):
         """
         rc = (
             ("a", "lv**5"),
-            ((("a", 1), ("b", 1)), (9, 1)),
             (("c", 1001, 5), 0.5),
+            ((("a", 1), ("b", 1)), (9, 1)),
         )
         """
         assert isinstance(rc, tuple), rc
@@ -259,21 +259,17 @@ class I(dict):
         for r in rc:
             foo, bar = r[0], r[1]
             if isinstance(foo, str):
-                assert isinstance(bar, (int, str, types.CodeType))
+                assert isinstance(bar, (int, str))
                 booty.append(list(r))
             elif isinstance(bar, tuple):
                 assert foo, foo
                 assert len(foo) == len(bar), foo + bar
                 assert all(isinstance(t, tuple) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
-                l = list(accumulate(bar))  # calc it outside?
-                booty.append(list(foo[bisect(l, random() * l[-1])]))
-            elif isinstance(bar, float):
-                assert 0 < bar < 1, bar
-                if random() < bar:
-                    booty.append(list(foo))
-            else:
-                raise Warning("unsupported rc: %s" % (r,))
+                #l = list(accumulate(bar))   calc it outside!
+                booty.append(list(foo[bisect(bar, random() * bar[-1])]))
+            elif random() < bar:
+                booty.append(list(foo))
 
         discount = 1 or 0.1 # todo
         gg, gl = self.gains_global, self["gains_local"]
@@ -282,8 +278,7 @@ class I(dict):
             k, n = i[0], i[-1]
             if isinstance(n, str):
                 n = eval(self._eval_cache[n], None, self)  # :)
-            n *= gl.get(k, 1) * gg.get(k, 1) * discount
-            i[-1] = int(n)
+            i[-1] = int(n * discount * (1 + gl.get(k, 0) + gg.get(k, 0)))
 
         return booty
 

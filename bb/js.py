@@ -13,10 +13,10 @@ import functools
 import json
 
 dump1 = functools.partial(json.dumps, ensure_ascii=False, default=list,
-                          separators = (",", ":"))
+                          separators=(",", ":"))
 
 dump2 = functools.partial(json.dumps, ensure_ascii=False, default=list,
-                          separators = (",", ": "), sort_keys=True, indent=4)
+                          separators=(",", ": "), sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":
