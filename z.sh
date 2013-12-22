@@ -10,11 +10,13 @@
 # yes 1:2 | head -n 10000 | ./z.sh >out.bin
 #
 
-head=".HEAD"
-
-test -f $head && cat $head
-
-echo ${1:-0} token
+printf 'tgw_l7_forward\r
+Host:z.app.twsapp.com\r
+%d %s\r
+\r
+' \
+${1:-1} \
+token
 
 while read s
 do

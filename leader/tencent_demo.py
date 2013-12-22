@@ -165,7 +165,6 @@ class RegHandler(tornado.web.RequestHandler):
         self.write({
             "WORLD": "_" + "_".join(map(str, sorted(zs))),
             "IDS": ids_in_world,
-            "HEAD_IGNORE": "",
             #"DB_HOST": "box",
         })
         _view()
