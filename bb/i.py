@@ -70,23 +70,18 @@ def init_assets():
     # ...
 
 
-def _register(attr, callback, name):
+def _register(attr, key, value):
     dct = getattr(I, attr)
-    if not name:
-        name = callback.__name__
-    assert isinstance(name, str), name
-    assert name not in dct, name
-    dct[name] = callback
-    return callback
+    if not key:
+        key = value.__name__
+    assert isinstance(key, str), key
+    assert key not in dct, key
+    dct[key] = value
+    return value
 
-def register_log_callback(callback, name=None):
-    return _register("_cbs", callback, name)
-
-def register_default(callback, name=None):
-    return _register("_defaults", callback, name)
-
-def register_wrapper(callback, name=None):
-    return _register("_wrappers", callback, name)
+register_log_callback = lambda cb, name=None: _register("_cbs", name, cb)
+register_default = lambda d, k=None: _register("_defaults", k, d)
+register_wrapper = lambda w, k=None: _register("_wrappers", k, w)
 
 class I(dict):
     """
@@ -373,7 +368,7 @@ init_assets()
 
 register_default(5, "foo")
 register_default(lambda _: [_["foo"]], "bar")
-register_default
+@register_default
 def foobar(_):
     return collections.Counter({1: 1, 2: 1})
 register_default(lambda _: {}, "gains_local")
