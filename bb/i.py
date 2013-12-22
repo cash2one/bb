@@ -247,11 +247,10 @@ class I(dict):
         assert isinstance(rc, tuple), rc
         assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
-        for r in rc:
-            foo, bar = r[0], r[1]
+        for foo, bar in rc:
             if isinstance(foo, str):
                 assert isinstance(bar, (int, str))
-                booty.append(list(r))
+                booty.append([foo, bar])
             elif isinstance(bar, tuple):
                 assert foo, foo
                 assert len(foo) == len(bar), foo + bar
