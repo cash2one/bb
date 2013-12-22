@@ -222,7 +222,7 @@ def main(options):
     from bb import conn
 
     conn.tcp(staffs, tokens, put)().listen(options.port)
-    conn.backdoor(wheels, put)().listen(options.backdoor)
+    conn.backdoor(wheels, put)().listen(options.backdoor, "localhost")
 
     from tornado import autoreload
     #autoreload.start = lambda: None  # monkey patch, i don't like autoreload
