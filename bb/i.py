@@ -239,18 +239,19 @@ class I(dict):
     def render(self, rc):
         """
         rc = (
-            ("a", "lv**5"),
-            (("c", 1001, 5), 0.5),
+            ("i", 1001, "lv**5"),
+            (("c", 5), 0.5),
             ((("a", 1), ("b", 1)), (9, 1)),
         )
         """
         assert isinstance(rc, tuple), rc
         assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
-        for foo, bar in rc:
+        for r in rc:
+            foo, bar = r[0], r[-1]
             if isinstance(foo, str):
                 assert isinstance(bar, (int, str))
-                booty.append([foo, bar])
+                booty.append(list(r))
             elif isinstance(bar, tuple):
                 assert foo, foo
                 assert len(foo) == len(bar), foo + bar
