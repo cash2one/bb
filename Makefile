@@ -6,8 +6,7 @@
 
 test:
 	(find . -name "*.py" | xargs pyflakes; true)
-	python3 -m unittest discover -s bb/test -p "*.py"
-	python3 -m unittest discover -s test
+	python3 -m unittest discover -s test -p "*.py"
 
 clean:
 	rm -rf build/ dist/ MANIFEST 2>/dev/null || true
