@@ -61,12 +61,12 @@ def log(Q_err, debug=True):
     from queue import Queue
 
     from redis import StrictRedis
-    from bb.const import DB_HOST, DB_PORT, WORLD
+    from .const import DB_HOST, DB_PORT, WORLD
     db = StrictRedis(DB_HOST, DB_PORT)
     hset = db.hset
 
-    from bb.oc import record, recorder
-    from bb.js import dump2
+    from .oc import record, recorder
+    from .js import dump2
 
     def _save(i, k, v):
         if i == 0:

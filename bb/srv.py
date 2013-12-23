@@ -44,15 +44,15 @@ def load_data(ids, host, port):
 def build_all(data):
     """root is in earth, everywhere
     """
-    from bb.i import I, P
+    from .i import I, P
     for i, v in data.items():
         P[i] = I(i, v)
 
 def check(i, types=None, limits=None):
     if types is None:
-        from bb.tpl import types
+        from .tpl import types
     if limits is None:
-        from bb.tpl import limits
+        from .tpl import limits
     for k, t in types.items():
         v = i.get(k)
         if v is not None and type(v) is not t:
@@ -66,12 +66,12 @@ def check_all(types=None, limits=None):
     """
     """
     if types is None:
-        from bb.tpl import types
+        from .tpl import types
     if limits is None:
-        from bb.tpl import limits
+        from .tpl import limits
     logging.debug(types)
     logging.debug(limits)
-    from bb.i import P
+    from .i import P
     for i in P.values():
         check(i, types, limits)
 

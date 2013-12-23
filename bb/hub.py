@@ -29,11 +29,11 @@ def hub(Q_in, Q_out, Q_err, debug=True):
 
     from json import loads
 
-    from bb.i import P
-    from bb.js import dump1
-    from bb.const import PING, IDS, DB_HOST, DB_PORT
-    from bb.exc import exc_map, exc_recorder
-    from bb.inst import processes, commands, instructions
+    from .i import P
+    from .js import dump1
+    from .const import PING, IDS, DB_HOST, DB_PORT
+    from .exc import exc_map, exc_recorder
+    from .inst import processes, commands, instructions
 
 
     def terminate(signal_number, stack_frame):
@@ -54,7 +54,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
     _err = Q_err.put
 
     try:
-        from bb.srv import load_data, build_all, check_all, import_others
+        from .srv import load_data, build_all, check_all, import_others
         build_all(load_data(IDS, DB_HOST, DB_PORT))
         check_all()
         import_others()

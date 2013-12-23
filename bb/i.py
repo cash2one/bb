@@ -8,7 +8,7 @@ from bisect import bisect
 from itertools import accumulate, chain
 from random import random
 
-from bb.util import EvalCache
+from .util import EvalCache
 
 class _P(dict):
     def __missing__(self, k):

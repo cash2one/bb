@@ -3,7 +3,7 @@
 """
 """
 
-from bb.i import I
+from .i import I
 i = I(0)
 types = {k: type(i[k]) for k in I._defaults}
 

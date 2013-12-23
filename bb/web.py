@@ -29,8 +29,8 @@ def main(options):
     put = Q0.put
     get = Q1.get
 
-    import bb.hub
-    import bb.log
+    from .hub import hub
+    from .log import log
 
     sub_procs = {}
 
@@ -39,8 +39,8 @@ def main(options):
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
             return
-        sub_procs["hub"] = Process(target=bb.hub.hub, args=(Q0, Q1, Q2, debug))
-        sub_procs["log"] = Process(target=bb.log.log, args=(Q2, debug))
+        sub_procs["hub"] = Process(target=hub, args=(Q0, Q1, Q2, debug))
+        sub_procs["log"] = Process(target=log, args=(Q2, debug))
         for name, proc in sub_procs.items():
             proc.start()
             logging.info("%s started, pid:%d", name, getattr(proc, "pid", 0))
@@ -106,8 +106,8 @@ def main(options):
 
     from urllib.parse import unquote
     from tornado.web import RequestHandler, Application, HTTPError, asynchronous
-    from bb.const import PING, NULL
-    from bb.oc import record, recorder
+    from .const import PING, NULL
+    from .oc import record, recorder
 
     ioloop.PeriodicCallback(record, 3000).start()
     ioloop.PeriodicCallback(
@@ -219,7 +219,7 @@ def main(options):
             cmd, msg = unquote(self.request.query).split(".", 1)
             put([int(i), int(cmd), msg])
 
-    from bb import conn
+    from . import conn
 
     conn.tcp(staffs, tokens, put)().listen(options.port)
     conn.backdoor(wheels, put)().listen(options.backdoor, "localhost")

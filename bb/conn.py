@@ -10,7 +10,7 @@ def websocket(staffs, tokens, send=dummy_send):
 
     from tornado.websocket import WebSocketHandler
 
-    from bb.const import NULL, ONLINE
+    from .const import NULL, ONLINE
 
     class WebSocket(WebSocketHandler):
         def open(self):
@@ -64,7 +64,7 @@ def tcp(staffs, tokens, send=dummy_send):
 
     from tornado.tcpserver import TCPServer
 
-    from bb.const import FMT, LEN, NULL, ONLINE
+    from .const import FMT, LEN, NULL, ONLINE
 
     head_match = re.compile(r'.*(\d+) (\w+)\r\n\r\n$', re.S).match
 
