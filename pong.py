@@ -33,8 +33,7 @@ for idx, key in enumerate(sorted(I._defaults), ATTR):
 #@pre((int, float, str, list, dict, bool))
 def ping(i, n):
     if i.i:  # normal
-        if n is not None:  # if n is None, flush only
-            i.send("ping", n)
+        i.send("ping", n)
         return i.flush()
     else:  # root
         return i.flush(*P.values())
