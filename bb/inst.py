@@ -57,7 +57,7 @@ import time
 
 from .i import I, P
 from .bd import BackdoorShell
-from .js import dump1, dump2
+from .js import dump3
 
 shell = BackdoorShell()
 
@@ -96,7 +96,7 @@ def _show(expression):
 commands = {
     "shell": lambda line: shell.push(line),
     "show": lambda exp: _show(exp),
-    "eval": lambda exp: dump2(eval(exp, None, sys.modules) if exp else None),
+    "eval": lambda exp: dump3(eval(exp, None, sys.modules) if exp else None),
 }
 
 
