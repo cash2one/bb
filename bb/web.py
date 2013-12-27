@@ -9,8 +9,6 @@ Web            Hub --->Q2---> Log
 
 
 def main(options):
-    import gc
-    gc.disable()
 
     import logging
     from multiprocessing import Process
@@ -118,7 +116,7 @@ def main(options):
     class BaseHandler(RequestHandler):
         @property
         def browser(self):
-            return self.request.host[0].isalpha()
+            return self.request.host[-1].isalpha()
 
         def get(self):
             """dummy"""
@@ -130,7 +128,6 @@ def main(options):
     class MainHandler(BaseHandler):
         def get(self):
             """
-            /?gc.collect()
             """
             cmd = unquote(self.request.query)
             result = repr(eval(cmd, None, sys.modules)) if cmd else ""
@@ -200,8 +197,7 @@ def main(options):
         def deal_echoed(self, echo):
             if isinstance(echo, str) and echo.startswith("Traceback"):
                 self.set_header("Content-Type", "text/plain")
-                self.write(echo)
-                self.finish()
+                self.finish(echo)
             else:
                 self.render("show.html", mod_attrs=echo)
 
@@ -219,13 +215,12 @@ def main(options):
             cmd, msg = unquote(self.request.query).split(".", 1)
             put([int(i), int(cmd), msg])
 
-    from . import conn
+    from .conn import tcp, websocket, backdoor
 
-    conn.tcp(staffs, tokens, put)().listen(options.port)
-    conn.backdoor(wheels, put)().listen(options.backdoor, "localhost")
+    tcp(staffs, tokens, put)().listen(options.port)
+    backdoor(wheels, put)().listen(options.backdoor, "localhost")
 
     from tornado import autoreload
-    #autoreload.start = lambda: None  # monkey patch, i don't like autoreload
     autoreload.add_reload_hook(stop)  # i like autoreload now :)
 
     Application(
@@ -236,7 +231,7 @@ def main(options):
             (r"/hub_(.*)", HubHandler),
             (r"/.o", IOHistoryHandler),
             (r"/flush", FlushHubHandler),
-            (r"/ws", conn.websocket(staffs, tokens, put)),
+            (r"/ws", websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),
             (r"/(\d+)", DummyIHandler),
         ],
@@ -250,7 +245,6 @@ def main(options):
     pid = "bb.pid"
     with open(pid, "w") as f: f.write(str(os.getpid()))
 
-    gc.collect()
     io_loop.start()   # looping...
 
     logging.info("bye")

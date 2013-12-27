@@ -2,6 +2,7 @@
 
 if __name__ == "__main__":
     import collections
+    import gc
     import itertools
     import time
     import urllib.parse
@@ -12,6 +13,8 @@ if __name__ == "__main__":
     from bb import const
     from bb import opt
     from bb.web import main
+
+    gc.disable()
 
     for k in dir(opt):
         if k[0].isalpha():

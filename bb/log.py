@@ -44,7 +44,6 @@ def worker(name, Q, task):
 def log(Q_err, debug=True):
     import collections
     import logging
-    import gc
     import signal
 
     def terminate(signal_number, stack_frame):

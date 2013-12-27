@@ -64,9 +64,6 @@ def hub(Q_in, Q_out, Q_err, debug=True):
         _err(None)
         return
 
-    import gc
-    gc.collect()
-
     if debug:
         from time import strftime
         from redis import StrictRedis
