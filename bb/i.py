@@ -257,8 +257,8 @@ class I(dict):
                 assert len(foo) == len(bar), foo + bar
                 assert all(isinstance(t, tuple) for t in foo), foo
                 assert all(n > 0 for n in bar), bar
-                #l = list(accumulate(bar))   calc it outside!
-                booty.append(list(foo[bisect(bar, random() * bar[-1])]))
+                l = list(accumulate(bar))
+                booty.append(list(foo[bisect(l, random() * l[-1])]))
             elif random() < bar:
                 booty.append(list(foo))
 
