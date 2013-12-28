@@ -240,13 +240,4 @@ def main(options):
         debug=debug,
         ).listen(options.backstage)
 
-
-    import os
-    pid = "bb.pid"
-    with open(pid, "w") as f: f.write(str(os.getpid()))
-
     io_loop.start()   # looping...
-
-    logging.info("bye")
-    if os.path.exists(pid): os.remove(pid)
-

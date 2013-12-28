@@ -4,6 +4,7 @@ if __name__ == "__main__":
     import collections
     import gc
     import itertools
+    import os
     import time
     import urllib.parse
     import urllib.request
@@ -46,6 +47,11 @@ if __name__ == "__main__":
 
     to_leader("reg")
 
+    pid = "bb.pid"
+    with open(pid, "w") as f: f.write(str(os.getpid()))
+
     main(options)
+
+    if os.path.exists(pid): os.remove(pid)
 
     to_leader("quit")
