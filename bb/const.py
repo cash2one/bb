@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 FMT = "!HH"
-LEN = 4
 NULL = "null"  # for json
 
 INSTRUCTIONS_LIST = [

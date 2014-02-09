@@ -64,7 +64,7 @@ def tcp(staffs, tokens, send=dummy_send):
 
     from tornado.tcpserver import TCPServer
 
-    from .const import FMT, LEN, NULL, ONLINE
+    from .const import FMT, NULL, ONLINE
 
     head_match = re.compile(r'.*(\d+) (\w+)\r\n\r\n$', re.S).match
 
@@ -91,7 +91,7 @@ def tcp(staffs, tokens, send=dummy_send):
                     staffs.pop(i).logout()
                 self.i = i
                 stream.set_close_callback(self.logout)
-                stream.read_bytes(LEN, self.msg_head)
+                stream.read_bytes(4, self.msg_head)
                 staffs[i] = self
                 logging.info("%s %s login", self.address, i)
             except Exception as e:
@@ -101,8 +101,9 @@ def tcp(staffs, tokens, send=dummy_send):
 
         def send(self, cmd, data):
             stream = self.stream
+            data = data.encode()
             if not stream.closed():
-                stream.write(pack(FMT, cmd, len(data)) + data.encode())
+                stream.write(pack(FMT, len(data) + 2, cmd) + data)
 
         def logout(self):
             stream = self.stream
@@ -116,18 +117,18 @@ def tcp(staffs, tokens, send=dummy_send):
         def msg_head(self, chunk):
             stream = self.stream
             logging.debug("head: %s", chunk)
-            instruction, length_of_body = unpack(FMT, chunk)
-            logging.debug("%d, %d", instruction, length_of_body)
+            packet_size, instruction = unpack(FMT, chunk)
+            logging.debug("%d, %d", packet_size, instruction)
             self.instruction = instruction
             if not stream.closed():
-                stream.read_bytes(length_of_body, self.msg_body)
+                stream.read_bytes(packet_size - 2, self.msg_body)
 
         def msg_body(self, chunk):
             stream = self.stream
             logging.debug("body: %s", chunk)
             send([self.i, self.instruction, chunk.decode() or NULL])
             if not stream.closed():
-                stream.read_bytes(LEN, self.msg_head)
+                stream.read_bytes(4, self.msg_head)
 
     class Server(TCPServer):
         def handle_stream(self, stream, address):

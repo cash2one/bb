@@ -22,14 +22,14 @@ while read s
 do
     instruction=${s%%:*}
     json_body=${s#*:}
-    json_length=${#json_body}
-
-    hi=$(printf "%o" $((instruction / 256)))
-    lo=$(printf "%o" $((instruction % 256)))
-    printf "\\$hi\\$lo"
+    json_length=$((${#json_body} + 2))
 
     hi=$(printf "%o" $((json_length / 256)))
     lo=$(printf "%o" $((json_length % 256)))
+    printf "\\$hi\\$lo"
+
+    hi=$(printf "%o" $((instruction / 256)))
+    lo=$(printf "%o" $((instruction % 256)))
     printf "\\$hi\\$lo"
 
     printf "${json_body}"
