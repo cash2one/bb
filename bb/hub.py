@@ -27,10 +27,8 @@ def hub(Q_in, Q_out, Q_err, debug=True):
     import sys
     import traceback
 
-    from json import loads
-
     from .i import P
-    from .js import dump1
+    from .msg import loads, dump1
     from .const import PING, IDS, DEBUG_OUTPUT, DB_HOST, DB_PORT
     from .exc import exc_map, exc_recorder
     from .inst import processes, commands, instructions

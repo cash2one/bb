@@ -50,14 +50,13 @@ def pre(types=None, value_checker=None):
 
 
 import gc
-import json
 import pprint
 import sys
 import time
 
 from .i import I, P
 from .bd import BackdoorShell
-from .js import dump3
+from .msg import dump3
 
 shell = BackdoorShell()
 

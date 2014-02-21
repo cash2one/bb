@@ -65,7 +65,7 @@ def log(Q_err, debug=True):
     #hset = db.hset
 
     from .oc import record, recorder
-    from .js import dump2
+    from .msg import dump2
 
     def _save(i, k, v):
         if i == 0:

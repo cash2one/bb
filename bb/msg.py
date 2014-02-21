@@ -21,6 +21,7 @@ dump2 = functools.partial(json.dumps, ensure_ascii=False, default=list,
 dump3 = functools.partial(json.dumps, ensure_ascii=False, default=str,
                           separators=(",", ": "), sort_keys=True, indent=4)
 
+loads = json.loads
 
 if __name__ == "__main__":
     print("doctest:")
