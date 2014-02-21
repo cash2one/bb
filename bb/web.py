@@ -116,7 +116,6 @@ def main(options):
     class BaseHandler(RequestHandler):
         @property
         def browser(self):
-            return 1
             return self.request.host[-1].isalpha()
 
         def get(self):
@@ -132,10 +131,7 @@ def main(options):
             """
             cmd = unquote(self.request.query)
             result = repr(eval(cmd, None, sys.modules)) if cmd else ""
-            if self.browser:
-                self.render("index.html", cmd=cmd, result=result)
-            else:
-                self.write(result)
+            self.render("index.html", cmd=cmd, result=result)
 
 
     class IOHistoryHandler(BaseHandler):

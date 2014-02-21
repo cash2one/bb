@@ -35,7 +35,7 @@ if __name__ == "__main__":
     args = urllib.parse.urlencode(args)
 
     def to_leader(key):
-        if not options.debug:
+        if False and not options.debug:  # disable this
             url = "http://%s/%s?%s" % (options.leader, key, args)
             with urllib.request.urlopen(url) as f:
                 s = f.read().decode()
