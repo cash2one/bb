@@ -11,7 +11,7 @@
     <tr>
         <td>{{ time }}</td>
         <td class="{{ method }}">{{ method }}</td>
-        <td class="f3">{{ data }}</td>
+        <td class="f3">{{ escape(data) }}</td>
     </tr>
 
     {% end %}
