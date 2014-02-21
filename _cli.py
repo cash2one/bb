@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-# (seq 100000; sleep 3) | ./cli.py | nc z 2000 >out
+# seq 1000000 | ./cli.py >in
+# (cat in; sleep 10) | nc localhost 2000 >out1
+# (cat in; sleep 10) | nc localhost 2000 >out2
+# (cat in; sleep 10) | nc localhost 2000 >out3
 
 import sys
 
