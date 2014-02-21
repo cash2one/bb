@@ -394,6 +394,7 @@ def callback_example2(extra, i, log, infos, n):
     i.save("foobar")
     i.save("a")
 
+P[1] = I(1)
 
 
 if __name__ == "__main__":

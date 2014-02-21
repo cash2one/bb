@@ -31,7 +31,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
 
     from .i import P
     from .js import dump1
-    from .const import PING, IDS, DB_HOST, DB_PORT
+    from .const import PING, IDS, DEBUG_OUTPUT, DB_HOST, DB_PORT
     from .exc import exc_map, exc_recorder
     from .inst import processes, commands, instructions
 
@@ -55,7 +55,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
 
     try:
         from .srv import load_data, build_all, check_all, import_others
-        build_all(load_data(IDS, DB_HOST, DB_PORT))
+        #build_all(load_data(IDS, DB_HOST, DB_PORT))
         check_all()
         import_others()
         logging.info(len(P))
@@ -66,25 +66,20 @@ def hub(Q_in, Q_out, Q_err, debug=True):
 
     if debug:
         from time import strftime
-        from redis import StrictRedis
-        debug = StrictRedis()  # local redis
+        _log_file = open(DEBUG_OUTPUT, "w", 1)
+        def _log(io_type, value):
+            print(strftime("%H:%M:%S"), io_type, value,
+                  sep="\t", file=_log_file)
+
         def _in():
             v = Q_in.get()
-            if v:
-                if len(v) == 3:
-                    debug.rpush("io", "%s I %s" % (strftime("%H:%M:%S"), v))
-                else:
-                    debug.rpush("lo", "%s I %s" % (strftime("%H:%M:%S"), v))
+            _log("I", v)
             return v
         def _out(v):
-            if len(v) == 3:
-                debug.rpush("io", "%s O %s" % (strftime("%H:%M:%S"), v))
-            else:
-                debug.rpush("lo", "%s O %s" % (strftime("%H:%M:%S"), v))
+            _log("O", v)
             Q_out.put(v)
         def _err(v):
-            if v:
-                debug.rpush("io", "%s E %s" % (strftime("%H:%M:%S"), v))
+            _log("E", v)
             Q_err.put(v)
 
     loop = True

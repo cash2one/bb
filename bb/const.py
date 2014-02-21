@@ -20,3 +20,5 @@ DB_HOST = "localhost"
 DB_PORT = 6379
 IDS = list(range(1, 10))
 WORLD = "dummy_world"
+
+DEBUG_OUTPUT = "debug.log"

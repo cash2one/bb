@@ -104,7 +104,7 @@ def main(options):
 
     from urllib.parse import unquote
     from tornado.web import RequestHandler, Application, HTTPError, asynchronous
-    from .const import PING, NULL
+    from .const import PING, NULL, DEBUG_OUTPUT
     from .oc import record, recorder
 
     ioloop.PeriodicCallback(record, 3000).start()
@@ -116,6 +116,7 @@ def main(options):
     class BaseHandler(RequestHandler):
         @property
         def browser(self):
+            return 1
             return self.request.host[-1].isalpha()
 
         def get(self):
@@ -142,16 +143,14 @@ def main(options):
             if not debug:
                 return
             step = 25
-            io = self.request.path.lstrip("/")
-            x = self.request.query
-            if x == "clean":
-                debug_db.delete(io)
-                #debug_db.ltrim(io, s * (page - 1), -1)
-            page = int(x) if x.isdigit() else 1
-            pages = int((debug_db.llen(io) - 1) / step) + 1
-            history = debug_db.lrange(io, step * (page - 1), step * page - 1)
-            self.render("history.html",
-                        io=io, page=page, pages=pages, history=history)
+            i = self.request.query
+            with open(DEBUG_OUTPUT) as f:
+                hist = list(f)
+            page = int(i) if i.isdigit() else 1
+            pages = int((len(hist) - 1) / step) + 1
+            history = hist[step * (page - 1) : step * page]
+            self.render("history.html", page=page, pages=pages,
+                        history=history)
 
 
     class StatusHandler(BaseHandler):
@@ -229,7 +228,7 @@ def main(options):
             (r"/", MainHandler),
             (r"/token", TokenUpdateHandler),
             (r"/hub_(.*)", HubHandler),
-            (r"/.o", IOHistoryHandler),
+            (r"/io", IOHistoryHandler),
             (r"/flush", FlushHubHandler),
             (r"/ws", websocket(staffs, tokens, put)),
             (r"/(.*)_status", StatusHandler),

@@ -61,8 +61,8 @@ def log(Q_err, debug=True):
 
     from redis import StrictRedis
     from .const import DB_HOST, DB_PORT, WORLD
-    db = StrictRedis(DB_HOST, DB_PORT)
-    hset = db.hset
+    #db = StrictRedis(DB_HOST, DB_PORT)
+    #hset = db.hset
 
     from .oc import record, recorder
     from .js import dump2
@@ -70,7 +70,7 @@ def log(Q_err, debug=True):
     def _save(i, k, v):
         if i == 0:
             i = WORLD
-        hset(i, k, dump2(v))
+        #hset(i, k, dump2(v))
 
     tasks = {
         "save": (Queue(), _save),
