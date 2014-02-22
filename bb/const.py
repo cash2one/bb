@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 FMT = "!HH"
-NULL = "null"  # for json
+NULL = b'null'  # json format
 
 INSTRUCTIONS_LIST = [
     "ping",

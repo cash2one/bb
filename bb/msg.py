@@ -11,6 +11,7 @@ r"""
 
 import functools
 import json
+import msgpack
 
 dump1 = functools.partial(json.dumps, ensure_ascii=False, default=list,
                           separators=(",", ":"))
@@ -21,7 +22,10 @@ dump2 = functools.partial(json.dumps, ensure_ascii=False, default=list,
 dump3 = functools.partial(json.dumps, ensure_ascii=False, default=str,
                           separators=(",", ": "), sort_keys=True, indent=4)
 
-loads = json.loads
+
+dumps = msgpack.dumps
+#dumps = lambda v: json.dumps(v).encode()
+loads = lambda v: json.loads(v.decode())
 
 if __name__ == "__main__":
     print("doctest:")

@@ -28,7 +28,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
     import traceback
 
     from .i import P
-    from .msg import loads, dump1
+    from .msg import loads, dumps
     from .const import PING, IDS, DEBUG_OUTPUT, DB_HOST, DB_PORT
     from .exc import exc_map, exc_recorder
     from .inst import processes, commands, instructions
@@ -111,14 +111,14 @@ def hub(Q_in, Q_out, Q_err, debug=True):
                         raise NotImplementedError(cmd)
                 except Exception:
                     err = sys.exc_info()[0].__name__
-                    _out([i, PING, dump1(exc_map.get(err, 0))])
+                    _out([i, PING, dumps(exc_map.get(err, 0))])
                     exc_recorder[i][err] += 1
                     raise
                 if outs:
                     for x in _filter(outs):   # is _filter neccessary?
                         if isinstance(x[0], int):
                             i, cmd, data = x
-                            _out([i, instructions[cmd], dump1(data)])
+                            _out([i, instructions[cmd], dumps(data)])
                         else:
                             _err(x)
         except Exception:

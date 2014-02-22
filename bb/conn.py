@@ -101,7 +101,6 @@ def tcp(staffs, tokens, send=dummy_send):
 
         def send(self, cmd, data):
             stream = self.stream
-            data = data.encode()
             if not stream.closed():
                 stream.write(pack(FMT, len(data) + 2, cmd) + data)
 
@@ -126,7 +125,7 @@ def tcp(staffs, tokens, send=dummy_send):
         def msg_body(self, chunk):
             stream = self.stream
             logging.debug("body: %s", chunk)
-            send([self.i, self.instruction, chunk.decode() or NULL])
+            send([self.i, self.instruction, chunk or NULL])
             if not stream.closed():
                 stream.read_bytes(4, self.msg_head)
 
