@@ -17,7 +17,7 @@ def load_data(ids, host, port):
     uniq in index
     """
     from redis import StrictRedis
-    from .msg import loads
+    from json import loads
 
     db = StrictRedis(host, port, decode_responses=True)
     logging.debug("all: %d", len(ids))
