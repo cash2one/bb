@@ -17,8 +17,6 @@ def main(options):
     debug = options.debug
     if debug:
         from threading import Thread as Process
-        from redis import StrictRedis
-        debug_db = StrictRedis(decode_responses=True)  # local redis
         from datetime import timedelta
         delay = timedelta(milliseconds=options.delay)
 
