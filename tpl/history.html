@@ -6,7 +6,7 @@
 <table>
     {% for x in history %}
 
-    {% set time, method, data = x.split("\t", 2) %}
+    {% set time, method, data = x.split(None, 2) %}
 
     <tr>
         <td>{{ time }}</td>

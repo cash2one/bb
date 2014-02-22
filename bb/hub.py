@@ -66,8 +66,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
         from time import strftime
         _log_file = open(DEBUG_OUTPUT, "w", 1)
         def _log(io_type, value):
-            print(strftime("%H:%M:%S"), io_type, value,
-                  sep="\t", file=_log_file)
+            print(strftime("%H:%M:%S"), io_type, value, file=_log_file)
 
         def _in():
             v = Q_in.get()
