@@ -232,6 +232,7 @@ def main(options):
         ],
         static_path="_",
         template_path="tpl",
+        autoescape="xhtml_escape",
         debug=debug,
         ).listen(options.backstage)
 
