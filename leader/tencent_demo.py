@@ -108,15 +108,12 @@ class MainHandler(tornado.web.RequestHandler):
                     if response.error:
                         logging.warning(response)
                         raise tornado.web.HTTPError(500)
-                    FS[zoneid].write(
-                        "{} {} {} {} {}\n".format(
-                            openid,
-                            ID,
-                            time.strftime("%Y-%m-%d %H:%M:%S"),
-                            name,
-                            role,
-                            )
-                        )
+                    print(openid,
+                          ID,
+                          time.strftime("%Y-%m-%d %H:%M:%S"),
+                          name,
+                          role,
+                          file=FS[zoneid])
                     IDX[zoneid][openid] = ID
                     NAMES[zoneid][name] = openid
                     self.write(token_fmt(ID, token))
