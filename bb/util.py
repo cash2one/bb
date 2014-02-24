@@ -104,8 +104,8 @@ class EvalCache(dict):
 class Default(dict):
     """
     >>> env = Default()
-    >>> eval("{a:b,c:1}", None, env)
-    {'a': 'b', 'c': 1}
+    >>> eval("{a:b,c:1}", None, env) == {'a': 'b', 'c': 1}
+    True
     """
     def __missing__(self, k):
         return k
@@ -143,6 +143,18 @@ def list_to_tuple(v):
         v = tuple(list_to_tuple(i) for i in v)
     return v
 
+def list_all_same_type(type_conv):
+    """
+    >>> list_float = list_all_same_type(float)
+    >>> list_int = list_all_same_type(int)
+    >>> list_float(["3.14", list(range(5))])
+    [3.14, [0.0, 1.0, 2.0, 3.0, 4.0]]
+    >>> list_int([1.1, 2.2])
+    [1, 2]
+    """
+    def conv(v):
+        return [conv(i) for i in v] if isinstance(v, list) else type_conv(v)
+    return conv
 
 
 if __name__ == "__main__":
