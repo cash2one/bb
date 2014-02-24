@@ -6,7 +6,7 @@ import random
 import unittest
 
 from bb.i import I, register_log_callback
-from bb.js import dump1
+from bb.msg import dumps
 
 @register_log_callback
 def cb_test(extra, i, k, infos, n):
@@ -44,7 +44,7 @@ class TestI(unittest.TestCase):
         i = self.i
         for k, w in i._wrappers.items():
             v = i[k]
-            v2 = w(json.loads(dump1(v)))
+            v2 = w(json.loads(dumps(v)))
             self.assertEqual(v, v2)
             self.assertIs(type(v), type(v2))
 
