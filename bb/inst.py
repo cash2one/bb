@@ -17,6 +17,8 @@ instructions = dict(zip(INSTRUCTIONS_LIST, range(PING, PING + INST_LEN)))
 
 def handle(func):
     assert callable(func), func
+    co = func.__code__
+    assert co.co_argcount == 2, (co.co_filename, co.co_firstlineno)
     alias = func.__name__
     assert alias in instructions, alias
     signal = instructions[alias]
@@ -31,16 +33,18 @@ def pre(types=None, value_checker=None):
         assert callable(value_checker)
     def decorator(func):
         alias = func.__name__
-        limit = features.get(alias, 0)
-        assert isinstance(limit, int)
+        #limit = features.get(alias, 0)
+        #assert isinstance(limit, int)
+        co = func.__code__
+        assert co.co_argcount == 2, (co.co_filename, co.co_firstlineno)
         def _(i, x):
             if types and not isinstance(x, types):
                 raise TypeError(x)
             if value_checker and not value_checker(x):
                 raise ValueError(x)
-            story = i["story"]
-            if story < limit:
-                raise ReferenceError(alias, limit, story)
+            #story = i["story"]
+            #if story < limit:
+            #    raise ReferenceError(alias, limit, story)
             return func(i, x)
         _.__name__ = alias
         return _

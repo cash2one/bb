@@ -30,7 +30,7 @@ for idx, key in enumerate(sorted(I._defaults), ATTR):
 
 
 @handle
-#@pre((int, float, str, list, dict, bool))
+@pre((int, float, str, list, dict, bool))
 def ping(i, n):
     if i.i:  # normal
         i.send("ping", n)
