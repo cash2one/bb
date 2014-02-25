@@ -9,6 +9,9 @@ from itertools import accumulate, chain
 from random import random
 
 from .util import EvalCache
+if __debug__:
+    from .const import INSTRUCTIONS_LIST
+
 
 class _P(dict):
     def __missing__(self, k):
@@ -145,9 +148,7 @@ class I(dict):
     gains_global = {}
 
 
-    def __init__(self, n, source=None):
-        if not isinstance(n, int):
-            raise ValueError("is not int: %r" % n)
+    def __init__(self, n:int, source:dict=None):
         self._i = n
         self._cache = []
         self._logs = collections.deque(maxlen=50)
@@ -175,40 +176,27 @@ class I(dict):
     def i(self):
         return self._i
 
-    def bind(self, log, cb, extra):
+    def bind(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
-        assert isinstance(log, str), log
         assert cb in self._cbs, cb
         self._listeners[log].add((cb, extra))
 
-    def unbind(self, log, cb, extra):
+    def unbind(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
-        assert isinstance(log, str), log
         assert cb in self._cbs, cb
         self._listeners[log].discard((cb, extra))
 
-    def send(self, k, v):
-        assert isinstance(k, str), k
+    def send(self, k:str, v):
+        assert k in instructions, k
         self._cache.append([self._i, k, v])
 
-    def save(self, k, flush=False):
+    def save(self, k:str):
         assert k in self._defaults, k
-        tosave = self._tosave
-        tosave.add(k)
-        if flush:
-            for k in tosave:
-                self._cache.append(["save", self._i, k, self[k]])
-            tosave.clear()
+        self._cache.append(["save", self._i, k, self[k]])
 
-    def log(self, k, infos={}, n=1):
-        """infos must be read-only
-        default-value: `infos={}` is dangerous, but i like
-        """
-        assert isinstance(k, str), k
-        assert isinstance(infos, dict), infos
-        assert isinstance(n, int), n
+    def log(self, k:str, infos:dict={}, n:int=1):
         self._cache.append(["log", self._i, k, infos, n])
         self._logs.append([k, infos, n])
         for cb in list(self._listeners[k]):  # need a copy for iter
@@ -230,7 +218,7 @@ class I(dict):
     def give(self, rc, cause=None):
         self.apply(self.render(rc), cause)
 
-    def render(self, rc):
+    def render(self, rc:tuple):
         """
         rc = (
             ("i", 1001, "lv**5"),
@@ -238,7 +226,6 @@ class I(dict):
             ((("a", 1), ("b", 1)), (9, 1)),
         )
         """
-        assert isinstance(rc, tuple), rc
         assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
         for r in rc:
