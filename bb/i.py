@@ -99,7 +99,7 @@ class I(dict):
     >>> b = i["foobar"]
     >>> id(a) == id(b)
     True
-    >>> i.logs.append("over")
+    >>> i._logs.append("over")
     >>> #i.listeners["foo"].add("bar")
     >>> i.bind("go", "callback_example", 1)
     >>> i.listeners["go"] == set([("callback_example", 1)])
@@ -123,7 +123,7 @@ class I(dict):
     3
     """
 
-    __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
+    __slots__ = ["_i", "_cache", "_logs", "_listeners", "_tosave", "online"]
 
     _eval_cache = EvalCache()
 
@@ -152,6 +152,7 @@ class I(dict):
         self._cache = []
         self._logs = collections.deque(maxlen=50)
         self._listeners = collections.defaultdict(set)
+        self._tosave = set()
         self.online = False
         if source:
             assert isinstance(source, dict), source
@@ -169,44 +170,37 @@ class I(dict):
     def __getattr__(self, k):  # use this prudently
         return self[k]
 
-    # i, cache, logs, listeners are protected and readonly
+    # i is protected and readonly
     @property
     def i(self):
         return self._i
-
-    @property
-    def cache(self):
-        return self._cache
-
-    @property
-    def logs(self):
-        return self._logs
-
-    @property
-    def listeners(self):
-        return self._listeners
 
     def bind(self, log, cb, extra):
         if callable(cb):
             cb = cb.__name__
         assert isinstance(log, str), log
         assert cb in self._cbs, cb
-        self.listeners[log].add((cb, extra))
+        self._listeners[log].add((cb, extra))
 
     def unbind(self, log, cb, extra):
         if callable(cb):
             cb = cb.__name__
         assert isinstance(log, str), log
         assert cb in self._cbs, cb
-        self.listeners[log].discard((cb, extra))
+        self._listeners[log].discard((cb, extra))
 
     def send(self, k, v):
         assert isinstance(k, str), k
-        self.cache.append([self.i, k, v])
+        self._cache.append([self._i, k, v])
 
-    def save(self, k):
-        assert isinstance(k, str), k
-        self.cache.append(["save", self.i, k, self[k]])
+    def save(self, k, flush=False):
+        assert k in self._defaults, k
+        tosave = self._tosave
+        tosave.add(k)
+        if flush:
+            for k in tosave:
+                self._cache.append(["save", self._i, k, self[k]])
+            tosave.clear()
 
     def log(self, k, infos={}, n=1):
         """infos must be read-only
@@ -215,20 +209,20 @@ class I(dict):
         assert isinstance(k, str), k
         assert isinstance(infos, dict), infos
         assert isinstance(n, int), n
-        self.cache.append(["log", self.i, k, infos, n])
-        self.logs.append([k, infos, n])
-        for cb in list(self.listeners[k]):  # need a copy for iter
+        self._cache.append(["log", self._i, k, infos, n])
+        self._logs.append([k, infos, n])
+        for cb in list(self._listeners[k]):  # need a copy for iter
             self._cbs[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
 
     def flush(self, *others):
         """be called at end"""
         f = []
-        c = self.cache
+        c = self._cache
         if c:
             f.extend(c)
             del c[:]
         for o in others:
-            c = o.cache
+            c = o._cache
             f.extend(c)
             del c[:]
         return f
@@ -384,7 +378,7 @@ register_default(lambda _: [0, 0], "xy")
 # examples here:
 @register_log_callback
 def callback_example(extra, i, log, infos, n):
-    assert i.logs[-1] == [log, infos, n]
+    assert i._logs[-1] == [log, infos, n]
     i.unbind(log, callback_example, extra)
     i.save("foo")
     i.send("msg", "haha")
@@ -434,5 +428,5 @@ if __name__ == "__main__":
     print(i)
     i.apply_item(2, -14)
     print(i)
-    print(i.logs)
+    print(i._logs)
     #print(i.cache)
