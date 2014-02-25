@@ -59,7 +59,7 @@ def log(Q_err, debug=True):
     from threading import Thread
     from queue import Queue
 
-    from redis import StrictRedis
+    #from redis import StrictRedis
     from .const import DB_HOST, DB_PORT, WORLD
     #db = StrictRedis(DB_HOST, DB_PORT)
     #hset = db.hset
