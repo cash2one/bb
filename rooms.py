@@ -24,10 +24,11 @@ def move(i, xy):
     room = rooms[rid]
     p = room[id]
     p[:2] = xy
+    cache = []
     if id in slots[rid]:
         _ = {id: xy}
-        i.cache.extend([k, cmd, _] for k in room if k != id)
-    return i.flush()
+        cache.extend([k, cmd, _] for k in room if k != id)
+    return cache
 
 
 
@@ -38,6 +39,7 @@ def enter(i, rid):
     """
     id = i.i
     cmd = "enter"
+    cache = []
     if id in room_ids or not rid:  # pop from this room
         rid, _rid = room_ids.pop(id), rid
         room = rooms[rid]
@@ -48,7 +50,7 @@ def enter(i, rid):
             _ = {id: None}
             for k in _slot - slot:  # supplement
                 _[k] = room[k]
-            i.cache.extend([k, cmd, _] for k in room)
+            cache.extend([k, cmd, _] for k in room)
         rid = _rid
     if rid:
         data = i["xy"][:]
@@ -61,8 +63,8 @@ def enter(i, rid):
             if k != id:
                 staff[k] = v
         slots[rid] = slot  # and rebuild slot
-        i.send(cmd, staff)
+        cache.append([i.i, cmd, staff])
         if id in slot:
             _ = {id: data}
-            i.cache.extend([k, cmd, _] for k in room if k != id)
-    return i.flush()
+            cache.extend([k, cmd, _] for k in room if k != id)
+    return cache

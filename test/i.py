@@ -6,11 +6,10 @@ import random
 import unittest
 
 from bb.i import I, register_log_callback
-from bb.msg import dumps
+from bb.msg import dumps, loads
 
 @register_log_callback
 def cb_test(extra, i, k, infos, n):
-    #print(i.i, k, infos, n, *args)
     i["foo"] += 1
 
 class TestI(unittest.TestCase):
@@ -19,15 +18,14 @@ class TestI(unittest.TestCase):
         i = random.randint(1, 10000)
         self.i_flag = i
         self.i = I(i)
-        self.assertIsInstance(I(i + 1, {"x": "yz"}), dict)
 
     def test_basic_attributes(self):
         i = self.i
         self.assertEqual(i.i, self.i_flag)
-        self.assertIsInstance(i.cache, list)
-        self.assertIsInstance(i.logs, collections.deque)
-        self.assertIsInstance(i.listeners, collections.defaultdict)
-        self.assertIs(i.listeners.default_factory, set)
+        self.assertIsInstance(i._cache, list)
+        self.assertIsInstance(i._logs, collections.deque)
+        self.assertIsInstance(i._listeners, collections.defaultdict)
+        self.assertIs(i._listeners.default_factory, set)
 
     def test_item_attribute_read(self):
         i = self.i
@@ -36,7 +34,7 @@ class TestI(unittest.TestCase):
     def test_default_items(self):
         i = self.i
         bar = i["bar"]
-        self.assertEqual(bar, [5])
+        self.assertEqual(bar, [5, 5, 5])
         self.assertIs(bar, i["bar"])
 
     def test_wrappers(self):
@@ -44,70 +42,73 @@ class TestI(unittest.TestCase):
         i = self.i
         for k, w in i._wrappers.items():
             v = i[k]
-            v2 = w(json.loads(dumps(v)))
+            v2 = w(loads(dumps(v)))
             self.assertEqual(v, v2)
             self.assertIs(type(v), type(v2))
 
     def test_bind(self):
         i = self.i
-        i.bind("go", "cb_test", None)
-        self.assertEqual(i.listeners["go"], {("cb_test", None)})
+        i.bind("go", cb_test, None)
+        self.assertEqual(i._listeners["go"], {("cb_test", None)})
         i.bind("go", "cb_test", (1, 2, 3, 4, 5))
-        self.assertEqual(i.listeners["go"],
+        self.assertEqual(i._listeners["go"],
                          {("cb_test", None), ("cb_test", (1, 2, 3, 4, 5))})
 
     def test_unbind(self):
         i = self.i
         i.bind("go", "cb_test", None)
-        self.assertEqual(len(i.listeners["go"]), 1)
-        i.unbind("go", "cb_test", None)
-        self.assertEqual(len(i.listeners["go"]), 0)
+        self.assertEqual(len(i._listeners["go"]), 1)
+        i.unbind("go", cb_test, None)
+        self.assertEqual(len(i._listeners["go"]), 0)
 
     def test_bind_repeated(self):
         i = self.i
         for _  in range(100):
             i.bind("go", "cb_test", None)
-        self.assertEqual(i.listeners["go"], {("cb_test", None)})
+        self.assertEqual(i._listeners["go"], {("cb_test", None)})
 
     def test_unbind_not_exist(self):
         i = self.i
         for _  in range(100):
             i.unbind("go", "cb_test", None)
-        self.assertEqual(len(i.listeners["go"]), 0)
+        self.assertEqual(len(i._listeners["go"]), 0)
 
     def test_send(self):
         i = self.i
-        i.send("tick", 1)
-        i.send("tick", 2)
-        self.assertEqual(i.cache,
-                         [
-                             [self.i_flag, "tick", 1],
-                             [self.i_flag, "tick", 2],
-                         ])
+        i.send("ping", 1)
+        i.send("ping", 2)
+        self.assertEqual(
+            i.flush(),
+            [[self.i_flag, "ping", 1], [self.i_flag, "ping", 2]]
+            )
 
     def test_save(self):
         i = self.i
         i.save("foo")
         i.save("bar")
-        self.assertEqual(i.cache,
+        self.assertEqual(i.flush(),
                          [
                              ["save", self.i_flag, "foo", 5],
-                             ["save", self.i_flag, "bar", [5]],
+                             ["save", self.i_flag, "bar", [5, 5, 5]],
                          ])
 
     def test_log(self):
         i = self.i
+        N = 10
         i.bind("jump", "cb_test", None)
-        i.log("jump")
-        self.assertEqual(i.cache, [["log", i.i, "jump", {}, 1]])
-        self.assertEqual(list(i.logs), [["jump", {}, 1]])
-        self.assertEqual(i["foo"], 6)   # see function cb_test
+        for _ in range(N):
+            i.log("jump")
+        self.assertEqual(len(i._cache), N)
+        self.assertEqual(i.flush(), [["log", i.i, "jump", {}, 1]] * N)
+        self.assertEqual(len(i._cache), 0)
+        self.assertEqual(list(i._logs), [["jump", {}, 1]] * N)
+        self.assertEqual(i.foo, 5 + N)
 
     def test_log_infos(self):
         i = self.i
         i.log("jump", {"height": 3}, 5)
-        self.assertEqual(i.cache, [["log", i.i, "jump", {"height": 3}, 5]])
-        self.assertEqual(list(i.logs), [["jump", {"height": 3}, 5]])
+        self.assertEqual(i.flush(), [["log", i.i, "jump", {"height": 3}, 5]])
+        self.assertEqual(list(i._logs), [["jump", {"height": 3}, 5]])
 
     def test_render(self): #TODO
         i = self.i

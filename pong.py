@@ -49,7 +49,7 @@ def _test(_, i, log, infos, n):
 def online(i, b):
     i.online = b
     t = time.time()
-    i.save("bag", True)
+    i.save("bag")
     if b:
         i.bind("online", "_test", "on")
         i.bind("offline", "_test", "off")

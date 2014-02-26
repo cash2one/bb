@@ -8,58 +8,15 @@ from bisect import bisect
 from itertools import accumulate, chain
 from random import random
 
-from .util import EvalCache
+from .util import EvalCache, Object
 if __debug__:
     from .const import INSTRUCTIONS_LIST
 
-assets = {"items": {}}
 gains_global = {}
+cfg = Object()
+cfg.items = {}
 
 P = {}
-
-# map looks like this:
-#    {"func_name": func, ...}
-# why prefer "func_name" mapping instead of use function directly:
-#   * reload functions at running
-#   * persist this "function-link" at shutdown
-#   * easy to read
-
-def init_assets():
-    assets["items"] = {
-        1: {
-            "multi": 99,
-            "buy": 10,
-            "sell": 5,
-        },
-        2: {
-            "multi": 99,
-            "buy": 88,
-            "sell": 44,
-        },
-        # ...
-        3: {
-            "multi": 6,
-            "buy": 88,
-            "sell": 44,
-            "output": (  # for apply
-                ("hp", "lv * 3"),
-                ((("mp", 1), ("mp", 5)), (9, 1)),
-            ),
-        },
-
-        1001: {
-            "buy": 2000,
-            "sell": 1000,
-            #"attributes": [
-            #    ["strength", 2],
-            #    ["dexterity", 3],
-            #    ["strength", 1],
-            #],
-        },
-        # ...
-    }
-    # ...
-
 
 def _register(attr, key, value):
     dct = getattr(I, attr)
@@ -76,60 +33,19 @@ register_wrapper = lambda w, k=None: _register("_wrappers", k, w)
 
 class I(dict):
     """
-    >>> i = I(42, {"a": 1, "b": 3})
-    >>> i.online = True
-    >>> i.i
-    42
-    >>> i["a"]
-    1
-    >>> i["b"]
-    3
-    >>> i["foo"]
-    5
-    >>> a = i["foobar"]
-    >>> b = i["foobar"]
-    >>> id(a) == id(b)
-    True
-    >>> i._logs.append("over")
-    >>> #i.listeners["foo"].add("bar")
-    >>> i.bind("go", "callback_example", 1)
-    >>> i.listeners["go"] == set([("callback_example", 1)])
-    True
-    >>> i.unbind("go", "callback_example", 1)
-    >>> i.listeners["go"] == set()
-    True
-    >>> i.bind("go", callback_example, (1, 2, 3))
-    >>> i.bind("go", callback_example2, None)
-    >>> i.listeners["go"] == set([("callback_example", (1, 2, 3)), ("callback_example2", None)])
-    True
-    >>> i.log("go")
-    >>> len(i.cache)
-    5
-    >>> i.listeners["go"] == set([("callback_example2", None)])
-    True
-
-    >>> i.bind("gogogo", callback_example, None)
-    >>> i.bind("gogogogo", callback_example, None)
-    >>> len(i.listeners)
-    3
     """
 
     __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
     _eval_cache = EvalCache()
 
-    _defaults = {
-        #"foo": 5,
-        #"bar": lambda _: [_["foo"]],
-    }
+    # "foo": 5, "bar": lambda _: [_["foo"]],
+    _defaults = {}
 
-    _wrappers = {
-#        "foobar": lambda raw: collections.Counter(
-#            {int(k) if k.isdigit() else k: v for k, v in raw.items()}),
-#        "stories": lambda raw: {int(k): v for k, v in raw.items()},
-#        "stories_done": lambda raw: set(raw),
-    }
+    # "stories": lambda raw: {int(k): v for k, v in raw.items()},
+    _wrappers = {}
 
+    # "func_name": func,
     _hooks = {}
 
 
@@ -163,13 +79,13 @@ class I(dict):
     def bind(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
-        assert cb in self._hooks, cb
+        assert self._hooks[cb].__code__.co_argcount == 5, cb
         self._listeners[log].add((cb, extra))
 
     def unbind(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
-        assert cb in self._hooks, cb
+        assert self._hooks[cb].__code__.co_argcount == 5, cb
         self._listeners[log].discard((cb, extra))
 
     def send(self, k:str, v):
@@ -275,7 +191,7 @@ class I(dict):
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         changes = {}
-        multi = assets["items"][item].get("multi")
+        multi = cfg.items[item].get("multi")
         if count > 0:
             if multi:
                 try:
@@ -329,35 +245,16 @@ class I(dict):
             self.send("bag", changes)  # dict is only for update
             self.save("bag")
 
-init_assets()
-
 register_default(5, "foo")
-register_default(lambda _: [_["foo"]], "bar")
+register_default(lambda self: [self["foo"]] * 3, "bar")
 @register_default
 def foobar(_):
     return collections.Counter({1: 1, 2: 1})
-register_default(lambda _: {}, "gains_local")
-register_default(500, "gold")
-register_default(1, "lv")
-register_default(lambda _: [None] * 8, "bag")
-register_default(1, "story")
-register_default(0, "story_task")
-register_default(lambda _: {}, "stories")
-register_default(lambda _: set(),"stories_done")
 register_default(lambda _: [0, 0], "xy")
 
-# examples here:
-@register_log_callback
-def callback_example(extra, i, log, infos, n):
-    assert i._logs[-1] == [log, infos, n]
-    i.unbind(log, callback_example, extra)
-    i.save("foo")
-    i.send("msg", "haha")
-
-@register_log_callback
-def callback_example2(extra, i, log, infos, n):
-    i.save("foobar")
-    i.save("a")
+@register_wrapper
+def foobar(raw):
+    return collections.Counter({int(k): v for k, v in raw.items()})
 
 P[1] = I(1)
 
@@ -366,38 +263,3 @@ if __name__ == "__main__":
     print("doctest:")
     import doctest
     doctest.testmod()
-    i = I(9527)
-    i["lv"] += 1
-    rc = (
-        ("a", "lv**5"),
-        ((("a", 1), ("b", 1)), (9, 1)),
-        (("c", 1001, 5), 0.5),
-    )
-    print(i.render(rc))
-    c = collections.Counter()
-    for _ in range(1000):
-        result = i.render(rc)
-        c[len(result)] += 1
-        c[result[1][0]] += 1
-    print(c)
-    """
-    """
-    import json
-    def p(o):
-        print("egg:", json.dumps(o, separators=(", ", ": ")))
-    i.apply([["gold", 1], ["null", 0]], 'xixi')
-    i.apply([["gold", 2], ["gold", 3]], 'haha')
-    #i.apply([["gold", -100], ["item", 2, 30], ["item", 1001, 20], ], 'pow')
-    #i.bag.exchange(1, 2)
-    i.give((("gold", "lv*100"),), "give")
-    i.apply([["gold", 5], ["item", 1, 10], ["item", 2, 10], ["item", 2, 10], ], "test")
-    i.apply([["item", 2, -5]], "test")
-    i.apply_item(2, -5, custom=3)
-    print(i)
-    for _ in range(11):
-        i.apply_item(2, 1, "test", custom=3)
-    print(i)
-    i.apply_item(2, -14)
-    print(i)
-    print(i._logs)
-    #print(i.cache)

@@ -24,7 +24,7 @@ dump3 = functools.partial(json.dumps, ensure_ascii=False, default=str,
 
 
 dumps = msgpack.dumps
-#dumps = lambda v: json.dumps(v).encode()
+dumps = lambda v: json.dumps(v).encode()
 loads = lambda v: json.loads(v.decode())
 
 if __name__ == "__main__":

@@ -113,10 +113,10 @@ class Default(dict):
 class Object(object):
     """
     >>> obj = Object({"x": 1, "y": 2, "z": 3})
-    >>> obj.a = 42
+    >>> obj.items = 42
     >>> obj.x
     1
-    >>> obj.a
+    >>> obj.items
     42
     >>> Object()
     {}
