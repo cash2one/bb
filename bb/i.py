@@ -202,7 +202,7 @@ class I(dict):
         for cb in list(self._listeners[k]):  # need a copy for iter
             self._cbs[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
 
-    def flush(self, *others):
+    def flush(self, *others) -> list:
         """be called at end"""
         f = []
         c = self._cache
@@ -218,7 +218,7 @@ class I(dict):
     def give(self, rc, cause=None):
         self.apply(self.render(rc), cause)
 
-    def render(self, rc:tuple):
+    def render(self, rc:tuple) -> list:
         """
         rc = (
             ("i", 1001, "lv**5"),
