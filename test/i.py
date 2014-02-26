@@ -15,7 +15,7 @@ def cb_test(extra, i, k, infos, n):
 
 class TestI(unittest.TestCase):
     def setUp(self):
-        self.assertIn("cb_test", I._cbs),
+        self.assertIn("cb_test", I._hooks),
         i = random.randint(1, 10000)
         self.i_flag = i
         self.i = I(i)

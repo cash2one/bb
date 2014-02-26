@@ -82,7 +82,7 @@ def _register(attr, key, value):
     dct[key] = value
     return value
 
-register_log_callback = lambda cb, name=None: _register("_cbs", name, cb)
+register_log_callback = lambda cb, name=None: _register("_hooks", name, cb)
 register_default = lambda d, k=None: _register("_defaults", k, d)
 register_wrapper = lambda w, k=None: _register("_wrappers", k, w)
 
@@ -142,7 +142,7 @@ class I(dict):
 #        "stories_done": lambda raw: set(raw),
     }
 
-    _cbs = {}
+    _hooks = {}
 
     assets = {"items": {}}
     gains_global = {}
@@ -179,13 +179,13 @@ class I(dict):
     def bind(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
-        assert cb in self._cbs, cb
+        assert cb in self._hooks, cb
         self._listeners[log].add((cb, extra))
 
     def unbind(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
-        assert cb in self._cbs, cb
+        assert cb in self._hooks, cb
         self._listeners[log].discard((cb, extra))
 
     def send(self, k:str, v):
@@ -200,7 +200,7 @@ class I(dict):
         self._cache.append(["log", self._i, k, infos, n])
         self._logs.append([k, infos, n])
         for cb in list(self._listeners[k]):  # need a copy for iter
-            self._cbs[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
+            self._hooks[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
 
     def flush(self, *others) -> list:
         """be called at end"""
