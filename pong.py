@@ -8,13 +8,14 @@ from bb.i import I, P, register_log_callback
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
 public_attrs = {
-    "bag",
-    "level",
+    "foo",
+    "bar",
+    "foobar",
 }
 
 def _echo_attr(key):
     """echo only"""
-    def _(i, idx):
+    def echo(i, idx):
         if idx:
             if key not in public_attrs:
                 raise KeyError(key)
@@ -22,7 +23,7 @@ def _echo_attr(key):
         else:
             v = i[key]
         return [[i.i, key, v]]
-    return _
+    return echo
 
 for idx, key in enumerate(sorted(I._defaults), ATTR):
     instructions[key] = idx

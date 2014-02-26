@@ -86,11 +86,10 @@ class TestI(unittest.TestCase):
         i = self.i
         i.save("foo")
         i.save("bar")
-        self.assertEqual(i.flush(),
-                         [
-                             ["save", self.i_flag, "foo", 5],
-                             ["save", self.i_flag, "bar", [5, 5, 5]],
-                         ])
+        self.assertEqual(
+            i.flush(),
+            [["save", i.i, "foo", 5], ["save", i.i, "bar", [5, 5, 5]]]
+            )
 
     def test_log(self):
         i = self.i
