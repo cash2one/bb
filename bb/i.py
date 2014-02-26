@@ -12,14 +12,9 @@ from .util import EvalCache
 if __debug__:
     from .const import INSTRUCTIONS_LIST
 
+assets = {"items": {}}
+gains_global = {}
 
-class _P(dict):
-    def __missing__(self, k):
-        i = I(k)
-        self[k] = i
-        return i
-
-#P = _P()  # do not use this way
 P = {}
 
 # map looks like this:
@@ -28,16 +23,9 @@ P = {}
 #   * reload functions at running
 #   * persist this "function-link" at shutdown
 #   * easy to read
-class Box(list):
-    """
-    """
-    def exchange(self, i, j):
-        assert i and j
-        if i != j:
-            self[i], self[j] = self[j], self[i]
 
 def init_assets():
-    I.assets["items"] = {
+    assets["items"] = {
         1: {
             "multi": 99,
             "buy": 10,
@@ -126,7 +114,7 @@ class I(dict):
     3
     """
 
-    __slots__ = ["_i", "_cache", "_logs", "_listeners", "_tosave", "online"]
+    __slots__ = ["_i", "_cache", "_logs", "_listeners", "online"]
 
     _eval_cache = EvalCache()
 
@@ -144,16 +132,12 @@ class I(dict):
 
     _hooks = {}
 
-    assets = {"items": {}}
-    gains_global = {}
-
 
     def __init__(self, n:int, source:dict=None):
         self._i = n
         self._cache = []
         self._logs = collections.deque(maxlen=50)
         self._listeners = collections.defaultdict(set)
-        self._tosave = set()
         self.online = False
         if source:
             assert isinstance(source, dict), source
@@ -189,7 +173,7 @@ class I(dict):
         self._listeners[log].discard((cb, extra))
 
     def send(self, k:str, v):
-        assert k in instructions, k
+        assert k in INSTRUCTIONS_LIST, k
         self._cache.append([self._i, k, v])
 
     def save(self, k:str):
@@ -244,7 +228,7 @@ class I(dict):
                 booty.append(list(foo))
 
         discount = 1 or 0.1 # todo
-        gg, gl = self.gains_global, self["gains_local"]
+        gg, gl = gains_global, self["gains_local"]
 
         for i in booty:
             k, n = i[0], i[-1]
@@ -291,7 +275,7 @@ class I(dict):
             raise Warning("+item without cause is not allowed")
         bag = self["bag"]
         changes = {}
-        multi = self.assets["items"][item].get("multi")
+        multi = assets["items"][item].get("multi")
         if count > 0:
             if multi:
                 try:
