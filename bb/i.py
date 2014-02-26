@@ -121,23 +121,18 @@ class I(dict):
     def render(self, rc:tuple) -> list:
         """
         rc = (
-            ("i", 1001, "lv**5"),
+            (("i", 1001, "lv**5"), 1),
             (("c", 5), 0.5),
             ((("a", 1), ("b", 1)), (9, 1)),
         )
         """
-        assert all(isinstance(r, tuple) for r in rc), rc
         booty = []
         for r in rc:
-            foo, bar = r[0], r[-1]
-            if isinstance(foo, str):
-                assert isinstance(bar, (int, str))
-                booty.append(list(r))
-            elif isinstance(bar, tuple):
+            foo, bar = r
+            if isinstance(bar, tuple):
                 assert foo, foo
                 assert len(foo) == len(bar), foo + bar
-                assert all(isinstance(t, tuple) for t in foo), foo
-                assert all(n > 0 for n in bar), bar
+                assert all(n >= 0 for n in bar), bar
                 l = list(accumulate(bar))
                 booty.append(list(foo[bisect(l, random() * l[-1])]))
             elif random() < bar:
