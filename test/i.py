@@ -5,12 +5,24 @@ import json
 import random
 import unittest
 
-from bb.i import I, register_log_callback
+from bb.i import I, register_log_callback, register_default, register_wrapper
 from bb.msg import dumps, loads
 
 @register_log_callback
 def cb_test(extra, i, k, infos, n):
     i["foo"] += 1
+
+register_default(5, "foo")
+register_default(lambda self: [self["foo"]] * 3, "bar")
+
+@register_default
+def foobar(_):
+    return collections.Counter({1: 1, 2: 1})
+
+@register_wrapper
+def foobar(raw):
+    return collections.Counter({int(k): v for k, v in raw.items()})
+
 
 class TestI(unittest.TestCase):
     def setUp(self):

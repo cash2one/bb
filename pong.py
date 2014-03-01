@@ -8,9 +8,8 @@ from bb.i import I, P, register_log_callback
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
 public_attrs = {
-    "foo",
-    "bar",
-    "foobar",
+    "gold",
+    "bag",
 }
 
 def _echo_attr(key):
@@ -51,6 +50,7 @@ def online(i, b):
     i.online = b
     t = time.time()
     i.save("bag")
+    return i.flush()
     if b:
         i.bind("online", "_test", "on")
         i.bind("offline", "_test", "off")
@@ -63,7 +63,6 @@ def online(i, b):
         i["logout_time"] = t
         i.log("offline", {"time": t})
         i.give((("item", 2, 10), ("gold", -1)), "give")
-    return i.flush()
 
 def plus():
     for i in P.values():

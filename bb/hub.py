@@ -51,9 +51,10 @@ def hub(Q_in, Q_out, Q_err, debug=True):
         from .exc import exc_map, exc_recorder
         from .inst import processes, commands, instructions
         from .srv import load_data, build_all, check_all, import_others
+        import this
         #build_all(load_data(IDS, DB_HOST, DB_PORT))
         check_all()
-        import_others()
+        #import_others()
         logging.info(len(P))
     except Exception:
         logging.exception("init error")

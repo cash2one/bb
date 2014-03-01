@@ -3,7 +3,10 @@
 import time
 import collections
 
+from bb import i
 from bb.inst import handle, pre
+
+i.register_default(lambda _: [0, 0], "xy")
 
 MAX = 64  # max in a map
 all_rooms = set(range(10))  # dummy rooms

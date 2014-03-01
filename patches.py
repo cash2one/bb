@@ -18,6 +18,10 @@ eval_cache = EvalCache()
 
 gains_global = {}
 
+i.register_default(5, "gold")
+i.register_default(lambda _: {}, "gains_local")
+i.register_default(lambda _: [], "bag")
+
 @i.method
 def give(self, rc, cause=None):
     self.apply(self.render(rc), cause)
@@ -148,17 +152,6 @@ def apply_item(self, item, count, cause=None, custom=0):
     if changes:
         self.send("bag", changes)  # dict is only for update
         self.save("bag")
-
-i.register_default(5, "foo")
-i.register_default(lambda self: [self["foo"]] * 3, "bar")
-@i.register_default
-def foobar(_):
-    return collections.Counter({1: 1, 2: 1})
-i.register_default(lambda _: [0, 0], "xy")
-
-@i.register_wrapper
-def foobar(raw):
-    return collections.Counter({int(k): v for k, v in raw.items()})
 
 i.P[1] = i.I(1)
 
