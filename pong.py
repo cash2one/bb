@@ -2,7 +2,7 @@
 
 import time
 
-from bb.const import ATTR
+from bb.const import ATTRIBUTES_LIST, ATTR
 from bb.inst import instructions, processes, handle, pre
 from bb.i import I, P, register_log_callback
 
@@ -24,7 +24,7 @@ def _echo_attr(key):
         return [[i.i, key, v]]
     return echo
 
-for idx, key in enumerate(sorted(I._defaults), ATTR):
+for idx, key in enumerate(ATTRIBUTES_LIST, ATTR):
     instructions[key] = idx
     processes[idx] = _echo_attr(key)
 
