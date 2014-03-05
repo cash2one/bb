@@ -52,6 +52,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
         from .inst import processes, commands, instructions
         from .srv import load_data, build_all, check_all, import_others
         import this
+        this
         #build_all(load_data(IDS, DB_HOST, DB_PORT))
         check_all()
         #import_others()

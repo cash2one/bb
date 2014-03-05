@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
 
 import collections
-import types
-import sys
-
-from bisect import bisect
-from itertools import accumulate, chain
-from random import random
 
 if __debug__:
     from .const import INSTRUCTIONS_LIST
-
-gains_global = {}
 
 P = {}
 
@@ -28,8 +20,10 @@ register_log_callback = lambda cb, name=None: _register("_hooks", name, cb)
 register_default = lambda d, k=None: _register("_defaults", k, d)
 register_wrapper = lambda w, k=None: _register("_wrappers", k, w)
 
-def method(func):
-    setattr(I, func.__name__, func)
+def method(func, attr=None):
+    #print(func, attr)
+    assert func.__code__.co_argcount > 0
+    setattr(I, attr if attr else func.__name__, func)
 
 class I(dict):
     """
