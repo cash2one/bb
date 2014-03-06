@@ -149,9 +149,8 @@ def main(options=opt):
 
 
     class StatusHandler(BaseHandler):
-        recorders = {"web": recorder, "hub": {}, "log": {}}
-        def get(self, key):
-            self.render("status.html")
+        def get(self):
+            self.render("status.html", recorder=recorder)
 
 
     class TokenUpdateHandler(BaseHandler):
@@ -226,7 +225,7 @@ def main(options=opt):
             (r"/io", IOHistoryHandler),
             (r"/flush", FlushHubHandler),
             (r"/ws", websocket(staffs, tokens, put)),
-            (r"/(.*)_status", StatusHandler),
+            (r"/status", StatusHandler),
             (r"/(\d+)", DummyIHandler),
         ],
         static_path="_",
