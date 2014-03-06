@@ -12,8 +12,6 @@ import sys
 from code import InteractiveInterpreter
 from io import StringIO
 
-from tornado.tcpserver import TCPServer
-
 
 class BackdoorShell(InteractiveInterpreter):
     """backdoor"""
@@ -44,36 +42,40 @@ class BackdoorShell(InteractiveInterpreter):
         return io.getvalue()[:self.MAXLEN] + prompt
 
 
-class Connection(object):
-    shell = BackdoorShell()   # global
-    def __init__(self, stream, address):
-        self.stream = stream
-        self.stream.set_close_callback(self.stream.close)
-        self.stream.write(b'>>> ')
-        self.stream.read_until(b'\n', self.handle_input)
-
-    def handle_input(self, line):
-        self.stream.write(self.shell.push(line.decode()).encode())
-        self.stream.read_until(b'\n', self.handle_input)
-
-
-import weakref
-connections = weakref.WeakValueDictionary()
-
-class Backdoor(TCPServer):
-    def handle_stream(self, stream, address):
-        Connection(stream, address)
-
 
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
 
     import gc
+    import weakref
+
+    from tornado.tcpserver import TCPServer
+    from tornado import ioloop
+
     gc.disable()
+
+    connections = weakref.WeakValueDictionary()
+
+    class Connection(object):
+        shell = BackdoorShell()   # global
+        def __init__(self, stream, address):
+            self.stream = stream
+            self.stream.set_close_callback(self.stream.close)
+            self.stream.write(b'>>> ')
+            self.stream.read_until(b'\n', self.handle_input)
+
+        def handle_input(self, line):
+            self.stream.write(self.shell.push(line.decode()).encode())
+            self.stream.read_until(b'\n', self.handle_input)
+
+    class Backdoor(TCPServer):
+        def handle_stream(self, stream, address):
+            Connection(stream, address)
+
+
     server = Backdoor()
     server.listen(9527)
-    from tornado import ioloop
     def record():
         #gc.collect()
         print(sys.getrefcount(Connection))
