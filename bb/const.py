@@ -17,8 +17,8 @@ ATTRIBUTES_LIST = _str_to_list(
     gold
     """)
 
-LIST = INSTRUCTIONS_LIST + ATTRIBUTES_LIST
-assert len(LIST) == len(set(LIST))
+_ = INSTRUCTIONS_LIST + ATTRIBUTES_LIST
+assert len(_) == len(set(_))
 #print(INSTRUCTIONS_LIST)
 #print(ATTRIBUTES_LIST)
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import builtins
 import collections
 
 def collect_exceptions():
+    import builtins
     idx = 0
     for i in sorted(dir(builtins)):
         i = getattr(builtins, i)
