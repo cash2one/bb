@@ -66,6 +66,12 @@ def main(options=opt):
     wheels = weakref.WeakValueDictionary()
 
     from tornado import ioloop
+
+    ioloop._Timeout.__repr__ = lambda self: "{} ({})  {}".format(
+        time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.deadline)),
+        self.deadline,
+        self.callback and self.callback.__doc__)
+
     io_loop = ioloop.IOLoop.instance()
 
     tokens = {}
