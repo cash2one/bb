@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # default options
 
-debug = True
+debug = __debug__
 delay = 500
 
 port = 8000
