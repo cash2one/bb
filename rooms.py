@@ -71,3 +71,33 @@ def enter(i, rid):
             _ = {id: data}
             cache.extend([k, cmd, _] for k in room if k != id)
     return cache
+
+
+l = 20
+
+def m(x, y):
+    sx = (x + l - 1) // l
+    sy = (y + l - 1) // l
+    #print(sx, sy)
+    codes = {}
+
+    code = 0
+    for j in range(sy):
+        for i in range(sx):
+            codes[(i, j)] = code
+            print(code, end="\t")
+            code += 1
+        print()
+
+    units = tuple(
+        tuple(
+            codes[(i + x, j + y)]
+            for y in range(-1, 2) for x in range(-1, 2)
+            if (i + x, j + y) in codes
+            )
+        for j in range(sy)
+        for i in range(sx)
+        )
+
+    return units
+

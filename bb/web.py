@@ -115,8 +115,7 @@ def main(options=opt):
     ioloop.PeriodicCallback(record, 3000).start()
     ioloop.PeriodicCallback(
         lambda: tokens.update(dict.fromkeys(range(100), "token")),
-        1000,
-        ).start()
+        1000).start()
 
     class BaseHandler(RequestHandler):
         @property
