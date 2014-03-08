@@ -101,3 +101,13 @@ def m(x, y):
 
     return units
 
+def alter(m):
+    out = {}
+    for code, o in enumerate(m):
+        for i in o:
+            s1 = set(m[code])
+            s2 = set(m[i])
+            out[(code, i)] = (sorted((s1 ^ s2) - s2), sorted((s1 ^ s2) - s1))
+    print(len(out))
+    print(out)
+
