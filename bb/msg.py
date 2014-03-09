@@ -11,7 +11,7 @@ r"""
 
 import functools
 import json
-import msgpack
+#import msgpack
 
 dump1 = functools.partial(json.dumps, ensure_ascii=False, default=list,
                           separators=(",", ":"))
@@ -23,7 +23,7 @@ dump3 = functools.partial(json.dumps, ensure_ascii=False, default=str,
                           separators=(",", ": "), sort_keys=True, indent=4)
 
 
-dumps = msgpack.dumps
+#dumps = msgpack.dumps
 dumps = lambda v: json.dumps(v).encode()
 loads = lambda v: json.loads(v.decode())
 
