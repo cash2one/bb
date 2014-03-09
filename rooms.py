@@ -84,10 +84,10 @@ def m(x, y):
     code = 0
     for j in range(sy):
         for i in range(sx):
+            #print(code, end="\t")
             codes[(i, j)] = code
-            print(code, end="\t")
             code += 1
-        print()
+        #print()
 
     units = tuple(
         tuple(
@@ -102,12 +102,16 @@ def m(x, y):
     return units
 
 def alter(m):
-    out = {}
-    for code, o in enumerate(m):
-        for i in o:
-            s1 = set(m[code])
-            s2 = set(m[i])
-            out[(code, i)] = (sorted((s1 ^ s2) - s2), sorted((s1 ^ s2) - s1))
-    print(len(out))
-    print(out)
+    m = list(map(set, m))
+    conv = lambda v: tuple(sorted(v))
+    def f(c1, c2):
+        s1 = m[c1]
+        s2 = m[c2]
+        return ((c1, c2), (conv((s1 ^ s2) - s2), conv((s1 ^ s2) - s1)))
+    return dict(f(c1, c2) for c1, o in enumerate(m) for c2 in o if c1 != c2)
 
+#l = 1
+#M = m(16, 16)
+#print(M)
+#m = alter(M)
+#print(m)
