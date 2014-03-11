@@ -19,7 +19,7 @@ dump1 = functools.partial(json.dumps, ensure_ascii=False, default=list,
 dump2 = functools.partial(json.dumps, ensure_ascii=False, default=list,
                           separators=(",", ": "), sort_keys=True, indent=4)
 
-dump3 = functools.partial(json.dumps, ensure_ascii=False, default=str,
+dump3 = functools.partial(json.dumps, default=str,
                           separators=(",", ": "), sort_keys=True, indent=4)
 
 
