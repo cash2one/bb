@@ -15,9 +15,8 @@ room_ids = {}
 rooms = collections.defaultdict(collections.OrderedDict)
 slots = {}
 
-
 @handle
-@pre(list, lambda x: len(x) == 2 and all(isinstance(i, int) for i in x))
+#@pre(list, lambda x: len(x) == 2 and all(isinstance(i, int) for i in x))
 def move(i, xy):
     """x and y
     """
@@ -28,6 +27,10 @@ def move(i, xy):
     p = room[id]
     p[:2] = xy
     cache = []
+    grid = 3 #dummy
+    _grids, _others_in_grids = rooms_grids[rid]
+    print(list(i for g in _grids[grid] for i in _others_in_grids))
+    print(rooms_grids)
     if id in slots[rid]:
         _ = {id: xy}
         cache.extend([k, cmd, _] for k in room if k != id)
@@ -36,7 +39,7 @@ def move(i, xy):
 
 
 @handle
-@pre(int, lambda i: i in all_rooms)
+#@pre(int, lambda i: i in all_rooms)
 def enter(i, rid):
     """exit when rid is 0
     """
@@ -73,9 +76,9 @@ def enter(i, rid):
     return cache
 
 
-l = 20
+l = 1
 
-def m(x, y):
+def grid(x, y):
     sx = (x + l - 1) // l
     sy = (y + l - 1) // l
     #print(sx, sy)
@@ -115,3 +118,14 @@ def alter(m):
 #print(M)
 #m = alter(M)
 #print(m)
+rooms_grids = {
+    1: (
+        grid(6, 5),
+        collections.defaultdict(set),
+    ),
+    2: (
+        grid(10, 10),
+        collections.defaultdict(set),
+    ),
+}
+
