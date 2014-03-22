@@ -244,7 +244,7 @@ def main(options=opt):
             (r"/status", StatusHandler),
             (r"/(\d+)", DummyIHandler),
         ],
-        static_path="_",
+        static_path="static",
         template_path="tpl",
         debug=debug,
         ).listen(options.backstage)
