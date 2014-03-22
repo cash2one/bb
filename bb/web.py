@@ -18,9 +18,10 @@ def main(options=opt):
     debug = options.debug
     if debug:
         from queue import Queue, Queue as SimpleQueue
-        from threading import Thread as Process
+        from threading import Thread as Process, Lock
         from datetime import timedelta
         delay = timedelta(milliseconds=options.delay)
+        mutex = Lock()
 
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
@@ -94,7 +95,7 @@ def main(options=opt):
                 for i in wheels.values():
                     i.write(s)
             else:
-                http_callbacks.popleft()(data)
+                io_loop.add_callback(http_callbacks.popleft(), data)
         else:
             s = staffs.get(i)
             if s:
@@ -108,7 +109,8 @@ def main(options=opt):
                 x = get()
                 logging.debug("msg from hub: %r", x)
                 if x is not None:
-                    msg(*x)
+                    with mutex:
+                        msg(*x)
                 else:
                     break
         Process(target=loop_msg, args=()).start()
