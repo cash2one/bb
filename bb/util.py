@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
+eval_org = eval
+
 def patch_eval():
-    import functools
-    c = functools.lru_cache(maxsize=None)(compile)
+    if eval is not eval_org:
+        return False
+
+    from functools import lru_cache
+    c = lru_cache(maxsize=None)(compile)
     e = eval
 
     def _eval(expr, globals=None, locals=None):
@@ -10,6 +15,9 @@ def patch_eval():
 
     import builtins
     builtins.eval = _eval
+
+    return True
+
 
 def build_dict(title, key, values, value_wraps={}):
     r"""
