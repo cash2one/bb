@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+def patch_eval():
+    import functools
+    c = functools.lru_cache(maxsize=None)(compile)
+    e = eval
+
+    def _eval(expr, globals=None, locals=None):
+        return e(c(expr, expr, "eval"), globals, locals)
+
+    import builtins
+    builtins.eval = _eval
+
 def build_dict(title, key, values, value_wraps={}):
     r"""
     >>> title = [{"x":1, "y":1, "z":1}, {"x":2, "y":4, "z":8}]

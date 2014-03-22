@@ -9,12 +9,10 @@ from itertools import accumulate, chain
 from random import random
 
 from bb import i
-from bb.util import EvalCache, Object
+from bb.util import Object
 
 cfg = Object()
 cfg.items = {}
-
-eval_cache = EvalCache()
 
 gains_global = {}
 
@@ -53,7 +51,7 @@ def render(self, rc:tuple) -> list:
     for i in booty:
         k, n = i[0], i[-1]
         if isinstance(n, str):
-            n = eval(eval_cache[n], None, self)  # :)
+            n = eval(n, None, self)
         i[-1] = int(n * discount * (1 + gl.get(k, 0) + gg.get(k, 0)))
 
     return booty
