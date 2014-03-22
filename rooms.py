@@ -16,7 +16,7 @@ rooms = collections.defaultdict(collections.OrderedDict)
 slots = {}
 
 @handle
-#@pre(list, lambda x: len(x) == 2 and all(isinstance(i, int) for i in x))
+@pre(list, lambda x: len(x) == 2 and all(isinstance(i, int) for i in x))
 def move(i, xy):
     """x and y
     """

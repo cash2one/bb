@@ -5,6 +5,8 @@ r"""
 '7\n>>> '
 """
 
+import functools
+
 
 features = {}
 
@@ -32,12 +34,10 @@ def pre(types=None, value_checker=None):
     if value_checker is not None:
         assert callable(value_checker)
     def decorator(func):
-        alias = func.__name__
-        #limit = features.get(alias, 0)
-        #assert isinstance(limit, int)
         co = func.__code__
         assert co.co_argcount == 2, (co.co_filename, co.co_firstlineno)
-        def _(i, x):
+        @functools.wraps(func)
+        def wrapper(i, x):
             if types and not isinstance(x, types):
                 raise TypeError(x)
             if value_checker and not value_checker(x):
@@ -46,8 +46,7 @@ def pre(types=None, value_checker=None):
             #if story < limit:
             #    raise ReferenceError(alias, limit, story)
             return func(i, x)
-        _.__name__ = alias
-        return _
+        return wrapper
     return decorator
 
 
