@@ -26,7 +26,7 @@ PING = 0
 INST_LEN = len(INSTRUCTIONS_LIST)
 ONLINE = PING + INSTRUCTIONS_LIST.index("online")
 
-ATTR = 257  # head id of all attributes
+ATTR = 16  # head id of all attributes
 
 assert PING + INST_LEN < ATTR
 
