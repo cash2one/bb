@@ -18,10 +18,9 @@ def main(options=opt):
     debug = options.debug
     if debug:
         from queue import Queue, Queue as SimpleQueue
-        from threading import Thread as Process, Lock
+        from threading import Thread as Process
         from datetime import timedelta
         delay = timedelta(milliseconds=options.delay)
-        mutex = Lock()
 
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
@@ -62,7 +61,7 @@ def main(options=opt):
     import sys
     import time
     import weakref
-    from functools import partial
+    import functools
 
     staffs = weakref.WeakValueDictionary()
     wheels = weakref.WeakValueDictionary()
@@ -95,11 +94,12 @@ def main(options=opt):
                 for i in wheels.values():
                     i.write(s)
             else:
-                io_loop.add_callback(http_callbacks.popleft(), data)
+                http_callbacks.popleft()(data)
         else:
             s = staffs.get(i)
             if s:
-                s.send(cmd, data) if not debug else io_loop.add_timeout(delay, partial(s.send, cmd, data))
+                s.send(cmd, data) \
+                        if not debug else io_loop.add_timeout(delay, functools.partial(s.send, cmd, data))  # this line is for debug
             else:
                 logging.warning("{} is not online failed to send {}-{}".format(i, cmd, data))
 
@@ -109,8 +109,7 @@ def main(options=opt):
                 x = get()
                 logging.debug("msg from hub: %r", x)
                 if x is not None:
-                    with mutex:
-                        msg(*x)
+                    io_loop.add_callback(msg, *x)
                 else:
                     break
         Process(target=loop_msg, args=()).start()
