@@ -29,8 +29,8 @@ def move(i, xy):
     cache = []
     grid = 3 #dummy
     _grids, _others_in_grids = rooms_grids[rid]
-    print(list(i for g in _grids[grid] for i in _others_in_grids))
-    print(rooms_grids)
+    #print(list(i for g in _grids[grid] for i in _others_in_grids))
+    #print(rooms_grids)
     if id in slots[rid]:
         _ = {id: xy}
         cache.extend([k, cmd, _] for k in room if k != id)
