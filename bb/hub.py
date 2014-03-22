@@ -90,6 +90,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
 
         if v is None:
             logging.info("hub exit")
+            _out(None)
             _err(None)
             break
 

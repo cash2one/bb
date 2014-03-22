@@ -17,6 +17,7 @@ def main(options=opt):
 
     debug = options.debug
     if debug:
+        from queue import Queue, Queue as SimpleQueue
         from threading import Thread as Process
         from datetime import timedelta
         delay = timedelta(milliseconds=options.delay)
@@ -86,10 +87,7 @@ def main(options=opt):
     signal.signal(signal.SIGTERM, term)
 
 
-    def msg(fd, event):
-        x = get()
-        logging.debug("msg from hub: %r", x)
-        i, cmd, data = x
+    def msg(i, cmd, data):
         if i is None:
             if cmd == "shell":
                 s = data.encode()
@@ -104,7 +102,20 @@ def main(options=opt):
             else:
                 logging.warning("{} is not online failed to send {}-{}".format(i, cmd, data))
 
-    io_loop.add_handler(Q1._reader.fileno(), msg, io_loop.READ)
+    if debug:
+        def loop_msg():
+            while True:
+                x = get()
+                logging.debug("msg from hub: %r", x)
+                if x is not None:
+                    msg(*x)
+                else:
+                    break
+        Process(target=loop_msg, args=()).start()
+    else:
+        io_loop.add_handler(Q1._reader.fileno(),
+                            lambda _,__: msg(*get()),
+                            io_loop.READ)
 
 
     from urllib.parse import unquote
