@@ -108,10 +108,9 @@ def main(options=opt):
             while True:
                 x = get()
                 logging.debug("msg from hub: %r", x)
-                if x is not None:
-                    io_loop.add_callback(msg, *x)
-                else:
+                if x is None:
                     break
+                io_loop.add_callback(msg, *x)
         Process(target=loop_msg, args=()).start()
     else:
         io_loop.add_handler(Q1._reader.fileno(),
