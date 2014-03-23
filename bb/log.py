@@ -41,7 +41,7 @@ def worker(name, Q, task):
     done()
 
 
-def log(Q_err, debug=True):
+def log(Q_err):
     import collections
     import logging
     import signal

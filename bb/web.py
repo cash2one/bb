@@ -15,12 +15,11 @@ def main(options=opt):
     from multiprocessing import Process
     from multiprocessing.queues import Queue, SimpleQueue
 
-    debug = options.debug
-    if debug:
+    if __debug__:
         from queue import Queue, Queue as SimpleQueue
         from threading import Thread as Process
         from datetime import timedelta
-        delay = timedelta(milliseconds=options.delay)
+        delay = timedelta(milliseconds=300)
 
     Q0, Q1, Q2 = Queue(), SimpleQueue(), SimpleQueue()
 
@@ -37,8 +36,8 @@ def main(options=opt):
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
             return
-        sub_procs["hub"] = Process(target=hub, args=(Q0, Q1, Q2, debug))
-        sub_procs["log"] = Process(target=log, args=(Q2, debug))
+        sub_procs["hub"] = Process(target=hub, args=(Q0, Q1, Q2))
+        sub_procs["log"] = Process(target=log, args=(Q2,))
         for name, proc in sub_procs.items():
             proc.start()
             logging.info("%s started, pid:%d", name, getattr(proc, "pid", 0))
@@ -99,11 +98,11 @@ def main(options=opt):
             s = staffs.get(i)
             if s:
                 s.send(cmd, data) \
-                        if not debug else io_loop.add_timeout(delay, functools.partial(s.send, cmd, data))  # this line is for debug
+                        if not __debug__ else io_loop.add_timeout(delay, functools.partial(s.send, cmd, data))  # this line is for debug
             else:
                 logging.warning("{} is not online failed to send {}-{}".format(i, cmd, data))
 
-    if debug:
+    if __debug__:
         def loop_msg():
             while True:
                 x = get()
@@ -123,7 +122,7 @@ def main(options=opt):
     from .const import PING, NULL, DEBUG_OUTPUT
     from .oc import record, recorder
 
-    if debug:
+    if __debug__:
         ioloop.PeriodicCallback(record, 3000).start()
         ioloop.PeriodicCallback(
             lambda: tokens.update(dict.fromkeys(range(100), "token")),
@@ -152,7 +151,7 @@ def main(options=opt):
 
     class IOHistoryHandler(BaseHandler):
         def get(self):
-            if not debug:
+            if not __debug__:
                 return
             step = 25
             i = self.request.query
@@ -247,7 +246,7 @@ def main(options=opt):
         ],
         static_path="static",
         template_path="tpl",
-        debug=debug,
+        debug=__debug__,
         ).listen(options.backstage)
 
     io_loop.start()   # looping...

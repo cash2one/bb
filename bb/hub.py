@@ -20,7 +20,7 @@ True
 """
 
 
-def hub(Q_in, Q_out, Q_err, debug=True):
+def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
     import signal
@@ -62,7 +62,7 @@ def hub(Q_in, Q_out, Q_err, debug=True):
         _err(None)
         return
 
-    if debug:
+    if __debug__:
         from time import strftime
         _log_file = open(DEBUG_OUTPUT, "w", 1)
         def _log(io_type, value):
