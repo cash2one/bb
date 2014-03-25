@@ -68,8 +68,9 @@ def apply(self, booty, cause):
     assert all(isinstance(b[0], str) for b in booty), booty
     assert all(isinstance(b[-1], int) for b in booty), booty
     for b in booty:
-        method = self.__getattribute__("apply_" + b[0])
-        method(*b[1:], cause=cause)
+        key, *args = b
+        method = self.__getattribute__("apply_" + key)
+        method(*args, cause=cause)
 
 @i.method
 def apply_null(self, count, cause):
