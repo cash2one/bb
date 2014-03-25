@@ -2,6 +2,8 @@
 
 import collections
 
+_VOID = {}  # immutable
+
 if __debug__:
     from .const import INSTRUCTIONS_LIST
 
@@ -24,6 +26,7 @@ def method(func, attr=None):
     #print(func, attr)
     assert func.__code__.co_argcount > 0
     setattr(I, attr if attr else func.__name__, func)
+
 
 class I(dict):
     """
@@ -87,11 +90,11 @@ class I(dict):
         assert k in self._defaults, k
         self._cache.append(["save", self._i, k, self[k]])
 
-    def log(self, k:str, infos:dict={}, n:int=1):
-        self._cache.append(["log", self._i, k, infos, n])
-        self._logs.append([k, infos, n])
+    def log(self, k:str, meta:dict=_VOID, n:int=1):
+        self._cache.append(["log", self._i, k, meta, n])
+        self._logs.append([k, meta, n])
         for cb in list(self._listeners[k]):  # need a copy for iter
-            self._hooks[cb[0]](cb[1], self, k, infos, n)  # cb may change listeners[k]
+            self._hooks[cb[0]](cb[1], self, k, meta, n)  # cb may change listeners[k]
 
     def flush(self, *others) -> list:
         """be called at end"""
