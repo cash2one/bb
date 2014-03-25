@@ -44,17 +44,6 @@ def worker(name, Q, task):
 def log(Q_err):
     import collections
     import logging
-    import signal
-
-    def terminate(signal_number, stack_frame):
-        logging.warning("received SIGTERM")
-        nonlocal loop
-        loop = False
-
-    try:
-        signal.signal(signal.SIGTERM, terminate)
-    except ValueError as e:
-        logging.info(e)
 
     from threading import Thread
     from queue import Queue
@@ -85,9 +74,8 @@ def log(Q_err):
         Thread(target=worker, args=(k, v[0], v[1])).start()
 
     get = Q_err.get
-    loop = True
 
-    while loop:
+    while True:
         try:
             v = get()
         except Exception as e:

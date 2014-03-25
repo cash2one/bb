@@ -23,22 +23,8 @@ True
 def hub(Q_in, Q_out, Q_err):
     import functools
     import logging
-    import signal
     import sys
     import traceback
-
-    def terminate(signal_number, stack_frame):
-        logging.warning("received SIGTERM")
-        nonlocal loop
-        loop = False
-
-    try:
-        signal.signal(signal.SIGTERM, terminate)
-    except ValueError as e:
-        logging.info(e)
-
-
-    _filter = functools.partial(filter, None)
 
     _in = Q_in.get
     _out = Q_out.put
@@ -54,11 +40,11 @@ def hub(Q_in, Q_out, Q_err):
         import this
         this
         #build_all(load_data(IDS, DB_HOST, DB_PORT))
-        check_all()
-        #import_others()
-        logging.info(len(P))
+        #check_all()
+        #logging.info(len(P))
     except Exception:
         logging.exception("init error")
+        _out(None)
         _err(None)
         return
 
@@ -79,9 +65,7 @@ def hub(Q_in, Q_out, Q_err):
             _log("E", v)
             Q_err.put(v)
 
-    loop = True
-
-    while loop:
+    while True:
         try:
             v = _in()
         except Exception as e:
@@ -116,7 +100,7 @@ def hub(Q_in, Q_out, Q_err):
                     exc_recorder[i][err] += 1
                     raise
                 if outs:
-                    for x in _filter(outs):   # is _filter neccessary?
+                    for x in outs:
                         if isinstance(x[0], int):
                             i, cmd, data = x
                             _out([i, instructions[cmd], dumps(data)])
