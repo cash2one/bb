@@ -144,12 +144,12 @@ def backdoor(staffs, send=dummy_send):
 
     class Connection(object):
         def __init__(self, stream, address):
-            self.stream = stream
             staffs[address] = stream
             stream.set_close_callback(stream.close)
-            self.stream.write("{}\n{}\n>>> ".format(
+            stream.write("{}\n{}\n>>> ".format(
                 start_time, strftime(TIME)).encode())
-            self.stream.read_until(b'\n', self.handle_input)
+            stream.read_until(b'\n', self.handle_input)
+            self.stream = stream
 
         def handle_input(self, line):
             send([None, "shell", line.decode()])
