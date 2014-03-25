@@ -185,10 +185,10 @@ def _view():
 if __name__ == "__main__":
     import tornado.options
     tornado.options.parse_command_line()
-    from bb import bd
-    bd.Connection.shell.push("import __main__ as m")
-    bd.Backdoor().listen(65534)
-    init()
+    #from bb import bd
+    #bd.Connection.shell.push("import __main__ as m")
+    #bd.Backdoor().listen(65534)
+    #init()
     _view()
     application.listen(65535)
     tornado.ioloop.IOLoop.instance().start()

@@ -111,12 +111,14 @@ application = tornado.web.Application([
     (r"/quit", QuitHandler),
 ])
 
+"""
 backdoor = bd.Backdoor()
 push = bd.Connection.shell.push
 push("import __main__ as main")
 push("from __main__ import all_zones, servers, broken, errors")
+"""
 
 if __name__ == "__main__":
     application.listen(65535)
-    backdoor.listen(65534)
+    #backdoor.listen(65534)
     tornado.ioloop.IOLoop.instance().start()
