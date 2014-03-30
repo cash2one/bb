@@ -32,6 +32,7 @@ def main(options=opt):
     sub_procs = {}
 
     def start():
+        #import bb; print(dir(bb))  # modules have been loaded at here, hub will loads the others
         logging.info("starting sub processes...")
         if any(proc.is_alive() for proc in sub_procs.values()):
             logging.warning("sub processes are running, failed to start")
