@@ -81,6 +81,7 @@ def main(options=opt):
     import signal
     def term(signal_number, stack_frame):
         logging.info("will exit")
+        Q1.put(None)
         io_loop.stop()
         stop()
     signal.signal(signal.SIGTERM, term)
@@ -198,6 +199,10 @@ def main(options=opt):
                 http_callbacks.append(self.finish)
             elif cmd == "show":
                 http_callbacks.append(self.deal_echoed)
+            elif cmd == "reset":
+                stop()
+                start()
+                return self.finish("reset")
             else:
                 raise HTTPError(404)
             put([None, cmd, expr])
@@ -237,11 +242,11 @@ def main(options=opt):
             (r"/dummy", BaseHandler),
             (r"/", MainHandler),
             (r"/token", TokenUpdateHandler),
-            (r"/hub_(.*)", HubHandler),
-            (r"/io", IOHistoryHandler),
             (r"/flush", FlushHubHandler),
             (r"/ws", websocket(staffs, tokens, put)),
+            (r"/io", IOHistoryHandler),
             (r"/status", StatusHandler),
+            (r"/hub_(.*)", HubHandler),
             (r"/(\d+)", DummyIHandler),
         ],
         static_path="static",
