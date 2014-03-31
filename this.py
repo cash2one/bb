@@ -3,3 +3,4 @@
 import patches
 import pong
 import rooms
+import chat

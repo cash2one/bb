@@ -9,6 +9,7 @@ INSTRUCTIONS_LIST = _str_to_list(
     online
     enter
     move
+    chat
     """)
 
 ATTRIBUTES_LIST = _str_to_list(
