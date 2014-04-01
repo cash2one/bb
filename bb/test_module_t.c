@@ -1,17 +1,12 @@
 #include <Python.h>
 
-#define MAP_MAX 10
+#define MAP_MAX 1000
 
 static short *m[MAP_MAX];
 
 static PyObject* t1(PyObject* self, PyObject* args) {
 	//printf("%lx, %lx", self, args);
 	printf("%lu, %lu\n", sizeof(m), sizeof(m[0][0]));
-	int i = m[0][0];
-	for (i = 0; i < MAP_MAX; i++) {
-		m[i] = calloc(sizeof(short), 8196);
-		//printf("%ld\n", m[i]);
-	}
 	return PyLong_FromLong(1);
 }
 
@@ -37,5 +32,10 @@ static struct PyModuleDef speedupsmodule = {
 PyMODINIT_FUNC
 PyInit_t(void) {
 	printf("init!\n");
+	int i;
+	for (i = 0; i < MAP_MAX; i++) {
+		m[i] = calloc(sizeof(short), 8196*16);
+		//printf("%ld\n", m[i]);
+	}
 	return PyModule_Create(&speedupsmodule);
 }
