@@ -7,9 +7,9 @@ import collections
 class Grid(object):
     """
     >>> grid = Grid(3, 4)
-    >>> grid.broadcast(4)
-    [0, 1, 2, 3, 4, 5, 6, 7, 8]
-    >>> grid.alter(3, 4)[1] == {2, 5, 8}
+    >>> grid.broadcast(5)
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    >>> grid.alter(4, 5)[1] == {3, 6, 9}
     True
     """
     def __init__(self, w, h):
@@ -17,20 +17,20 @@ class Grid(object):
         self.h = h
         codes = {}
 
-        code = 0
+        code = 1
         for j in range(h):
             for i in range(w):
                 codes[(i, j)] = code
                 code += 1
 
-        units = [
+        units = [[]]
+        _ = [-1, 0, 1]
+        units.extend(
             [codes[(i + x, j + y)]
-             for y in range(-1, 2)
-             for x in range(-1, 2)
-             if (i + x, j + y) in codes]
+             for y in _ for x in _ if (i + x, j + y) in codes]
             for j in range(h)
             for i in range(w)
-        ]
+            )
 
         units_set = list(map(frozenset, units))
 
