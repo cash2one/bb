@@ -2,8 +2,8 @@
 
 import time
 
-from bb.const import ATTRIBUTES_LIST, ATTR
-from bb.inst import instructions, processes, handle, pre
+from bb.const import INSTRUCTIONS, ATTRIBUTES_LIST, ATTR
+from bb.inst import processes, handle, pre
 from bb.i import I, P, register_log_callback
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
@@ -24,7 +24,6 @@ def _echo_attr(key):
     return echo
 
 for idx, key in enumerate(ATTRIBUTES_LIST, ATTR):
-    instructions[key] = idx
     processes[idx] = _echo_attr(key)
 
 
@@ -67,5 +66,4 @@ def plus():
     for i in P.values():
         i.apply_gold(1, "plus")
 
-#print(instructions)
 #print(processes)

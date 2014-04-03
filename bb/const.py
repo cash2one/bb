@@ -24,12 +24,15 @@ assert len(_) == len(set(_))
 #print(ATTRIBUTES_LIST)
 
 PING = 0
-INST_LEN = len(INSTRUCTIONS_LIST)
 ONLINE = PING + INSTRUCTIONS_LIST.index("online")
-
 ATTR = 16  # head id of all attributes
+assert PING + len(INSTRUCTIONS_LIST) < ATTR
 
-assert PING + INST_LEN < ATTR
+INSTRUCTIONS = dict(zip(INSTRUCTIONS_LIST, range(PING, 2**16)))
+
+for idx, attr in enumerate(ATTRIBUTES_LIST, ATTR):
+    INSTRUCTIONS[attr] = idx
+
 
 STRUCT = "!HH"
 NULL = b'null'  # json format

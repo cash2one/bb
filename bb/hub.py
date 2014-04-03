@@ -33,15 +33,12 @@ def hub(Q_in, Q_out, Q_err):
     try:
         from .i import P
         from .msg import loads, dumps
-        from .const import PING, IDS, DEBUG_OUTPUT
+        from .const import INSTRUCTIONS, PING, DEBUG_OUTPUT
         from .exc import exc_map, exc_recorder
-        from .inst import processes, commands, instructions
+        from .inst import processes, commands
         from .srv import load_data, build_all, check_all, import_others
         import this
         this
-        #build_all(load_data(IDS, DB_HOST, DB_PORT))
-        #check_all()
-        #logging.info(len(P))
     except Exception:
         logging.exception("init error")
         _out(None)
@@ -88,7 +85,7 @@ def hub(Q_in, Q_out, Q_err):
                 _out([None, cmd, output])   # echo cmd and result(or error)
             else:
                 #cmd, data = loads(data)
-                #cmd, data = instructions[cmd], dumps(data)
+                #cmd, data = INSTRUCTIONS[cmd], dumps(data)
                 producer = processes[cmd]
                 try:
                     if producer:
@@ -105,7 +102,7 @@ def hub(Q_in, Q_out, Q_err):
                         if isinstance(x[0], int):
                             i, cmd, data = x
                             #cmd, data = "ping", [cmd, data]
-                            _out([i, instructions[cmd], dumps(data)])
+                            _out([i, INSTRUCTIONS[cmd], dumps(data)])
                         else:
                             _err(x)
         except Exception:
