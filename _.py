@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+python3 -OO -m cProfile -s cumtime _.py >profile.txt
+yes bag 1 | head -1000 | (./cli.py; sleep 3) | nc localhost 8000 >out
+"""
+
 if __name__ == "__main__":
     import collections
     import gc
