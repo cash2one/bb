@@ -31,7 +31,7 @@ ATTR = 16  # head id of all attributes
 
 assert PING + INST_LEN < ATTR
 
-FMT = "!HH"
+STRUCT = "!HH"
 NULL = b'null'  # json format
 
 DB_HOST = "localhost"

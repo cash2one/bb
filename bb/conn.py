@@ -60,13 +60,13 @@ def websocket(staffs, tokens, send=dummy_send):
 def tcp(staffs, tokens, send=dummy_send):
     import logging
     import re
-    from struct import pack, unpack
-
+    import struct
     from tornado.tcpserver import TCPServer
-
-    from .const import FMT, NULL, ONLINE
+    from .const import STRUCT, NULL, ONLINE
 
     head_match = re.compile(r'.*(\d+) (\w+)\r\n\r\n$', re.S).match
+    _struct = struct.Struct(STRUCT)
+    pack, unpack = _struct.pack, _struct.unpack
 
     class Connection(object):
         def __init__(self, stream, address):
@@ -102,7 +102,7 @@ def tcp(staffs, tokens, send=dummy_send):
         def send(self, cmd, data):
             stream = self.stream
             if not stream.closed():
-                stream.write(pack(FMT, len(data) + 2, cmd) + data)
+                stream.write(pack(len(data) + 2, cmd) + data)
 
         def logout(self):
             stream = self.stream
@@ -116,7 +116,7 @@ def tcp(staffs, tokens, send=dummy_send):
         def msg_head(self, chunk):
             stream = self.stream
             logging.debug("head: %s", chunk)
-            packet_size, instruction = unpack(FMT, chunk)
+            packet_size, instruction = unpack(chunk)
             logging.debug("%d, %d", packet_size, instruction)
             self.instruction = instruction
             if not stream.closed():
