@@ -8,7 +8,6 @@ from bb.i import I, P, register_log_callback
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
 public_attrs = {
-    "gold",
     "bag",
 }
 

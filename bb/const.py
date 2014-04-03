@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-_str_to_list = lambda raw: list(
+_str_to_list = lambda raw: tuple(
     filter(None, map(lambda s: s.strip(), raw.split())))
 
 INSTRUCTIONS_LIST = _str_to_list(
