@@ -47,11 +47,14 @@ if __name__ == "__main__":
 
     to_leader("reg")
 
-    pid = "bb.pid"
-    with open(pid, "w") as f: f.write(str(os.getpid()))
+    pidfile = "bb.pid"
+    pid = os.getpid()
+
+    print(pid)
+    with open(pidfile, "w") as f: f.write(str(pid))
 
     main(options)
 
-    if os.path.exists(pid): os.remove(pid)
+    if os.path.exists(pidfile): os.remove(pidfile)
 
     to_leader("quit")
