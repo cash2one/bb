@@ -87,6 +87,8 @@ def hub(Q_in, Q_out, Q_err):
                     logging.exception(v)
                 _out([None, cmd, output])   # echo cmd and result(or error)
             else:
+                #cmd, data = loads(data)
+                #cmd, data = instructions[cmd], dumps(data)
                 producer = processes[cmd]
                 try:
                     if producer:
@@ -102,6 +104,7 @@ def hub(Q_in, Q_out, Q_err):
                     for x in outs:
                         if isinstance(x[0], int):
                             i, cmd, data = x
+                            #cmd, data = "ping", [cmd, data]
                             _out([i, instructions[cmd], dumps(data)])
                         else:
                             _err(x)

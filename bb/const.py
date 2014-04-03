@@ -33,6 +33,7 @@ assert PING + INST_LEN < ATTR
 
 STRUCT = "!HH"
 NULL = b'null'  # json format
+#NULL = b'["online",null]'
 
 DB_HOST = "localhost"
 DB_PORT = 6379
