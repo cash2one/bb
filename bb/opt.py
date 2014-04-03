@@ -5,5 +5,5 @@ port = 8000
 backstage = 8100
 backdoor = 8200
 
-leader = "localhost:65535"
+leader = "localhost:65535" and ""
 
