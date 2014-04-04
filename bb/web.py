@@ -83,8 +83,8 @@ def main(options=opt):
     import signal
     def term(signal_number, stack_frame):
         logging.info("will exit")
-        Q1.put(None)
         io_loop.stop()
+        Q1.put(None)
         stop()
     signal.signal(signal.SIGTERM, term)
 
@@ -256,4 +256,8 @@ def main(options=opt):
         debug=__debug__,
         ).listen(options.backstage)
 
-    io_loop.start()   # looping...
+    try:
+        io_loop.start()   # looping...
+    except KeyboardInterrupt:
+        Q1.put(None)
+        stop()
