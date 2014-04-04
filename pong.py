@@ -12,7 +12,7 @@ public_attrs = {
     "bag",
 }
 
-@show.inout
+#@show.inout
 def _echo_attr(key):
     """echo only"""
     def echo(i, idx):
@@ -27,7 +27,7 @@ def _echo_attr(key):
 
 for idx, key in enumerate(ATTRIBUTES_LIST, ATTR):
     processes[idx] = _echo_attr(key)
-    show(idx, key)
+    #show(idx, key)
 
 
 @handle

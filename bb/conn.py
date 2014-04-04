@@ -116,16 +116,16 @@ def tcp(staffs, tokens, send=dummy_send):
 
         def msg_head(self, chunk):
             stream = self.stream
-            show(chunk)
+            #show(chunk)
             packet_size, instruction = unpack(chunk)
-            show(packet_size, instruction)
+            #show(packet_size, instruction)
             self.instruction = instruction
             if not stream.closed():
                 stream.read_bytes(packet_size - 2, self.msg_body)
 
         def msg_body(self, chunk):
             stream = self.stream
-            show(chunk)
+            #show(chunk)
             send([self.i, self.instruction, chunk or NULL])
             if not stream.closed():
                 stream.read_bytes(4, self.msg_head)
