@@ -63,6 +63,7 @@ def tcp(staffs, tokens, send=dummy_send):
     import struct
     from tornado.tcpserver import TCPServer
     from .const import STRUCT, NULL, ONLINE
+    from .dbg import show
 
     head_match = re.compile(r'.*(\d+) (\w+)\r\n\r\n$', re.S).match
     _struct = struct.Struct(STRUCT)
@@ -115,16 +116,16 @@ def tcp(staffs, tokens, send=dummy_send):
 
         def msg_head(self, chunk):
             stream = self.stream
-            logging.debug("head: %s", chunk)
+            show(chunk)
             packet_size, instruction = unpack(chunk)
-            logging.debug("%d, %d", packet_size, instruction)
+            show(packet_size, instruction)
             self.instruction = instruction
             if not stream.closed():
                 stream.read_bytes(packet_size - 2, self.msg_body)
 
         def msg_body(self, chunk):
             stream = self.stream
-            logging.debug("body: %s", chunk)
+            show(chunk)
             send([self.i, self.instruction, chunk or NULL])
             if not stream.closed():
                 stream.read_bytes(4, self.msg_head)

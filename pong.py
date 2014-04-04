@@ -5,12 +5,14 @@ import time
 from bb.const import INSTRUCTIONS, ATTRIBUTES_LIST, ATTR
 from bb.inst import processes, handle, pre
 from bb.i import I, P, register_log_callback
+from bb.dbg import show
 
 # everyone could checkout my attributes(in the PUBLIC_ATTRS)
 public_attrs = {
     "bag",
 }
 
+@show.inout
 def _echo_attr(key):
     """echo only"""
     def echo(i, idx):
@@ -25,6 +27,7 @@ def _echo_attr(key):
 
 for idx, key in enumerate(ATTRIBUTES_LIST, ATTR):
     processes[idx] = _echo_attr(key)
+    show(idx, key)
 
 
 @handle

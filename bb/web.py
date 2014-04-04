@@ -28,6 +28,7 @@ def main(options=opt):
 
     from .hub import hub
     from .log import log
+    from .dbg import show
 
     sub_procs = {}
 
@@ -108,7 +109,7 @@ def main(options=opt):
         def loop_msg():
             while True:
                 x = get()
-                logging.debug("msg from hub: %r", x)
+                show(x)
                 if x is None:
                     break
                 io_loop.add_callback(msg, *x)
