@@ -1,5 +1,8 @@
-$("li").mouseover(function() {
-    $.get("/hub_eval" + $(this).find("a").attr("href"), function(data) {
-        $("li").attr("title", data);  // todo: $("li") is bad
-    }, "text");
-});
+$(document).ready(function() {
+        $("a").mouseover(function() {
+            var a = $(this);
+            $.get("/hub_eval" + a.attr("href"), function(data) {
+                a.attr("title", data);
+                }, "text");
+            });
+        });

@@ -1,6 +1,8 @@
 {% include "_head.html" %}
 {# vim:se filetype=html.tornadotmpl: #}
 
+<script src="/static/show.js"></script>
+
 {% set name, dirs = mod_attrs %}
 {% set e = handler.expr %}
 {% set fmt = (e + ".{}" if e else "{}").format %}
@@ -17,4 +19,3 @@
     {% end %}
 </ul>
 
-<script src="/static/show.js"></script>
