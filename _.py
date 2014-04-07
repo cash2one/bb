@@ -51,16 +51,17 @@ if __name__ == "__main__":
                         print(k, v)
                         setattr(const, k, v)
 
-    to_leader("reg")
 
     pidfile = "bb.pid"
     pid = os.getpid()
 
+    if os.path.exists(pidfile): raise Warning(pidfile)
+
     print(pid)
     with open(pidfile, "w") as f: f.write(str(pid))
 
+    to_leader("reg")
     main(options)
+    to_leader("quit")
 
     if os.path.exists(pidfile): os.remove(pidfile)
-
-    to_leader("quit")
