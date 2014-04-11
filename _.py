@@ -52,16 +52,17 @@ if __name__ == "__main__":
                         setattr(const, k, v)
 
 
+    pidfile = "bb.pid"
+
     pid = os.getpid()
     print(pid)
 
-    pidfile = "bb.pid"
-
-    if os.path.exists(pidfile):
+    if not __debug__ and os.path.exists(pidfile):
         raise Warning(pidfile)
 
     if not os.environ.get("SUPERVISOR_ENABLED"):
-        with open(pidfile, "w") as f: f.write(str(pid))
+        with open(pidfile, "w") as f:
+            f.write(str(pid))
 
     to_leader("reg")
     main(options)
