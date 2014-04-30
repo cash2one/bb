@@ -7,10 +7,10 @@
 {% set e = handler.expr %}
 {% set fmt = (e + ".{}" if e else "{}").format %}
 
-<title>show</title>
+<title>{{ e }}</title>
 <h2><a href="/hub_show">Show</a></h2>
 
-<p><code>{{ e or "---" }}</code></p>
+<p><code>{{ e or "show" }}</code></p>
 <pre>{{ name }}</pre>
 
 <ul>
