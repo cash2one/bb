@@ -70,13 +70,13 @@ class I(dict):
     def i(self):
         return self._i
 
-    def bind(self, log:str, cb:str, extra:hash):
+    def listen(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
         assert self._hooks[cb].__code__.co_argcount == 5, cb
         self._listeners[log].add((cb, extra))
 
-    def unbind(self, log:str, cb:str, extra:hash):
+    def deafen(self, log:str, cb:str, extra:hash):
         if callable(cb):
             cb = cb.__name__
         assert self._hooks[cb].__code__.co_argcount == 5, cb
