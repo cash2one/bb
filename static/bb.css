@@ -1,25 +1,10 @@
 
 body {
     margin: 5% 5% 5% 5%;
-    background-color: linen;
-}
-
-code {
-    font-family: Monaco, Monospace;
 }
 
 a {
     text-decoration: none;
-}
-
-table {
-    font-family: Monospace;
-    font-size: 11px;
-    border-collapse:collapse;
-}
-
-table td {
-    border: 1px solid darkgray;
 }
 
 table td.I {
@@ -39,32 +24,8 @@ table td.f2 {
 }
 table td.f3 {
     font-family: Monaco, Monospace;
+    font-size: 11px;
     padding: 0% 2%;
     width: 100%;
 }
 
-/*
-select,
-input,
-textarea {
-	padding: 4px;
-	border: 1px solid #aaa;
-	border-radius: 1px;
-}
-
-select:hover,
-input:hover,
-textarea:hover {
-	outline: none;
-	border: 1px solid #dd212b;
-	box-shadow: 0 0 5px #ed1b24;
-}
-
-select:focus,
-input:focus,
-textarea:focus {
-	outline: none;
-	border: 1px solid #00bce9;
-	box-shadow: 0 0 5px #2da1ec;
-}
-*/
