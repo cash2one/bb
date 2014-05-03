@@ -219,7 +219,7 @@ def main(options=opt):
                 stop()
                 start()
             else:
-                raise HTTPError(404)
+                cmd += "???"
             return cmd, expr, callback
 
         def deal_echoed(self, echo):
