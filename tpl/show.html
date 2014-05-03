@@ -3,18 +3,17 @@
 
 <script src="/static/show.js"></script>
 
-{% set name, dirs = mod_attrs %}
-{% set e = handler.expr %}
-{% set fmt = (e + ".{}" if e else "{}").format %}
+{% set expr, cls, value, attrs = echo %}
+{% set fmt = (expr + ".{}" if expr else "{}").format %}
 
-<title>{{ e }}</title>
+<title>{{ expr }}</title>
 <h2><a href="/hub_show">Show</a></h2>
 
-<p><code>{{ e or "show" }}</code></p>
-<pre>{{ name }}</pre>
+<p><code>{{ expr }} {{ cls }}</code></p>
+<p><code>{{ value }}</code></p>
 
 <ul>
-    {% for k in sorted(dirs) %}
+    {% for k in sorted(attrs) %}
     <li><a href="?{{ fmt(k) }}">{{ k }}</a></li>
     {% end %}
 </ul>

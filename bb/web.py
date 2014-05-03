@@ -227,7 +227,7 @@ def main(options=opt):
                 self.set_header("Content-Type", "text/plain")
                 self.finish(echo)
             else:
-                self.render("show.html", mod_attrs=echo)
+                self.render("show.html", echo=echo)
 
     class FlushHubHandler(BaseHandler):
         def get(self):

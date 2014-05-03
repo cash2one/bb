@@ -89,7 +89,7 @@ def _show(expression):
     else:
         v = None
         s = list(sys.modules.keys())
-    return ["{}\n\n{}".format(str(type(v)), pprint.pformat(v)[:MAXLEN]), s]
+    return expression, str(type(v)), pprint.pformat(v)[:MAXLEN], s
 
 
 commands = {
