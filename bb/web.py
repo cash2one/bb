@@ -187,28 +187,40 @@ def main(options=opt):
             put([None, "update", [int(i), self.request.body.decode()]])
             logging.info("token_generation_2: %s, %r", i, t)
 
+    def prepare(method):
+        """for HubHandler"""
+        method = asynchronous(method)
+        @functools.wraps(method)
+        def wrapper(self, *args, **kwargs):
+            cmd, expr, callback = method(self, *args, **kwargs)
+            if callback:
+                http_callbacks.append(callback)
+                put([None, cmd, expr])
+            else:
+                self.finish(cmd)
+        return wrapper
 
     class HubHandler(BaseHandler):
-        @asynchronous
+        @prepare
         def get(self, cmd):
             """
             /hub_eval?
             /hub_show?
             """
             expr = unquote(self.request.query)
+            callback = None
             if cmd == "eval":
                 self.set_header("Content-Type", "application/json")
-                http_callbacks.append(self.finish)
+                callback = self.finish
             elif cmd == "show":
-                http_callbacks.append(self.deal_echoed)
+                callback = self.deal_echoed
             elif cmd == "reset":
+                http_callbacks.clear()
                 stop()
                 start()
-                return self.finish("reset")
             else:
                 raise HTTPError(404)
-            put([None, cmd, expr])
-            self.expr = expr
+            return cmd, expr, callback
 
         def deal_echoed(self, echo):
             if isinstance(echo, str) and echo.startswith("Traceback"):
