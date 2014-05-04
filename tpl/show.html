@@ -1,7 +1,7 @@
 {% include "_head.html" %}
 {# vim:se filetype=html.tornadotmpl: #}
 
-<script src="/static/show.js"></script>
+<script src="{{ static_url("show.js") }}"></script>
 
 {% set expr, cls, value, attrs = echo %}
 {% set fmt = (expr + ".{}" if expr else "{}").format %}
