@@ -67,9 +67,10 @@ def main(options=opt):
     staffs = weakref.WeakValueDictionary()
 
     from tornado import ioloop
+    from .const import TIME_FORMAT
 
     ioloop._Timeout.__repr__ = lambda self: "{} ({})  {}".format(
-        time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.deadline)),
+        time.strftime(TIME_FORMAT, time.localtime(self.deadline)),
         self.deadline,
         self.callback and self.callback.__doc__)
 
