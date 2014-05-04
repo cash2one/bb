@@ -96,7 +96,7 @@ def main(options=opt):
                 for i in wheels.values():
                     i.write(s)
             else:
-                http_callbacks.popleft()(data)
+                hub_todo.popleft()(data)
         else:
             s = staffs.get(i)
             if s:
@@ -140,7 +140,7 @@ def main(options=opt):
             """dummy"""
 
     import collections
-    http_callbacks = collections.deque()
+    hub_todo = collections.deque()
 
 
     class MainHandler(BaseHandler):
@@ -189,19 +189,18 @@ def main(options=opt):
 
     def prepare(method):
         """for HubHandler"""
-        method = asynchronous(method)
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
-            cmd, expr, callback = method(self, *args, **kwargs)
-            if callback:
-                http_callbacks.append(callback)
+            todo = method(self, *args, **kwargs)
+            if todo:
+                cmd, expr, callback = todo
+                hub_todo.append(callback)
                 put([None, cmd, expr])
-            else:
-                self.finish(cmd)
         return wrapper
 
     class HubHandler(BaseHandler):
         @prepare
+        @asynchronous
         def get(self, cmd):
             """
             /hub_eval?
@@ -215,11 +214,12 @@ def main(options=opt):
             elif cmd == "show":
                 callback = self.deal_echoed
             elif cmd == "reset":
-                http_callbacks.clear()
+                hub_todo.clear()
                 stop()
                 start()
+                return self.finish(cmd)
             else:
-                cmd += "???"
+                raise HTTPError(404)
             return cmd, expr, callback
 
         def deal_echoed(self, echo):
