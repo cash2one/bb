@@ -65,7 +65,6 @@ def main(options=opt):
     import functools
 
     staffs = weakref.WeakValueDictionary()
-    wheels = weakref.WeakValueDictionary()
 
     from tornado import ioloop
 
@@ -91,12 +90,7 @@ def main(options=opt):
 
     def msg(i, cmd, data):
         if i is None:
-            if cmd == "shell":
-                s = data.encode()
-                for i in wheels.values():
-                    i.write(s)
-            else:
-                hub_todo.popleft()(data)
+            hub_todo.popleft()(data)
         else:
             s = staffs.get(i)
             if s:
@@ -187,8 +181,7 @@ def main(options=opt):
             put([None, "update", [int(i), self.request.body.decode()]])
             logging.info("token_generation_2: %s, %r", i, t)
 
-    def prepare(method):
-        """for HubHandler"""
+    def to_hub(method):
         @functools.wraps(method)
         def wrapper(self, *args, **kwargs):
             todo = method(self, *args, **kwargs)
@@ -199,7 +192,7 @@ def main(options=opt):
         return wrapper
 
     class HubHandler(BaseHandler):
-        @prepare
+        @to_hub
         @asynchronous
         def get(self, cmd):
             """
@@ -246,7 +239,7 @@ def main(options=opt):
     from .conn import tcp, websocket, backdoor
 
     tcp(staffs, tokens, put)().listen(options.port)
-    backdoor(wheels, put)().listen(options.backdoor)#, "localhost")
+    backdoor(to_hub)().listen(options.backdoor)#, "localhost")
 
     from tornado import autoreload
     autoreload.add_reload_hook(stop)  # i like autoreload now :)
