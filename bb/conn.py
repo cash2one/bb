@@ -138,25 +138,30 @@ def tcp(staffs, tokens, send=dummy_send):
 
 
 def backdoor(todo_decorator):
+    import logging
     from tornado.tcpserver import TCPServer
     from time import strftime
     from .const import TIME_FORMAT
-    start_time = strftime(TIME_FORMAT)
+    welcome = (strftime(TIME_FORMAT) + "\n{}\n>>> ").format
+    fmt_log_input = "shell input: {!r}".format
+    fmt_log_output = "shell output: {!r}".format
 
     class Connection(object):
         def __init__(self, stream, address):
             stream.set_close_callback(stream.close)
-            stream.write("{}\n{}\n>>> ".format(
-                start_time, strftime(TIME_FORMAT)).encode())
+            stream.write(welcome(strftime(TIME_FORMAT)).encode())
             stream.read_until(b'\n', self.handle_input)
             self.stream = stream
 
         @todo_decorator
         def handle_input(self, line):
+            source = line.decode()
+            logging.info(fmt_log_input(source))
             self.stream.read_until(b'\n', self.handle_input)
-            return "shell", line.decode(), self.output
+            return "shell", source, self.output
 
         def output(self, result):
+            logging.info(fmt_log_output(result))
             self.stream.write(result.encode())
 
     class Server(TCPServer):
