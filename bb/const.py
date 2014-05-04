@@ -44,3 +44,5 @@ IDS = list(range(1, 10))
 WORLD = "dummy_world"
 
 DEBUG_OUTPUT = "debug.log"
+
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S"

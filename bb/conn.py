@@ -140,15 +140,15 @@ def tcp(staffs, tokens, send=dummy_send):
 def backdoor(staffs, send=dummy_send):
     from tornado.tcpserver import TCPServer
     from time import strftime
-    TIME = "%Y-%m-%d %H:%M:%S"
-    start_time = strftime(TIME)
+    from .const import TIME_FORMAT
+    start_time = strftime(TIME_FORMAT)
 
     class Connection(object):
         def __init__(self, stream, address):
             staffs[address] = stream
             stream.set_close_callback(stream.close)
             stream.write("{}\n{}\n>>> ".format(
-                start_time, strftime(TIME)).encode())
+                start_time, strftime(TIME_FORMAT)).encode())
             stream.read_until(b'\n', self.handle_input)
             self.stream = stream
 
