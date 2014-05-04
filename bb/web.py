@@ -118,9 +118,9 @@ def main(options=opt):
     from urllib.parse import unquote
     from tornado.web import RequestHandler, Application, HTTPError, asynchronous
     from .const import PING, NULL, DEBUG_OUTPUT
-    from .oc import record, recorder
 
     if __debug__:
+        from .oc import record, recorder
         ioloop.PeriodicCallback(record, 3000).start()
         ioloop.PeriodicCallback(
             lambda: tokens.update(dict.fromkeys(range(100), "token")),
@@ -164,6 +164,8 @@ def main(options=opt):
 
     class StatusHandler(BaseHandler):
         def get(self):
+            if not __debug__:
+                return
             self.render("status.html", recorder=recorder)
 
 
