@@ -1,10 +1,10 @@
 $(document).ready(function() {
-    $("ul").children().children().on("mouseover", function() {
-        var a = $(this);
-        if (!a.attr("title")) {
-            a.off("mouseover");
-            $.get("/hub_eval" + a.attr("href"), function(data) {
-                a.attr("title", data);
+    $("ul li a").one("mouseover", function(event) {
+        var $a = $(this);
+        console.log(event);
+        if (!$a.attr("title")) {
+            $.get("/hub_eval" + $a.attr("href"), function(data) {
+                $a.attr("title", data);
             }, "text");
         }
     });
