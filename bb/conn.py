@@ -156,11 +156,12 @@ def backdoor(coroutine):
         @coroutine
         def handle_input(self, line):
             source = line.decode()
+            stream = self.stream
             logging.info(fmt_log_input(source))
-            self.stream.read_until(b'\n', self.handle_input)
+            stream.read_until(b'\n', self.handle_input)
             result = yield "shell", source
             logging.info(fmt_log_output(result))
-            self.stream.write(result.encode())
+            stream.write(result.encode())
 
     class Server(TCPServer):
         def handle_stream(self, stream, address):
