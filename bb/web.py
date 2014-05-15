@@ -187,15 +187,6 @@ def main(options=opt):
             put([None, "update", [int(i), self.request.body.decode()]])
             logging.info("token_generation_2: %s, %r", i, t)
 
-    def to_hub(method):
-        @functools.wraps(method)
-        def wrapper(self, *args, **kwargs):
-            todo = method(self, *args, **kwargs)
-            if todo:
-                cmd, expr, callback = todo
-                hub_todo.append(callback)
-                put([None, cmd, expr])
-        return wrapper
 
     def hub_coroutine(method):
         @functools.wraps(method)
@@ -210,7 +201,7 @@ def main(options=opt):
         return wrapper
 
     class HubHandler(BaseHandler):
-        @to_hub
+        @hub_coroutine
         @asynchronous
         def get(self, cmd):
             """
@@ -221,24 +212,22 @@ def main(options=opt):
             callback = None
             if cmd == "eval":
                 self.set_header("Content-Type", "application/json")
-                callback = self.finish
+                self.finish((yield cmd, expr))
             elif cmd == "show":
-                callback = self.deal_echoed
+                echo = yield cmd, expr
+                if isinstance(echo, str) and echo.startswith("Traceback"):
+                    self.set_header("Content-Type", "text/plain")
+                    self.finish(echo)
+                else:
+                    self.render("show.html", echo=echo)
             elif cmd == "reset":
                 hub_todo.clear()
                 stop()
                 start()
-                return self.finish(cmd)
+                self.finish(cmd)
             else:
                 raise HTTPError(404)
-            return cmd, expr, callback
 
-        def deal_echoed(self, echo):
-            if isinstance(echo, str) and echo.startswith("Traceback"):
-                self.set_header("Content-Type", "text/plain")
-                self.finish(echo)
-            else:
-                self.render("show.html", echo=echo)
 
     class FlushHubHandler(BaseHandler):
         def get(self):
