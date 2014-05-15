@@ -91,7 +91,10 @@ def main(options=opt):
 
     def msg(i, cmd, data):
         if i is None:
-            hub_todo.popleft()(data)
+            try:
+                hub_todo.popleft()(data)
+            except StopIteration:
+                pass
         else:
             s = staffs.get(i)
             if s:
@@ -194,6 +197,18 @@ def main(options=opt):
                 put([None, cmd, expr])
         return wrapper
 
+    def hub_coroutine(method):
+        @functools.wraps(method)
+        def wrapper(self, *args, **kwargs):
+            generator = method(self, *args, **kwargs)
+            try:
+                cmd, expr = next(generator)
+                hub_todo.append(generator.send)
+                put([None, cmd, expr])
+            except StopIteration:
+                pass
+        return wrapper
+
     class HubHandler(BaseHandler):
         @to_hub
         @asynchronous
@@ -242,7 +257,7 @@ def main(options=opt):
     from .conn import tcp, websocket, backdoor
 
     tcp(staffs, tokens, put)().listen(options.port)
-    backdoor(to_hub)().listen(options.backdoor)#, "localhost")
+    backdoor(hub_coroutine)().listen(options.backdoor)#, "localhost")
 
     from tornado import autoreload
     autoreload.add_reload_hook(stop)  # i like autoreload now :)

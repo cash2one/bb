@@ -137,7 +137,7 @@ def tcp(staffs, tokens, send=dummy_send):
     return Server
 
 
-def backdoor(todo_decorator):
+def backdoor(coroutine):
     import logging
     from tornado.tcpserver import TCPServer
     from time import strftime
@@ -153,14 +153,12 @@ def backdoor(todo_decorator):
             stream.read_until(b'\n', self.handle_input)
             self.stream = stream
 
-        @todo_decorator
+        @coroutine
         def handle_input(self, line):
             source = line.decode()
             logging.info(fmt_log_input(source))
             self.stream.read_until(b'\n', self.handle_input)
-            return "shell", source, self.output
-
-        def output(self, result):
+            result = yield "shell", source
             logging.info(fmt_log_output(result))
             self.stream.write(result.encode())
 
