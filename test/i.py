@@ -60,29 +60,29 @@ class TestI(unittest.TestCase):
 
     def test_bind(self):
         i = self.i
-        i.bind("go", cb_test, None)
+        i.listen("go", cb_test, None)
         self.assertEqual(i._listeners["go"], {("cb_test", None)})
-        i.bind("go", "cb_test", (1, 2, 3, 4, 5))
+        i.listen("go", "cb_test", (1, 2, 3, 4, 5))
         self.assertEqual(i._listeners["go"],
                          {("cb_test", None), ("cb_test", (1, 2, 3, 4, 5))})
 
     def test_unbind(self):
         i = self.i
-        i.bind("go", "cb_test", None)
+        i.listen("go", "cb_test", None)
         self.assertEqual(len(i._listeners["go"]), 1)
-        i.unbind("go", cb_test, None)
+        i.deafen("go", cb_test, None)
         self.assertEqual(len(i._listeners["go"]), 0)
 
     def test_bind_repeated(self):
         i = self.i
         for _  in range(100):
-            i.bind("go", "cb_test", None)
+            i.listen("go", "cb_test", None)
         self.assertEqual(i._listeners["go"], {("cb_test", None)})
 
     def test_unbind_not_exist(self):
         i = self.i
         for _  in range(100):
-            i.unbind("go", "cb_test", None)
+            i.deafen("go", "cb_test", None)
         self.assertEqual(len(i._listeners["go"]), 0)
 
     def test_send(self):
@@ -106,7 +106,7 @@ class TestI(unittest.TestCase):
     def test_log(self):
         i = self.i
         N = 10
-        i.bind("jump", "cb_test", None)
+        i.listen("jump", "cb_test", None)
         for _ in range(N):
             i.log("jump")
         self.assertEqual(len(i._cache), N)
