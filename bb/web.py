@@ -209,7 +209,6 @@ def main(options=opt):
             /hub_show?
             """
             expr = unquote(self.request.query)
-            callback = None
             if cmd == "eval":
                 self.set_header("Content-Type", "application/json")
                 self.finish((yield cmd, expr))
