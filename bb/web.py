@@ -184,7 +184,6 @@ def main(options=opt):
         def post(self):
             i, t = self.request.query.split(".", 1)
             tokens[int(i)] = t
-            put([None, "update", [int(i), self.request.body.decode()]])
             logging.info("token_generation_2: %s, %r", i, t)
 
 
