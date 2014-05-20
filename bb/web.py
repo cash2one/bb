@@ -7,9 +7,8 @@ Web            Hub --->Q2---> Log
 
 """
 
-from bb import opt
 
-def main(options=opt):
+def main(options):
 
     import logging
     from multiprocessing import Process
