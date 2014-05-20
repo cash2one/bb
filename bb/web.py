@@ -128,17 +128,26 @@ def main(options):
             lambda: tokens.update(dict.fromkeys(range(100), "token")),
             1000).start()
 
+    import collections
+    hub_todo = collections.deque()
+
+    def hub_coroutine(method):
+        @functools.wraps(method)
+        def wrapper(self, *args, **kwargs):
+            generator = method(self, *args, **kwargs)
+            try:
+                cmd, expr = next(generator)
+                hub_todo.append(generator.send)
+                put([None, cmd, expr])
+            except StopIteration:
+                pass
+        return wrapper
+
+
     class BaseHandler(RequestHandler):
         @property
         def browser(self):
             return self.request.host[-1].isalpha()
-
-        def get(self):
-            """dummy"""
-
-    import collections
-    hub_todo = collections.deque()
-
 
     class MainHandler(BaseHandler):
         def get(self):
@@ -147,7 +156,6 @@ def main(options):
             cmd = unquote(self.request.query)
             result = repr(eval(cmd, None, sys.modules)) if cmd else ""
             self.render("index.html", cmd=cmd, result=result)
-
 
     class IOHistoryHandler(BaseHandler):
         def get(self):
@@ -163,40 +171,19 @@ def main(options):
             self.render("history.html", page=page, pages=pages,
                         history=history)
 
-
     class StatusHandler(BaseHandler):
         def get(self):
             if not __debug__:
                 return
             self.render("status.html", recorder=recorder)
 
-
     class TokenUpdateHandler(BaseHandler):
         def get(self):
             """
-            /token?1.key
+            /token?10001.key
             """
             i, t = self.request.query.split(".", 1)
             tokens[int(i)] = t
-            logging.info("token_generation_1: %s, %r", i, t)
-
-        def post(self):
-            i, t = self.request.query.split(".", 1)
-            tokens[int(i)] = t
-            logging.info("token_generation_2: %s, %r", i, t)
-
-
-    def hub_coroutine(method):
-        @functools.wraps(method)
-        def wrapper(self, *args, **kwargs):
-            generator = method(self, *args, **kwargs)
-            try:
-                cmd, expr = next(generator)
-                hub_todo.append(generator.send)
-                put([None, cmd, expr])
-            except StopIteration:
-                pass
-        return wrapper
 
     class HubHandler(BaseHandler):
         @hub_coroutine
@@ -226,20 +213,6 @@ def main(options):
                 raise HTTPError(404)
 
 
-    class FlushHubHandler(BaseHandler):
-        def get(self):
-            """flush all in P, proxy via P[0]
-            /flush
-            /flush?3
-            """
-            i = self.request.query
-            put([int(i) if i.isdigit() else 0, PING, NULL])
-
-    class DummyIHandler(BaseHandler):
-        def get(self, i):
-            cmd, msg = unquote(self.request.query).split(".", 1)
-            put([int(i), int(cmd), msg])
-
     from .conn import tcp, websocket, backdoor
 
     tcp(staffs, tokens, put)().listen(options.port)
@@ -250,15 +223,11 @@ def main(options):
 
     Application(
         [
-            (r"/dummy", BaseHandler),
             (r"/", MainHandler),
-            (r"/token", TokenUpdateHandler),
-            (r"/flush", FlushHubHandler),
-            (r"/ws", websocket(staffs, tokens, put)),
             (r"/io", IOHistoryHandler),
             (r"/status", StatusHandler),
             (r"/hub_(.*)", HubHandler),
-            (r"/(\d+)", DummyIHandler),
+            (r"/token", TokenUpdateHandler),
         ],
         static_path="static",
         template_path="tpl",
