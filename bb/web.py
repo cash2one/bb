@@ -58,15 +58,19 @@ def main(options):
     start()
 
     # main from here
+    import collections
+    import functools
+    import signal
     import sys
     import time
+    import urllib.parse
     import weakref
-    import functools
 
-    staffs = weakref.WeakValueDictionary()
+    from tornado import ioloop, web, autoreload
 
-    from tornado import ioloop
-    from .const import TIME_FORMAT
+    from .conn import tcp, websocket, backdoor
+    from .const import TIME_FORMAT, PING, NULL, DEBUG_OUTPUT
+    from .oc import record, recorder
 
     ioloop._Timeout.__repr__ = lambda self: "{} ({})  {}".format(
         time.strftime(TIME_FORMAT, time.localtime(self.deadline)),
@@ -76,16 +80,18 @@ def main(options):
     io_loop = ioloop.IOLoop.instance()
 
     tokens = {}
+    staffs = weakref.WeakValueDictionary()
+    hub_todo = collections.deque()
 
 
     # SIGTERM
-    import signal
-    def term(signal_number, stack_frame):
+    def _term(signal_number, stack_frame):
         logging.info("will exit")
         io_loop.stop()
         Q1.put(None)
         stop()
-    signal.signal(signal.SIGTERM, term)
+
+    signal.signal(signal.SIGTERM, _term)
 
 
     def msg(i, cmd, data):
@@ -117,19 +123,12 @@ def main(options):
                             io_loop.READ)
 
 
-    from urllib.parse import unquote
-    from tornado.web import RequestHandler, Application, HTTPError, asynchronous
-    from .const import PING, NULL, DEBUG_OUTPUT
-
     if __debug__:
-        from .oc import record, recorder
         ioloop.PeriodicCallback(record, 3000).start()
         ioloop.PeriodicCallback(
             lambda: tokens.update(dict.fromkeys(range(100), "token")),
             1000).start()
 
-    import collections
-    hub_todo = collections.deque()
 
     def hub_coroutine(method):
         @functools.wraps(method)
@@ -144,16 +143,14 @@ def main(options):
         return wrapper
 
 
-    class BaseHandler(RequestHandler):
+    class BaseHandler(web.RequestHandler):
         @property
         def browser(self):
             return self.request.host[-1].isalpha()
 
     class MainHandler(BaseHandler):
         def get(self):
-            """
-            """
-            cmd = unquote(self.request.query)
+            cmd = urllib.parse.unquote(self.request.query)
             result = repr(eval(cmd, None, sys.modules)) if cmd else ""
             self.render("index.html", cmd=cmd, result=result)
 
@@ -187,13 +184,13 @@ def main(options):
 
     class HubHandler(BaseHandler):
         @hub_coroutine
-        @asynchronous
+        @web.asynchronous
         def get(self, cmd):
             """
             /hub_eval?
             /hub_show?
             """
-            expr = unquote(self.request.query)
+            expr = urllib.parse.unquote(self.request.query)
             if cmd == "eval":
                 self.set_header("Content-Type", "application/json")
                 self.finish((yield cmd, expr))
@@ -210,18 +207,16 @@ def main(options):
                 start()
                 self.finish(cmd)
             else:
-                raise HTTPError(404)
+                raise web.HTTPError(404)
 
 
-    from .conn import tcp, websocket, backdoor
 
     tcp(staffs, tokens, put)().listen(options.port)
     backdoor(hub_coroutine)().listen(options.backdoor)#, "localhost")
 
-    from tornado import autoreload
     autoreload.add_reload_hook(stop)  # i like autoreload now :)
 
-    Application(
+    web.Application(
         [
             (r"/", MainHandler),
             (r"/io", IOHistoryHandler),
