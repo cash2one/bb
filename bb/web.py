@@ -16,7 +16,7 @@ def main(options):
 
     if __debug__:
         from queue import Queue, Queue as SimpleQueue
-        from threading import Thread as Process
+        from threading import Thread, Thread as Process
         from datetime import timedelta
         delay = timedelta(milliseconds=300)
 
@@ -116,7 +116,7 @@ def main(options):
                 if x is None:
                     break
                 io_loop.add_callback(msg, *x)
-        Process(target=loop_msg, args=()).start()
+        Thread(target=loop_msg).start()
     else:
         io_loop.add_handler(Q1._reader.fileno(),
                             lambda _,__: msg(*get()),
