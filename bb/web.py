@@ -225,7 +225,7 @@ def main(options):
             (r"/token", TokenUpdateHandler),
         ],
         static_path="static",
-        template_path="tpl",
+        template_path="templates",
         debug=__debug__,
         ).listen(options.backstage)
 
