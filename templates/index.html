@@ -1,7 +1,14 @@
-{% include "_head.html" %}
 {# vim:se filetype=html.tornadotmpl: #}
+{% extends "base.html" %}
+
+{% block head %}
 
 <title>bb</title>
+
+{% end %}
+
+
+{% block body %}
 
 <a class="pure-button" href="/status" target="_blank">Status</a>
 <a class="pure-button" href="/io" target="_blank">IO</a>
@@ -11,3 +18,4 @@
 <p>{{ cmd }}</p>
 <p>{{ result }}</p>
 
+{% end %}
