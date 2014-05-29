@@ -1,12 +1,22 @@
-{% include "_head.html" %}
 {# vim:se filetype=html.tornadotmpl: #}
+{% extends "base.html" %}
+
+
+{% block head %}
+
+{% set expr, *_ = echo %}
 
 <script src="{{ static_url("show.js") }}"></script>
+<title>{{ expr }}</title>
 
-{% set expr, cls, value, attrs = echo %}
+{% end %}
+
+
+{% block body %}
+
+{% set _, cls, value, attrs = echo %}
 {% set fmt = (expr + ".{}" if expr else "{}").format %}
 
-<title>{{ expr }}</title>
 <h2><a href="/hub_show">Show</a></h2>
 
 <p><code>{{ expr }} {{ cls }}</code></p>
@@ -18,3 +28,4 @@
     {% end %}
 </ul>
 
+{% end %}

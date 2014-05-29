@@ -1,7 +1,13 @@
-{% include "_head.html" %}
 {# vim:se filetype=html.tornadotmpl: #}
+{% extends "base.html" %}
 
+
+{% block head %}
 <title>History</title>
+{% end %}
+
+
+{% block body %}
 
 <table class="pure-table pure-table-bordered">
     <tbody>
@@ -29,4 +35,6 @@
     {{ i }}
     {% end %}
 </a>
+{% end %}
+
 {% end %}

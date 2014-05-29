@@ -1,7 +1,14 @@
-{% include "_head.html" %}
 {# vim:se filetype=html.tornadotmpl: #}
+{% extends "base.html" %}
+
+{% block head %}
 
 <title>HUB</title>
+
+{% end %}
+
+
+{% block body %}
 
 <fieldset>
     <legend><h2>To hub</h2></legend>
@@ -28,3 +35,5 @@
     <pre>{{ e }}</pre>
     {% end %}
 </fieldset>
+
+{% end %}
