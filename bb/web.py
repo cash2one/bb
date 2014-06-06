@@ -97,10 +97,7 @@ def main(options):
 
     def msg(i, cmd, data):
         if i is None:
-            try:
-                hub_todo.popleft()(data)
-            except StopIteration:
-                pass
+            hub_todo.popleft()(data)
         else:
             s = staffs.get(i)
             if s:
@@ -133,14 +130,26 @@ def main(options):
 
     def hub_coroutine(method):
         @functools.wraps(method)
-        def wrapper(self, *args, **kwargs):
-            generator = method(self, *args, **kwargs)
+        def wrapper(*args, **kwargs):
+            generator = method(*args, **kwargs)
             try:
                 cmd, expr = next(generator)
-                hub_todo.append(generator.send)
-                put([None, cmd, expr])
             except StopIteration:
-                pass
+                return  # all is done
+
+            # at here, continue iter this generator
+            def _register(c, e):
+                hub_todo.append(_task)
+                put([None, c, e])
+
+            def _task(echo_from_hub):
+                try:
+                    _register(*generator.send(echo_from_hub))  # abbreviation
+                except StopIteration:
+                    return
+
+            _register(cmd, expr)
+
         return wrapper
 
 
@@ -194,6 +203,7 @@ def main(options):
             expr = urllib.parse.unquote(self.request.query)
             if cmd == "eval":
                 self.set_header("Content-Type", "application/json")
+                yield cmd, expr  # test multi-yield
                 self.finish((yield cmd, expr))
             elif cmd == "show":
                 echo = yield cmd, expr
