@@ -68,6 +68,7 @@ def main(options):
 
     from tornado import ioloop, web, autoreload
 
+    from . import ui_modules
     from .conn import tcp, websocket, backdoor
     from .const import TIME_FORMAT, PING, NULL, DEBUG_OUTPUT
     from .oc import record, recorder
@@ -226,6 +227,7 @@ def main(options):
         ],
         static_path="static",
         template_path="templates",
+        ui_modules=ui_modules,
         debug=__debug__,
         ).listen(options.backstage)
 

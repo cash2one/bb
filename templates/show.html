@@ -6,7 +6,6 @@
 
 {% set expr, *_ = echo %}
 
-<script src="{{ static_url("show.js") }}"></script>
 <title>{{ expr }}</title>
 
 {% end %}
@@ -24,7 +23,7 @@
 
 <ul>
     {% for k in sorted(attrs) %}
-    <li><a href="?{{ fmt(k) }}">{{ k }}</a></li>
+    <li>{% module PyObjAttr(name=k, qualname=fmt(k)) %}</li>
     {% end %}
 </ul>
 
