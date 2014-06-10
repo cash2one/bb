@@ -1,0 +1,17 @@
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[unix_http_server]
+file=.supervisor.sock
+
+[supervisorctl]
+serverurl=unix://.supervisor.sock
+
+[supervisord]
+pidfile=.supervisord.pid
+logfile=.supervisord.log
+
+[program:foo]
+command=cat
+stdout_logfile=.%(program_name)s.out
+stderr_logfile=.%(program_name)s.err
