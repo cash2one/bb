@@ -1,11 +1,12 @@
 $(document).ready(function() {
     $("ul li a").one("mouseover", function(event) {
         var $a = $(this);
-        console.log(event);
-        if (!$a.attr("title")) {
-            $.get("/hub_eval" + $a.attr("href"), function(data) {
+        $.ajax({
+            url: "/hub_eval" + $a.attr("href"),
+            dataType: "text",
+            success: function(data) {
                 $a.attr("title", data);
-            }, "text");
-        }
+            },
+        });
     });
 });
