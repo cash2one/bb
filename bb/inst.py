@@ -50,37 +50,12 @@ def pre(types=None, value_checker=None):
 
 
 
-
 import pprint
 import sys
 
 from .i import I, P
-from .bd import BackdoorShell
+from .bd import Shell
 from .msg import dump3
-
-shell = BackdoorShell()
-
-def _beginner(i, name):
-    if i in P:
-        raise KeyError("%d in P" % i)
-    P[i] = I(i, {"name": name})
-    return i
-
-def _amend(i, k, v):
-    _i = P[i]
-    wrap = I._wrappers.get(k)
-    v_new = wrap(v) if wrap else v
-    v_old = _i.get(k)
-    if k in I._defaults:
-        v_old = _i[k]
-        t_old, t_new = type(v_old), type(v_new)
-        if t_old != t_new:
-            raise ValueError("%s vs %s" % (t_old, t_new))
-    _i[k] = v_new
-    return i, k, v_old, v_new
-
-
-MAXLEN = 100 * 1024  # could be changed via backdoor or web
 
 def _show(expression):
     if expression:
@@ -91,10 +66,19 @@ def _show(expression):
         s = list(sys.modules.keys())
     return expression, str(type(v)), pprint.pformat(v)[:MAXLEN], s
 
+shell = Shell()
+MAXLEN = 100 * 1024  # could be changed via backdoor or web
+
+def _shell(input):
+    output = shell.push(input)
+    if output is None:
+        return "... "
+    else:
+        return output[:MAXLEN] + ">>> "
 
 commands = {
-    "shell": lambda line: shell.push(line),
-    "show": lambda exp: _show(exp),
+    "shell": _shell,
+    "show": _show,
     "eval": lambda exp: dump3(eval(exp, None, sys.modules) if exp else None),
 }
 
