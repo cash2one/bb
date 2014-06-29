@@ -49,9 +49,11 @@ if __name__ == "__main__":
     import doctest
     doctest.testmod()
 
+    import collections
     import gc
-    import weakref
+    import json
     import urllib.parse
+    import weakref
 
     from tornado.ioloop import IOLoop, PeriodicCallback
     from tornado.tcpserver import TCPServer
@@ -86,16 +88,19 @@ if __name__ == "__main__":
             Connection(stream, address)
 
     class Handler(RequestHandler):
-        shell = Shell()  # global
-        def get(self):
-            cmd = urllib.parse.unquote(self.request.query)
-            self.write(self.shell.push(cmd))
+        shells = collections.defaultdict(Shell)
+        def get(self, name):
+            sh = self.shells[name]
+            input = urllib.parse.unquote(self.request.query)
+            output = json.dumps(sh.push(input))
+            self.write(output)
+            print(sh, input, output)
 
     Backdoor().listen(9527)
 
     Application([
-        ("/", Handler),
-    ]).listen(8000)
+        (r"/(.*)", Handler),
+    ]).listen(8100)
 
     def record():
         #gc.collect()
