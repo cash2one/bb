@@ -5,6 +5,10 @@ r"""
 '7\n'
 >>> sh.push("list(range(5))")
 '[0, 1, 2, 3, 4]\n'
+>>> sh.push("")
+''
+>>> sh.push("")
+''
 >>> sh.push("if True:")
 >>> sh.push("    1")
 >>> sh.push("    2")
@@ -52,18 +56,30 @@ if __name__ == "__main__":
     import collections
     import gc
     import json
+    import logging
+    import logging.handlers
     import urllib.parse
     import weakref
 
+    from tornado.log import LogFormatter
     from tornado.ioloop import IOLoop, PeriodicCallback
+    from tornado.options import parse_command_line
     from tornado.tcpserver import TCPServer
     from tornado.web import RequestHandler, Application
 
     gc.disable()
+    parse_command_line()
 
     connections = weakref.WeakValueDictionary()
 
     MAXLEN = 80 * 25 * 3
+
+    log_handler = logging.handlers.TimedRotatingFileHandler('logs/hist', 'D', 1)
+    log_handler.setFormatter(LogFormatter(0))
+    shell_log = logging.getLogger("shell")
+    shell_log.setLevel(logging.INFO)
+    shell_log.addHandler(log_handler)
+    shell_log.propagate = False
 
     class Connection(object):
         shell = Shell()  # global
@@ -79,7 +95,7 @@ if __name__ == "__main__":
             if output is None:  # more
                 stream.write(b'... ')
             else:
-                stream.write(output.encode()[:MAXLEN])
+                stream.write(output[:MAXLEN].replace("\n", "\r\n").encode())
                 stream.write(b'>>> ')
             stream.read_until(b'\n', self.handle_input)
 
@@ -89,23 +105,41 @@ if __name__ == "__main__":
 
     class Handler(RequestHandler):
         shells = collections.defaultdict(Shell)
-        def get(self, name):
-            sh = self.shells[name]
-            input = urllib.parse.unquote(self.request.query)
-            output = json.dumps(sh.push(input))
-            self.write(output)
-            print(sh, input, output)
+        def get(self):
+            self.render("index.html")
 
-    Backdoor().listen(9527)
+    class ShellHandler(Handler):
+        def get(self, name):
+            self.render("shell.html")
+        def post(self, name):
+            sh = self.shells[name]
+            input = urllib.parse.unquote(self.request.body.decode())
+            shell_log.info(input)
+            output = sh.push(input)
+            self.write(json.dumps(output))
+
+    Backdoor().listen(8200)
 
     Application([
-        (r"/(.*)", Handler),
-    ]).listen(8100)
+        (r"/(.+)", ShellHandler),
+        (r"/", Handler),
+    ], static_path="s", template_path="t", debug=1).listen(8100)
 
     def record():
         #gc.collect()
         print(sys.getrefcount(Connection))
     #PeriodicCallback(record, 1000).start()
+
+    def _deny():
+        import sys
+        import builtins
+        def dummy(*args, **kwargs):
+            raise NotImplementedError
+        sys.exit = dummy
+        builtins.exit = dummy
+        builtins.quit = dummy
+        builtins.input = dummy
+    _deny()
 
     IOLoop.instance().start()
 
